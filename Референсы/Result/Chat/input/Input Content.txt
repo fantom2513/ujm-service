@@ -1,0 +1,541 @@
+/* Input Content */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 12px 16px;
+gap: 8px;
+isolation: isolate;
+
+width: 392px;
+height: 112px;
+
+/* Peak/Peak */
+background: #FFFFFF;
+/* Secondary/Secondary 70 */
+border: 1px solid rgba(24, 77, 229, 0.7);
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Scrollbar / Default
+
+<p>Добавьте над контентом, настройте Height и Right padding</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: flex-end;
+align-items: flex-end;
+padding: 14px 6px 4px 0px;
+
+position: absolute;
+display: none;
+width: 14px;
+height: 72px;
+right: 0px;
+top: 0px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Content and Label layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 360px;
+height: 48px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Label layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+display: none;
+width: 210px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Label */
+
+width: 36px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* * */
+
+display: none;
+width: 7px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Error/Error */
+color: #FF0239;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+
+width: 360px;
+height: 48px;
+min-height: 48px;
+
+/* Specific/None */
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Text area Placeholder */
+
+width: 360px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Icon Buttons */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: flex-end;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 360px;
+height: 32px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+align-self: stretch;
+flex-grow: 0;
+z-index: 2;
+
+
+/* Button / Default
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px;
+gap: 12px;
+
+width: 32px;
+height: 32px;
+
+/* Secondary/Secondary 5 */
+background: rgba(24, 77, 229, 0.05);
+border-radius: 10px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* paperclip */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 15.15%;
+right: 12.5%;
+top: 11.49%;
+bottom: 10.98%;
+
+border: 1.5px solid #000078;
+
+
+/* Input Button Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: flex-end;
+align-items: center;
+padding: 0px;
+gap: 24px;
+
+width: 106px;
+height: 32px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button / Default
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px 16px;
+gap: 8px;
+
+width: 106px;
+height: 32px;
+min-height: 32px;
+
+background: #184DE5;
+border-radius: 10px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 74px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* .Building Blocks / Button progress indicator */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button */
+
+width: 74px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Badge
+
+<p>Компактный ярлык, отображающий статус, свойство или другую метаинформацию. Располагается рядом с другими элементами интерфейса</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 6px;
+gap: 4px;
+
+display: none;
+width: 19px;
+height: 20px;
+
+/* Error/Error */
+background: #FF0239;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 28px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Attention/Attention */
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* x */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+z-index: 3;
+
+
+/* .Resize Area */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 8px 8px 2px;
+gap: 10px;
+
+position: absolute;
+display: none;
+width: 20px;
+height: 20px;
+right: 0px;
+bottom: 0px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+z-index: 4;
+
+
+/* Layer R */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+display: none;
+width: 28px;
+height: 28px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+z-index: 5;
+
+
+/* Button / Servise / Fill Duo
+
+<p>Доступно изменение размера компонента</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;

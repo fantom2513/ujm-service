@@ -1,0 +1,120 @@
+START
+
+Start / Initial / Source=Text file / Empty
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-22845&t=8obbZVG1F5Y4gSqJ-4
+
+Start / Source=Text file / File uploaded
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-22874&t=8obbZVG1F5Y4gSqJ-4
+
+Start / Source=Text file / Loading
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-22904&t=8obbZVG1F5Y4gSqJ-4
+
+
+Start / Source=Recording / Empty
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-22934&t=8obbZVG1F5Y4gSqJ-4
+
+Start / Source=Recording / File uploaded
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-22965&t=8obbZVG1F5Y4gSqJ-4
+
+Start / Source=Recording / Loading
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-22996&t=8obbZVG1F5Y4gSqJ-4
+
+
+Start / Source=Link / Empty
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23027&t=8obbZVG1F5Y4gSqJ-4
+
+Start / Source=Link / Filled
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23058&t=8obbZVG1F5Y4gSqJ-4
+
+Start / Source=Link / Loading
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23091&t=8obbZVG1F5Y4gSqJ-4
+
+
+RESULT
+
+Result / Default
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23531&t=8obbZVG1F5Y4gSqJ-4
+
+Result / Diagram / Zoomed in
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23592&t=8obbZVG1F5Y4gSqJ-4
+
+Result / Download / Dropdown open
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-8320&t=8obbZVG1F5Y4gSqJ-4
+
+Result / Modal=New diagram / Open
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23622&t=8obbZVG1F5Y4gSqJ-4
+
+Result / Modal=Go home / Open
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23561&t=8obbZVG1F5Y4gSqJ-4
+
+
+ERRORS
+
+Start / Source=Text file / Error=File required
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23127&t=8obbZVG1F5Y4gSqJ-4
+
+Start / Source=Text file / Error=File format
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23158&t=8obbZVG1F5Y4gSqJ-4
+
+Start / Source=Text file / Error=File size
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23189&t=8obbZVG1F5Y4gSqJ-4
+
+
+Start / Source=Recording / Error=File required
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23222&t=8obbZVG1F5Y4gSqJ-4
+
+tart / Source=Recording / Error=File format
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23255&t=8obbZVG1F5Y4gSqJ-4
+
+Start / Source=Recording / Error=File size
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23288&t=8obbZVG1F5Y4gSqJ-4
+
+
+Start / Source=Link / Error=Link required
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23324&t=8obbZVG1F5Y4gSqJ-4
+
+Start / Source=Link / Error=Invalid URL
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23359&t=8obbZVG1F5Y4gSqJ-4
+
+Start / Source=Link / Error=Access denied
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23394&t=8obbZVG1F5Y4gSqJ-4
+
+
+Start / Diagram generation / Error
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-23430&t=8obbZVG1F5Y4gSqJ-4
+
+
+COMPONENTS
+
+Components / Buttons
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-7768&t=8obbZVG1F5Y4gSqJ-4
+
+Components / Inputs
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-7770&t=8obbZVG1F5Y4gSqJ-4
+
+Components / Textarea
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-7771&t=8obbZVG1F5Y4gSqJ-4
+
+Components / Upload
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-7981&t=8obbZVG1F5Y4gSqJ-4
+
+Components / Upload / Attachment
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-8319&t=8obbZVG1F5Y4gSqJ-4
+
+Components / Chat
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-28310&t=8obbZVG1F5Y4gSqJ-4
+
+Components / Link
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-7769&t=8obbZVG1F5Y4gSqJ-4
+
+Components / Breadcrumbs link items
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-7773&t=8obbZVG1F5Y4gSqJ-4
+
+Components / Radio card
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-28358&t=8obbZVG1F5Y4gSqJ-4
+
+Components / Service button
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=845-28633&t=8obbZVG1F5Y4gSqJ-4
+
+Components / Dropdown / Context Menu
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-8688&t=8obbZVG1F5Y4gSqJ-4

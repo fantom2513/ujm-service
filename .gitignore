@@ -1,0 +1,10 @@
+node_modules/
+frontend/dist/
+backend/tmp/
+.env
+.env.local
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+desktop.ini

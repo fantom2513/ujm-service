@@ -1,0 +1,5305 @@
+/* Start / Initial / Source=Text file / Empty */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+position: relative;
+width: 1440px;
+height: 900px;
+
+background: #F4F5F8;
+border-radius: 0px;
+
+
+/* Header / Desktop / Главная / Частные */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 1440px;
+height: 72px;
+
+background: rgba(255, 255, 255, 0.8);
+/* Header Blur */
+backdrop-filter: blur(8px);
+/* Note: backdrop-filter has minimal browser support */
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Top layer */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 8px 24px 8px 36px;
+gap: 24px;
+
+display: none;
+width: 1440px;
+height: 56px;
+
+border-bottom: 1px solid rgba(21, 33, 73, 0.1);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* _Left Navigation / Главная / B2C */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px;
+gap: 4px;
+
+margin: 0 auto;
+width: 544px;
+height: 40px;
+
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* .Segment / Basic */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px 16px;
+gap: 4px;
+isolation: isolate;
+
+width: 164px;
+height: 32px;
+
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Background */
+
+position: absolute;
+display: none;
+left: 0px;
+right: 0px;
+top: 0px;
+bottom: 0px;
+
+background: #FFFFFF;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* plus */
+
+display: none;
+width: 16px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 20.83%;
+bottom: 20.83%;
+
+border: 1.5px solid #152149;
+
+
+/* Button */
+
+width: 132px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+z-index: 2;
+
+
+/* Frame 136 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-end;
+padding: 0px 0px 0px 4px;
+gap: 10px;
+
+display: none;
+width: 19px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+z-index: 3;
+
+
+/* 99 */
+
+width: 15px;
+height: 16px;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* .Segment / Basic */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px 16px;
+gap: 4px;
+
+width: 89px;
+height: 32px;
+
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 16px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 20.83%;
+bottom: 20.83%;
+
+border: 1.5px solid rgba(21, 33, 73, 0.66);
+
+
+/* Button */
+
+width: 57px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Frame 136 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-end;
+padding: 0px 0px 0px 4px;
+gap: 10px;
+
+display: none;
+width: 19px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 99 */
+
+width: 15px;
+height: 16px;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* .Segment / Basic */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px 16px;
+gap: 4px;
+
+display: none;
+width: 109px;
+height: 32px;
+
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 16px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 20.83%;
+bottom: 20.83%;
+
+border: 1.5px solid rgba(21, 33, 73, 0.66);
+
+
+/* Button */
+
+width: 77px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Frame 136 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-end;
+padding: 0px 0px 0px 4px;
+gap: 10px;
+
+display: none;
+width: 19px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 99 */
+
+width: 15px;
+height: 16px;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* .Segment / Basic */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px 16px;
+gap: 4px;
+
+display: none;
+width: 126px;
+height: 32px;
+
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 16px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 20.83%;
+bottom: 20.83%;
+
+border: 1.5px solid rgba(21, 33, 73, 0.66);
+
+
+/* Button */
+
+width: 94px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Frame 136 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-end;
+padding: 0px 0px 0px 4px;
+gap: 10px;
+
+display: none;
+width: 19px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 99 */
+
+width: 15px;
+height: 16px;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* .Segment / Basic */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px 16px;
+gap: 4px;
+
+width: 112px;
+height: 32px;
+
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 16px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 20.83%;
+bottom: 20.83%;
+
+border: 1.5px solid rgba(21, 33, 73, 0.66);
+
+
+/* Button */
+
+width: 80px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Frame 136 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-end;
+padding: 0px 0px 0px 4px;
+gap: 10px;
+
+display: none;
+width: 19px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 99 */
+
+width: 15px;
+height: 16px;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* .Segment / Basic */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px 16px;
+gap: 4px;
+
+width: 159px;
+height: 32px;
+
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 16px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 20.83%;
+bottom: 20.83%;
+
+border: 1.5px solid rgba(21, 33, 73, 0.66);
+
+
+/* Button */
+
+width: 127px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Frame 136 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-end;
+padding: 0px 0px 0px 4px;
+gap: 10px;
+
+display: none;
+width: 19px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 99 */
+
+width: 15px;
+height: 16px;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* _Right actions / Главная / B2C */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: flex-end;
+align-items: center;
+padding: 0px 12px 0px 0px;
+gap: 20px;
+
+margin: 0 auto;
+width: 528px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* x / Head Numbers / 🧩 2 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 249px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Contact Row */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 249px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 24-hours */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 16.67%;
+right: 16.67%;
+top: 16.73%;
+bottom: 12.5%;
+
+border: 1.5px solid #000078;
+
+
+/* Contact Text */
+
+width: 109px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+text-align: right;
+
+color: rgba(21, 33, 73, 0.35);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* .Head Phone */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+width: 128px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 8 800 333 0 888 */
+
+width: 128px;
+height: 24px;
+
+/* Headlines/H5 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 16px;
+line-height: 24px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.28px;
+
+color: #000078;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Contact Row */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 248px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* heartbeat */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.45%;
+right: 12.52%;
+top: 20.78%;
+bottom: 12.5%;
+
+border: 1.5px solid #000078;
+
+
+/* Contact Text */
+
+width: 109px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: rgba(21, 33, 73, 0.35);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* .Head Phone */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+width: 127px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 8 800 333 0 888 */
+
+width: 125px;
+height: 24px;
+
+/* Headlines/H5 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 16px;
+line-height: 24px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.28px;
+
+color: #000078;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* x / fot build / Desktop / R head buttons / 🧩 Login */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 247px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 1px;
+height: 20px;
+
+background: rgba(21, 33, 73, 0.2);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* x / fot build / Desktop / 🧩 Map */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+
+width: 119px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button / Context
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 20px;
+gap: 12px;
+
+width: 119px;
+height: 40px;
+
+/* Specific/None */
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 79px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* .Building Blocks / Button progress indicator */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Ellipse */
+
+position: absolute;
+width: 18px;
+height: 18px;
+left: calc(50% - 18px/2);
+top: calc(50% - 18px/2);
+
+
+
+/* Line */
+
+position: absolute;
+width: 18px;
+height: 18px;
+left: calc(50% - 18px/2 - 3.73px);
+top: calc(50% - 18px/2 - 3.73px);
+
+/* Primary/Primary */
+border: 2px solid #000078;
+transform: rotate(-45deg);
+
+
+/* map-pin */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 16.67%;
+right: 16.67%;
+top: 12.5%;
+bottom: 10.48%;
+
+border: 1.5px solid #000078;
+
+
+/* Button */
+
+width: 47px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #000078;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Badge
+
+<p>Компактный ярлык, отображающий статус, свойство или другую метаинформацию. Располагается рядом с другими элементами интерфейса</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 6px;
+gap: 4px;
+
+display: none;
+width: 19px;
+height: 20px;
+
+/* Error/Error */
+background: #FF0239;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* check */
+
+display: none;
+width: 16px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 16.67%;
+top: 29.17%;
+bottom: 29.17%;
+
+border: 1.5px solid #FFFFFF;
+
+
+/* Status */
+
+width: 7px;
+height: 16px;
+
+/* Technical/Badge 20 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 500;
+font-size: 10px;
+line-height: 16px;
+/* identical to box height, or 160% */
+display: flex;
+align-items: center;
+letter-spacing: 0.3px;
+text-transform: uppercase;
+
+color: #FFFFFF;
+font-variation-settings: 'slnt' 0;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 28px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Attention/Attention */
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 20.83%;
+bottom: 20.83%;
+
+border: 1.5px solid #000078;
+
+
+/* Button / Context
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 20px;
+gap: 12px;
+
+display: none;
+width: 116px;
+height: 40px;
+
+/* Specific/None */
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 107px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* .Building Blocks / Button progress indicator */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Ellipse */
+
+position: absolute;
+width: 18px;
+height: 18px;
+left: calc(50% - 18px/2);
+top: calc(50% - 18px/2);
+
+
+
+/* Line */
+
+position: absolute;
+width: 18px;
+height: 18px;
+left: calc(50% - 18px/2 - 3.73px);
+top: calc(50% - 18px/2 - 3.73px);
+
+/* Primary/Primary */
+border: 2px solid #000078;
+transform: rotate(-45deg);
+
+
+/* sparkles */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 16.67%;
+top: 16.67%;
+bottom: 16.67%;
+
+/* Bottom/Bottom */
+border: 1.5px solid #152149;
+
+
+/* Button */
+
+width: 35px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #000078;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Badge
+
+<p>Компактный ярлык, отображающий статус, свойство или другую метаинформацию. Располагается рядом с другими элементами интерфейса</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 6px;
+gap: 4px;
+
+display: none;
+width: 19px;
+height: 20px;
+
+/* Error/Error */
+background: #FF0239;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* check */
+
+display: none;
+width: 16px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 16.67%;
+top: 29.17%;
+bottom: 29.17%;
+
+border: 1.5px solid #FFFFFF;
+
+
+/* Status */
+
+width: 7px;
+height: 16px;
+
+/* Technical/Badge 20 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 500;
+font-size: 10px;
+line-height: 16px;
+/* identical to box height, or 160% */
+display: flex;
+align-items: center;
+letter-spacing: 0.3px;
+text-transform: uppercase;
+
+color: #FFFFFF;
+font-variation-settings: 'slnt' 0;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* new */
+
+width: 28px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Attention/Attention */
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 20.83%;
+bottom: 20.83%;
+
+border: 1.5px solid #000078;
+
+
+/* Icon */
+
+width: 1px;
+height: 20px;
+
+background: rgba(21, 33, 73, 0.2);
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* x / fot build / Desktop / 🧩 Login */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+
+width: 114px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* Button / Context
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 20px;
+gap: 12px;
+
+width: 114px;
+height: 40px;
+
+/* Specific/None */
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 74px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* .Building Blocks / Button progress indicator */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Ellipse */
+
+position: absolute;
+width: 18px;
+height: 18px;
+left: calc(50% - 18px/2);
+top: calc(50% - 18px/2);
+
+
+
+/* Line */
+
+position: absolute;
+width: 18px;
+height: 18px;
+left: calc(50% - 18px/2 - 3.73px);
+top: calc(50% - 18px/2 - 3.73px);
+
+/* Primary/Primary */
+border: 2px solid #000078;
+transform: rotate(-45deg);
+
+
+/* user-circle */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 12.5%;
+bottom: 12.5%;
+
+border: 1.5px solid #000078;
+
+
+/* Button */
+
+width: 42px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #000078;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Badge
+
+<p>Компактный ярлык, отображающий статус, свойство или другую метаинформацию. Располагается рядом с другими элементами интерфейса</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 6px;
+gap: 4px;
+
+display: none;
+width: 19px;
+height: 20px;
+
+/* Error/Error */
+background: #FF0239;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* check */
+
+display: none;
+width: 16px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 16.67%;
+top: 29.17%;
+bottom: 29.17%;
+
+border: 1.5px solid #FFFFFF;
+
+
+/* Status */
+
+width: 7px;
+height: 16px;
+
+/* Technical/Badge 20 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 500;
+font-size: 10px;
+line-height: 16px;
+/* identical to box height, or 160% */
+display: flex;
+align-items: center;
+letter-spacing: 0.3px;
+text-transform: uppercase;
+
+color: #FFFFFF;
+font-variation-settings: 'slnt' 0;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 28px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Attention/Attention */
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 20.83%;
+bottom: 20.83%;
+
+border: 1.5px solid #000078;
+
+
+/* .Menu / Главная / B2C */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 1440px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* HEADER */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 0px 0px 40px;
+gap: 40px;
+
+width: 1440px;
+height: 72px;
+
+border-bottom: 1px solid rgba(21, 33, 73, 0.1);
+backdrop-filter: blur(7.5px);
+/* Note: backdrop-filter has minimal browser support */
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* _Global navigation / Главная / B2C */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 40px;
+
+width: 1272px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* _Logo / Default */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+display: none;
+width: 102px;
+height: 21px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+width: 102px;
+height: 21px;
+
+background: #000078;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Navigation */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 32px;
+
+width: 670px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Navigation */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 22px 0px;
+gap: 8px;
+
+width: 134px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Label */
+
+width: 134px;
+height: 28px;
+
+/* Body/Body 0 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 300;
+font-size: 20px;
+line-height: 28px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.3px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 38px;
+height: 30px;
+
+font-family: 'Gilroy';
+font-style: normal;
+font-weight: 400;
+font-size: 20px;
+line-height: 150%;
+/* identical to box height, or 30px */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #09D171;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Navigation */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 22px 0px;
+gap: 8px;
+
+width: 74px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Label */
+
+width: 74px;
+height: 28px;
+
+/* Body/Body 0 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 300;
+font-size: 20px;
+line-height: 28px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.3px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 38px;
+height: 30px;
+
+font-family: 'Gilroy';
+font-style: normal;
+font-weight: 400;
+font-size: 20px;
+line-height: 150%;
+/* identical to box height, or 30px */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #09D171;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Navigation */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 22px 0px;
+gap: 8px;
+
+width: 142px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Label */
+
+width: 142px;
+height: 28px;
+
+/* Body/Body 0 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 300;
+font-size: 20px;
+line-height: 28px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.3px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 37px;
+height: 28px;
+
+/* Body/Body 0 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 300;
+font-size: 20px;
+line-height: 28px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.3px;
+
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Navigation */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 22px 0px;
+gap: 8px;
+
+width: 43px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Label */
+
+width: 43px;
+height: 28px;
+
+/* Body/Body 0 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 300;
+font-size: 20px;
+line-height: 28px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.3px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 38px;
+height: 30px;
+
+font-family: 'Gilroy';
+font-style: normal;
+font-weight: 400;
+font-size: 20px;
+line-height: 150%;
+/* identical to box height, or 30px */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #09D171;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Navigation */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 22px 0px;
+gap: 8px;
+
+width: 149px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Label */
+
+width: 149px;
+height: 28px;
+
+/* Body/Body 0 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 300;
+font-size: 20px;
+line-height: 28px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.3px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 38px;
+height: 30px;
+
+font-family: 'Gilroy';
+font-style: normal;
+font-weight: 400;
+font-size: 20px;
+line-height: 150%;
+/* identical to box height, or 30px */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #09D171;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Theme */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 88px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Avatar */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 32px;
+gap: 10px;
+
+width: 88px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* sun */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 12.5%;
+bottom: 12.5%;
+
+border: 2px solid #152149;
+
+
+/* Frame 2131329721 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+gap: 32px;
+
+width: 1224px;
+height: 828px;
+overflow-y: scroll;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* HeadingBuilder / Desktop */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 32px 0px 0px;
+gap: 32px;
+isolation: isolate;
+
+width: 1224px;
+height: 152px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Breadcrumbs
+
+<p>Breadcrumbs — компонент навигации, который отображает иерархию текущего положения пользователя на сайте. В нативных приложениях не используются хлебные крошки. Вместо этого используйте верхнюю панель навигации и кнопку «Назад»</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+flex-wrap: wrap;
+align-items: center;
+align-content: flex-start;
+padding: 0px;
+row-gap: 4px;
+isolation: isolate;
+
+width: 1224px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+z-index: 1;
+
+
+/* .Building Blocks / Breadcrumbs / item */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 44px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 6;
+
+
+/* .Building Blocks / Breadcrumbs / item */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+
+width: 72px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 5;
+
+
+/* Frame 427321144 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 4px 0px 0px;
+gap: 10px;
+
+display: none;
+width: 20px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* breadcrumb */
+
+width: 48px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Border layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 4px;
+gap: 10px;
+
+width: 24px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Border */
+
+width: 16px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 50%;
+right: 50%;
+top: 16.67%;
+bottom: 16.67%;
+
+border: 1.5px solid rgba(21, 33, 73, 0.1);
+
+
+/* .Building Blocks / Breadcrumbs / item */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 93px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+z-index: 4;
+
+
+/* .Building Blocks / Breadcrumbs / item */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 93px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+z-index: 3;
+
+
+/* .Building Blocks / Breadcrumbs / item */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 44px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+z-index: 2;
+
+
+/* .Building Blocks / Breadcrumbs / item */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 93px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+z-index: 1;
+
+
+/* .Building Blocks / Breadcrumbs / item */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+
+width: 95px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Frame 427321144 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 4px 0px 0px;
+gap: 10px;
+
+display: none;
+width: 20px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* breadcrumb */
+
+width: 95px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* State layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 20px;
+
+width: 1224px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Title & buttons layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+gap: 64px;
+
+width: 1224px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Title & Subtitle layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 12px;
+
+width: 1224px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Title & badge layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 16px;
+
+width: 1224px;
+height: 36px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Title */
+
+width: 458px;
+height: 36px;
+
+/* Headlines/H2 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 28px;
+line-height: 36px;
+/* identical to box height, or 129% */
+display: flex;
+align-items: center;
+letter-spacing: 0.25px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Badge Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: flex-end;
+align-items: flex-start;
+padding: 0px 0px 6px;
+gap: 10px;
+
+display: none;
+width: 53px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Subtitle */
+
+width: 1224px;
+height: 24px;
+
+/* Body/Body 1 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 24px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* buttonsGroup */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 16px;
+
+display: none;
+width: 356px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Stepper / Stepper / Horizontal
+
+<p>Stepper обеспечивает визуальную индикацию прогресса в многошаговых процессах и позволяет пользователю ориентироваться на каждом этапе. Используется в индуктивном дизайне, где интерфейс раскрывает сложный процесс шаг за шагом, минимизируя перегрузку информацией и помогая пользователю фокусироваться на текущем действии</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+
+display: none;
+width: 707px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Frame 2131329695 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px 0px 32px;
+gap: 24px;
+
+width: 1224px;
+height: 624px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Card */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 32px;
+gap: 32px;
+isolation: isolate;
+
+width: 808px;
+height: 592px;
+
+background: #FFFFFF;
+/* Shadow/Resting/1 level
+
+Resting (&quot;Покой&quot;) – это тени в состоянии покоя, когда элемент просто находится на экране. 
+
+Они:
+- используются для базовой глубины;
+- увеличивают контрастность, разделяя элемент с фоном;
+- часто применяются к базовым секциям.
+*/
+box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+border-radius: 24px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Frame 2131329728 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 16px;
+
+width: 744px;
+height: 372px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Title */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 24px;
+
+width: 744px;
+height: 36px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Insurance Conditions Header */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 0px;
+gap: 20px;
+
+width: 744px;
+height: 36px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Title */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+margin: 0 auto;
+width: 744px;
+height: 36px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Illustration */
+
+width: 36px;
+height: 36px;
+
+background: rgba(26, 51, 115, 0.05);
+border-radius: 50px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Doc */
+
+position: absolute;
+width: 40px;
+height: 40px;
+left: -5px;
+top: 5px;
+
+background: url(bg_removal [Background removed].png);
+transform: matrix(-1, 0, 0, 1, 0, 0);
+
+
+/* Title */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 696px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Выберите источник */
+
+width: 696px;
+height: 24px;
+
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 20px;
+line-height: 24px;
+/* identical to box height, or 120% */
+display: flex;
+align-items: center;
+letter-spacing: 0.28px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Radio */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 20px;
+gap: 16px;
+
+width: 744px;
+min-width: 416px;
+height: 160px;
+
+border: 1px solid #2B5CE9;
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Radio / Default Row
+
+<p>Элемент выбора <strong style="white-space: pre-wrap;">одного варианта</strong> из опций</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 704px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* State layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 704px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Radio / Radio */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px;
+gap: 10px;
+
+width: 20px;
+min-width: 20px;
+height: 20px;
+min-height: 20px;
+
+background: #000078;
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Frame 3325 */
+
+width: 8px;
+height: 8px;
+
+background: #FFFFFF;
+border-radius: 1000px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Label */
+
+width: 672px;
+height: 24px;
+
+/* Headlines/H5 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 16px;
+line-height: 24px;
+/* identical to box height, or 150% */
+letter-spacing: 0.28px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* .Building Blocks / Radio Caption */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 0px 0px 32px;
+gap: 10px;
+
+display: none;
+width: 220px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Slot 2 */
+
+width: 704px;
+height: 80px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* File Uploader / Compact
+
+<p>Компонент для загрузки файлов при помощи перетаскивания внутри-браузерных интерфейсных элементов в выделенную область или выбора через кнопку. Встраивается в интерфейс и используется с Attachment</p><p><br></p><p>На планшетах и мобильных устройствах для загрузки используется кнопка</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 12px;
+
+position: absolute;
+width: 704px;
+height: 80px;
+left: 0px;
+top: 0px;
+
+
+
+/* Main layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 704px;
+height: 80px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Drag and drop */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 20px;
+gap: 95px;
+
+width: 704px;
+height: 80px;
+
+border: 1px solid rgba(21, 33, 73, 0.1);
+border-radius: 24px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* State-layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 516px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* State-layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 40px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* cloud-upload */
+
+width: 40px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 9.56%;
+right: 6.25%;
+top: 20.62%;
+bottom: 12.5%;
+
+border: 2px solid rgba(21, 33, 73, 0.4);
+
+
+/* Description */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+
+width: 464px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Перетащите файл сюда */
+
+width: 186px;
+height: 24px;
+
+/* Body/Body 1 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 24px;
+/* identical to box height, or 150% */
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* JPG, PNG или PDF, файл не должен превышать 10MB */
+
+width: 464px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Button / Secondary
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 20px;
+gap: 12px;
+
+width: 148px;
+height: 40px;
+
+background: rgba(24, 77, 229, 0.05);
+border: 0px solid rgba(24, 77, 229, 0.3);
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 108px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* _x / Button / Progress indicator */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* paperclip */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button */
+
+width: 108px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #000078;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Badge
+
+<p>Компактный ярлык, отображающий статус, свойство или другую метаинформацию. Располагается рядом с другими элементами интерфейса</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 6px;
+gap: 4px;
+
+display: none;
+width: 19px;
+height: 20px;
+
+background: #FF0239;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 28px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Attention/Attention */
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* input Caption / Error */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+display: none;
+width: 648px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Files layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+display: none;
+width: 648px;
+height: 232px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Radio */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 20px;
+gap: 16px;
+
+width: 744px;
+min-width: 416px;
+height: 64px;
+
+border: 1px solid rgba(21, 33, 73, 0.1);
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Radio / Default Row
+
+<p>Элемент выбора <strong style="white-space: pre-wrap;">одного варианта</strong> из опций</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 704px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* State layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 704px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Radio / Radio */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px;
+gap: 10px;
+
+width: 20px;
+min-width: 20px;
+height: 20px;
+min-height: 20px;
+
+background: #FFFFFF;
+border: 1px solid rgba(21, 33, 73, 0.2);
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Label */
+
+width: 672px;
+height: 24px;
+
+/* Headlines/H5 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 16px;
+line-height: 24px;
+/* identical to box height, or 150% */
+letter-spacing: 0.28px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* .Building Blocks / Radio Caption */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 0px 0px 32px;
+gap: 10px;
+
+display: none;
+width: 220px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Radio */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 20px;
+gap: 16px;
+
+width: 744px;
+min-width: 416px;
+height: 64px;
+
+border: 1px solid rgba(21, 33, 73, 0.1);
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Radio / Default Row
+
+<p>Элемент выбора <strong style="white-space: pre-wrap;">одного варианта</strong> из опций</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 704px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* State layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 704px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Radio / Radio */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px;
+gap: 10px;
+
+width: 20px;
+min-width: 20px;
+height: 20px;
+min-height: 20px;
+
+background: #FFFFFF;
+border: 1px solid rgba(21, 33, 73, 0.2);
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Label */
+
+width: 672px;
+height: 24px;
+
+/* Headlines/H5 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 16px;
+line-height: 24px;
+/* identical to box height, or 150% */
+letter-spacing: 0.28px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* .Building Blocks / Radio Caption */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 0px 0px 32px;
+gap: 10px;
+
+display: none;
+width: 220px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Frame 2131329729 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 16px;
+
+width: 744px;
+height: 124px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Insurance Conditions Header */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 0px;
+gap: 20px;
+
+width: 744px;
+height: 36px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Title */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+margin: 0 auto;
+width: 720px;
+height: 36px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Illustration */
+
+width: 36px;
+height: 36px;
+
+background: rgba(26, 51, 115, 0.05);
+border-radius: 50px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Product_128х114 */
+
+position: absolute;
+width: 40px;
+height: 40px;
+left: -10px;
+top: 5px;
+
+filter: drop-shadow(0px 7.69231px 15.3846px rgba(0, 0, 0, 0.1));
+
+
+/* Image */
+
+position: absolute;
+height: 40px;
+left: 0%;
+right: 0%;
+top: calc(50% - 40px/2);
+
+background: url(bg_removal [Background removed].png);
+
+
+/* Title */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 672px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Детали задачи */
+
+width: 672px;
+height: 24px;
+
+/* Headlines/H4 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 20px;
+line-height: 24px;
+/* identical to box height, or 120% */
+display: flex;
+align-items: center;
+letter-spacing: 0.28px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Frame 2131329736 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-end;
+padding: 0px;
+gap: 10px;
+
+margin: 0 auto;
+width: 24px;
+height: 36px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Service */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button / Servise / Fill Duo
+
+<p>Доступно изменение размера компонента</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 0px;
+isolation: isolate;
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Action layer */
+
+position: absolute;
+width: 28px;
+height: 28px;
+left: calc(50% - 28px/2);
+top: calc(50% - 28px/2);
+
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* help-circle */
+
+width: 24px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 12.5%;
+top: 12.5%;
+bottom: 12.5%;
+
+border: 2px solid rgba(21, 33, 73, 0.35);
+
+
+/* Textarea
+
+<p><strong style="white-space: pre-wrap;">Textarea</strong> — компонент для ввода многострочного текста. Используется в случаях, когда пользователю необходимо ввести развернутый комментарий, описание, сообщение или другой текстовый контент, превышающий одну строку</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 16px;
+
+width: 744px;
+height: 72px;
+min-height: 72px;
+
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* State layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 744px;
+height: 72px;
+min-height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Input layer */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 16px;
+gap: 12px;
+isolation: isolate;
+
+width: 744px;
+height: 72px;
+min-height: 72px;
+
+background: rgba(26, 51, 115, 0.05);
+border-bottom: 1px solid rgba(26, 51, 115, 0.1);
+border-radius: 16px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Scrollbar / Default
+
+<p>Добавьте над контентом, настройте Height и Right padding</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: flex-end;
+align-items: flex-end;
+padding: 14px 6px 4px 0px;
+
+position: absolute;
+display: none;
+width: 14px;
+height: 56px;
+right: 0px;
+top: 0px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Content and Label layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+
+width: 712px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+z-index: 1;
+
+
+/* Label layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+display: none;
+width: 218px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Введите */
+
+width: 712px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.3);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* x */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+z-index: 2;
+
+
+/* .Resize Area */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 6px 6px 0px;
+gap: 10px;
+
+position: absolute;
+width: 16px;
+height: 16px;
+right: 0px;
+bottom: 0px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+z-index: 3;
+
+
+/* .Resizer layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 6px;
+isolation: isolate;
+
+width: 10px;
+height: 10px;
+
+border-radius: 4.8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector 1 */
+
+width: 0px;
+height: 8.4px;
+
+border: 1.2px solid rgba(21, 33, 73, 0.35);
+transform: rotate(45deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Vector 2 */
+
+position: absolute;
+width: 0px;
+height: 3.4px;
+right: 3.8px;
+bottom: 0.4px;
+
+border: 1.2px solid rgba(21, 33, 73, 0.35);
+transform: rotate(45deg);
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Layer R */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+display: none;
+width: 28px;
+height: 28px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+z-index: 4;
+
+
+/* Data layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+
+display: none;
+width: 250px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Рекомендации */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-end;
+padding: 32px;
+gap: 24px;
+isolation: isolate;
+
+width: 392px;
+height: 440px;
+
+background: #FFFFFF;
+/* Shadow/Resting/1 level
+
+Resting (&quot;Покой&quot;) – это тени в состоянии покоя, когда элемент просто находится на экране. 
+
+Они:
+- используются для базовой глубины;
+- увеличивают контрастность, разделяя элемент с фоном;
+- часто применяются к базовым секциям.
+*/
+box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+border-radius: 24px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Frame 2131329711 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 16px;
+
+width: 328px;
+height: 300px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Title */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 328px;
+height: 36px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Что должно быть в ТЗ? */
+
+width: 328px;
+height: 24px;
+
+/* Headlines/H4 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 20px;
+line-height: 24px;
+/* identical to box height, or 120% */
+display: flex;
+align-items: center;
+letter-spacing: 0.28px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Points */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 20px;
+
+width: 328px;
+height: 248px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Radio / Default Row */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 328px;
+height: 48px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* State layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 328px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* check */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 16.67%;
+top: 29.17%;
+bottom: 29.17%;
+
+border: 1.5px solid #2B5CE9;
+
+
+/* Описание задачи */
+
+width: 296px;
+height: 24px;
+
+/* Headlines/H5 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 16px;
+line-height: 24px;
+/* identical to box height, or 150% */
+letter-spacing: 0.28px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* .Building Blocks / Radio Caption */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 0px 0px 32px;
+gap: 10px;
+
+width: 328px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Caption */
+
+width: 296px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Radio / Default Row */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 328px;
+height: 48px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* State layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 328px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* check */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 16.67%;
+top: 29.17%;
+bottom: 29.17%;
+
+border: 1.5px solid #2B5CE9;
+
+
+/* Участники процесса */
+
+width: 296px;
+height: 24px;
+
+/* Headlines/H5 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 16px;
+line-height: 24px;
+/* identical to box height, or 150% */
+letter-spacing: 0.28px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* .Building Blocks / Radio Caption */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 0px 0px 32px;
+gap: 10px;
+
+width: 328px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Caption */
+
+width: 296px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Radio / Default Row */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 328px;
+height: 68px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* State layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 328px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* check */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 16.67%;
+top: 29.17%;
+bottom: 29.17%;
+
+border: 1.5px solid #2B5CE9;
+
+
+/* Основные требования */
+
+width: 296px;
+height: 24px;
+
+/* Headlines/H5 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 16px;
+line-height: 24px;
+/* identical to box height, or 150% */
+letter-spacing: 0.28px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* .Building Blocks / Radio Caption */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 0px 0px 32px;
+gap: 10px;
+
+width: 328px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Caption */
+
+width: 296px;
+height: 40px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Link button / Modern
+
+<p>Компонент ссылки указывает и перенаправляет пользователя на внутренние или внешние ресурсы, а также может использоваться в качестве простой текстовой кнопки<br><br><strong style="white-space: pre-wrap;">Рекомендации по использованию:</strong></p><ol><li value="1" data-list="bullet">На мобильных устройствах и планшетах применяйте ссылки без подчеркивания, чтобы снизить визуальную перегруженность интерфейса.</li><li value="2" data-list="bullet">Используйте ссылку с подчеркиванием в случаях, когда:</li></ol><p style="padding-inline-start: 40px;">•&nbsp;основная цель — привлечь внимание к необходимости прочитать информацию;<br>•&nbsp;цвет ссылки совпадает или близок к цвету основного текста, и требуется дополнительное визуальное различие.</p><ol><li value="1" data-list="bullet">Применяйте on Dark ссылки на темных фонах, чтобы поддержать доступность текста до 4.5 : 1 и более</li></ol>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 154px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* help */
+
+display: none;
+width: 16px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* link */
+
+width: 154px;
+height: 24px;
+
+/* Body/Body 1 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 24px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #2B5CE9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+
+width: 328px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Button / Primary
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 16px 32px;
+gap: 12px;
+
+width: 328px;
+height: 52px;
+
+background: #000078;
+border-radius: 16px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 151px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* sparkles */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 16.67%;
+top: 16.67%;
+bottom: 16.67%;
+
+border: 1.5px solid #FFFFFF;
+
+
+/* _x / Button / Progress indicator */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button */
+
+width: 119px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Badge
+
+<p>Компактный ярлык, отображающий статус, свойство или другую метаинформацию. Располагается рядом с другими элементами интерфейса</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 6px;
+gap: 4px;
+
+display: none;
+width: 19px;
+height: 20px;
+
+background: #FF0239;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 28px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Attention/Attention */
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;

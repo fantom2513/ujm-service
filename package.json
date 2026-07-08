@@ -1,0 +1,14 @@
+{
+  "name": "copilot-mermaid-skeleton",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs && node backend/src/server/index.ts",
+    "start": "node backend/src/server/index.ts"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

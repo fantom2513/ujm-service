@@ -1,0 +1,104 @@
+КОМПОНЕНТЫ — СТАРТОВАЯ СТРАНИЦА
+
+Назначение файла:
+Этот файл содержит только те ссылки на компоненты Figma, которые нужны для текущего этапа разработки.
+Codex не должен открывать все ссылки из раздела COMPONENTS файла «Макеты Figma.txt».
+
+1. Upload / Dropzone
+Ссылка Figma:
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-7981&t=n7AdUJZhEXm3Csfo-4
+
+Проверить состояния:
+- Default
+- Hover
+- File checking
+- Default, file added
+
+Используется:
+- загрузка текстового файла;
+- загрузка записи встречи;
+
+2. Attachment
+Ссылка Figma: https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-8319&t=n7AdUJZhEXm3Csfo-4
+
+Компонент Attachment имеет две независимые группы состояний. 
+
+1. Interaction state
+Состояние зависит от взаимодействия пользователя:
+Default — курсор не находится над компонентом;
+Hover — курсор находится над компонентом;
+Pressed — пользователь нажимает на компонент или его интерактивную область.
+
+2. Status state
+Состояние зависит от результата загрузки или обработки файла:
+Loading — файл загружается или обрабатывается;
+Error — при загрузке или обработке произошла ошибка;
+Success — файл успешно загружен и обработан;
+Static — файл отображается без активного процесса загрузки или обработки.
+
+Проверить:
+- название файла;
+- формат;
+- размер;
+- иконку;
+- расположение действий;
+- кликабельное название файла для скачивания.
+
+3. Icon button — Trash
+Ссылка Figma:
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=934-5019&t=n7AdUJZhEXm3Csfo-4
+
+Проверить состояния:
+- Default
+- Hover
+- Press
+
+Действие:
+- удаление прикреплённого файла.
+
+4. Icon button — Reload / Retry
+Ссылка Figma:
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=934-5036&t=n7AdUJZhEXm3Csfo-4
+
+Проверить состояния:
+- Default
+- Hover
+
+Действие:
+- повторная обработка файла в состоянии ошибки.
+
+5. Breadcrumbs
+Ссылка Figma:
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-7773&t=n7AdUJZhEXm3Csfo-4
+
+Проверить состояния (для активных и неактивных крошек):
+- Default
+- Hover
+
+6. Text link
+Ссылка Figma:
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-7769&t=n7AdUJZhEXm3Csfo-4
+
+Используется:
+- «Скачать пример»;
+- название attachment для скачивания файла.
+
+Проверить состояния:
+- Default
+- Hover
+- Press
+
+7. Input — Jira / Confluence link
+Ссылка Figma:
+https://www.figma.com/design/QYHPAe62MvCmHNQ0E8ET82/Untitled?node-id=860-7770&t=n7AdUJZhEXm3Csfo-4
+
+требование:
+- внутри .input-shell для поля Jira / Confluence должен быть gap: 0.
+
+ОГРАНИЧЕНИЯ
+
+- Не открывать остальные ссылки из раздела COMPONENTS.
+- Не анализировать компоненты страницы результата на этом этапе.
+- Не изменять генерацию Mermaid, AI-чат и backend.
+- Не придумывать состояния, которых нет в указанных Figma-компонентах.
+- Если какая-либо ссылка недоступна, сохранить текущую реализацию и указать это в кратком отчёте.

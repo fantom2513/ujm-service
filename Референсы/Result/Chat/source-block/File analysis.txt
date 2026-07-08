@@ -1,0 +1,2425 @@
+/* File analysis */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: flex-end;
+align-items: flex-start;
+padding: 24px;
+gap: 16px;
+
+width: 440px;
+height: 828px;
+
+background: #FFFFFF;
+
+/* Inside auto layout */
+flex: none;
+order: 7;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 40px;
+
+width: 392px;
+height: 912px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 16px;
+
+display: none;
+width: 392px;
+height: 40px;
+
+background: #FFFFFF;
+border-radius: 24px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 16px;
+
+width: 392px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 40px;
+height: 40px;
+
+background: url(bg_removal [Background removed].png);
+border-radius: 61.4203px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 296px;
+height: 32px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Link button / Modern
+
+<p>Компонент ссылки указывает и перенаправляет пользователя на внутренние или внешние ресурсы, а также может использоваться в качестве простой текстовой кнопки<br><br><strong style="white-space: pre-wrap;">Рекомендации по использованию:</strong></p><ol><li value="1" data-list="bullet">На мобильных устройствах и планшетах применяйте ссылки без подчеркивания, чтобы снизить визуальную перегруженность интерфейса.</li><li value="2" data-list="bullet">Используйте ссылку с подчеркиванием в случаях, когда:</li></ol><p style="padding-inline-start: 40px;">•&nbsp;основная цель — привлечь внимание к необходимости прочитать информацию;<br>•&nbsp;цвет ссылки совпадает или близок к цвету основного текста, и требуется дополнительное визуальное различие.</p><ol><li value="1" data-list="bullet">Применяйте on Dark ссылки на темных фонах, чтобы поддержать доступность текста до 4.5 : 1 и более</li></ol>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 280px;
+height: 32px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 392px;
+height: 144px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Files layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 392px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Attachment
+
+<p>Элемент управления процессом загрузки и хранения файлов</p>
+
+<p>Сообщает, что файл доступен для просмотра или скачивания</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 16px;
+gap: 12px;
+
+width: 392px;
+height: 72px;
+min-height: 72px;
+
+background: rgba(26, 51, 115, 0.05);
+border-radius: 16px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* File badge
+
+<p>Отображает файлы,<strong style="white-space: pre-wrap;"> </strong>которые хранятся и перемещаются в системных интерфейсах компании</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+width: 40px;
+height: 40px;
+
+background: #FFFFFF;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* File layer */
+
+width: 40px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 26.67%;
+right: 26.67%;
+top: 20%;
+bottom: 20%;
+
+border: 2px solid #6885AB;
+
+
+/* Text & Status layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 308px;
+height: 40px;
+min-height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Label */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+
+width: 308px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Демо-полис добровольного медицинского страхования */
+
+width: 308px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+
+color: #2B5CE9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Data layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+gap: 2px;
+
+width: 308px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Format layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 28px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Size layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 45px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 46.5 КБ */
+
+width: 45px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* , */
+
+display: none;
+width: 4px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Date layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 2px;
+
+display: none;
+width: 143px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 1;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-end;
+padding: 0px 0px 0px 32px;
+gap: 10px;
+
+width: 392px;
+height: 64px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: flex-end;
+padding: 12px 16px;
+gap: 10px;
+
+width: 360px;
+height: 64px;
+
+background: #E8EDFC;
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Button text */
+
+width: 298px;
+height: 40px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* or 143% */
+display: flex;
+align-items: center;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* .Building Blocks / Select / Global Chevron */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* chevron-down */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+border: 1.5px solid rgba(21, 33, 73, 0.66);
+
+
+/* Description */
+
+width: 392px;
+height: 68px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* or 143% */
+display: flex;
+align-items: center;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 392px;
+height: 44px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-end;
+padding: 0px 0px 0px 32px;
+gap: 10px;
+
+width: 392px;
+height: 44px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 12px 16px;
+gap: 10px;
+
+width: 351px;
+height: 44px;
+
+background: #E8EDFC;
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button text */
+
+width: 319px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Frame 2131329729 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 12px;
+
+width: 392px;
+height: 148px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Description */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 12px;
+
+width: 392px;
+height: 96px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Description Text */
+
+width: 392px;
+height: 96px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* or 143% */
+display: flex;
+align-items: center;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Buttons */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 16px;
+
+width: 392px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Buttons */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 128px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button / Context
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px;
+gap: 12px;
+
+width: 40px;
+height: 40px;
+
+/* Specific/None */
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* thumb-up */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 16.67%;
+top: 16.67%;
+bottom: 16.65%;
+
+border: 1.5px solid rgba(21, 33, 73, 0.6);
+
+
+/* Button / Context
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px;
+gap: 12px;
+
+width: 40px;
+height: 40px;
+
+/* Specific/None */
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* thumb-down */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 12.5%;
+right: 16.67%;
+top: 16.65%;
+bottom: 16.67%;
+
+border: 1.5px solid rgba(21, 33, 73, 0.6);
+
+
+/* Button / Context
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px;
+gap: 12px;
+
+width: 40px;
+height: 40px;
+
+/* Specific/None */
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* copy-left */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 16.67%;
+right: 16.67%;
+top: 16.67%;
+bottom: 16.67%;
+
+border: 1.5px solid rgba(21, 33, 73, 0.6);
+
+
+/* Frame 2131329738 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 12px;
+
+width: 392px;
+height: 288px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* Frame 2131329739 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 392px;
+height: 232px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Files layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 392px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Attachment
+
+<p>Элемент управления процессом загрузки и хранения файлов</p>
+
+<p>Сообщает, что файл доступен для просмотра или скачивания</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 16px;
+gap: 12px;
+
+width: 392px;
+height: 72px;
+min-height: 72px;
+
+background: rgba(26, 51, 115, 0.05);
+border-radius: 16px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* File badge
+
+<p>Отображает файлы,<strong style="white-space: pre-wrap;"> </strong>которые хранятся и перемещаются в системных интерфейсах компании</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+width: 40px;
+height: 40px;
+
+background: #FFFFFF;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* File layer */
+
+width: 40px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 26.67%;
+right: 26.67%;
+top: 20%;
+bottom: 20%;
+
+border: 2px solid #6885AB;
+
+
+/* Text & Status layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 308px;
+height: 40px;
+min-height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Label */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+
+width: 308px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Демо-полис добровольного медицинского страхования */
+
+width: 308px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+
+color: #2B5CE9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Data layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+gap: 2px;
+
+width: 308px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Format layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 28px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Size layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 45px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 46.5 КБ */
+
+width: 45px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* , */
+
+display: none;
+width: 4px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Date layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 2px;
+
+display: none;
+width: 143px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 1;
+
+
+/* Files layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 392px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Attachment
+
+<p>Элемент управления процессом загрузки и хранения файлов</p>
+
+<p>Сообщает, что файл доступен для просмотра или скачивания</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 16px;
+gap: 12px;
+
+width: 392px;
+height: 72px;
+min-height: 72px;
+
+background: rgba(26, 51, 115, 0.05);
+border-radius: 16px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* File badge
+
+<p>Отображает файлы,<strong style="white-space: pre-wrap;"> </strong>которые хранятся и перемещаются в системных интерфейсах компании</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+width: 40px;
+height: 40px;
+
+background: #FFFFFF;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* File layer */
+
+width: 40px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 26.67%;
+right: 26.67%;
+top: 20%;
+bottom: 20%;
+
+border: 2px solid #6885AB;
+
+
+/* Text & Status layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 308px;
+height: 40px;
+min-height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Label */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+
+width: 308px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Демо-полис добровольного медицинского страхования */
+
+width: 308px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+
+color: #2B5CE9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Data layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+gap: 2px;
+
+width: 308px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Format layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 28px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Size layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 45px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 46.5 КБ */
+
+width: 45px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* , */
+
+display: none;
+width: 4px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Date layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 2px;
+
+display: none;
+width: 143px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 1;
+
+
+/* Files layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 392px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Attachment
+
+<p>Элемент управления процессом загрузки и хранения файлов</p>
+
+<p>Сообщает, что файл доступен для просмотра или скачивания</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 16px;
+gap: 12px;
+
+width: 392px;
+height: 72px;
+min-height: 72px;
+
+background: rgba(26, 51, 115, 0.05);
+border-radius: 16px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* File badge
+
+<p>Отображает файлы,<strong style="white-space: pre-wrap;"> </strong>которые хранятся и перемещаются в системных интерфейсах компании</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+width: 40px;
+height: 40px;
+
+background: #FFFFFF;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* File layer */
+
+width: 40px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 26.67%;
+right: 26.67%;
+top: 20%;
+bottom: 20%;
+
+border: 2px solid #6885AB;
+
+
+/* Text & Status layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 308px;
+height: 40px;
+min-height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Label */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+
+width: 308px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Демо-полис добровольного медицинского страхования */
+
+width: 308px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+
+color: #2B5CE9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Data layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+gap: 2px;
+
+width: 308px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Format layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 28px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Size layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 45px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 46.5 КБ */
+
+width: 45px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* , */
+
+display: none;
+width: 4px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Date layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 2px;
+
+display: none;
+width: 143px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 1;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 392px;
+height: 44px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-end;
+padding: 0px 0px 0px 32px;
+gap: 10px;
+
+width: 392px;
+height: 44px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 12px 16px;
+gap: 10px;
+
+width: 351px;
+height: 44px;
+
+background: #E8EDFC;
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button text */
+
+width: 319px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Action Row Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 392px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 6;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Instruction text */
+
+width: 85px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* .Building Blocks / Select / Global Chevron */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* chevron-right */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 37.5%;
+right: 37.5%;
+top: 25%;
+bottom: 25%;
+
+border: 1.5px solid rgba(21, 33, 73, 0.66);
+
+
+/* Input / Input
+
+<p>Input — базовый компонент для ввода текстовых данных. Используется для ввода коротких текстовых значений: имён, названий и других однострочных данных</p><p><br></p><p>Может включать подпись снизу (Caption), название поля (Lable), иконку справа и слева, а&nbsp;также исключать их. Рекомендуется использовать сочетать поля одного размера</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 16px;
+
+width: 392px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* State layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 392px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Input layer */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 8px 16px;
+gap: 12px;
+
+width: 392px;
+height: 52px;
+
+background: rgba(26, 51, 115, 0.05);
+border-bottom: 1px solid rgba(26, 51, 115, 0.1);
+border-radius: 16px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* search */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Content and Label layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+
+width: 288px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Label layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 288px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Label */
+
+width: 127px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* * */
+
+display: none;
+width: 7px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Error/Error */
+color: #FF0239;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Введите */
+
+display: none;
+width: 222px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.3);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* x */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Layer R */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: flex-end;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 60px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* Button / Servise / Fill Duo
+
+<p>Доступно изменение размера компонента</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon R layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+width: 20px;
+height: 32px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Action ai */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 20px;
+height: 32px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button / Context
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+
+<p>⚠️ Тестовый вариант&nbsp;</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px;
+gap: 4px;
+
+width: 20px;
+height: 32px;
+
+/* Specific/None */
+border-radius: 32px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* paperclip */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 15.15%;
+right: 12.5%;
+top: 11.49%;
+bottom: 10.98%;
+
+border: 1.5px solid #152149;
+
+
+/* Button / Context
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+
+<p>⚠️ Тестовый вариант&nbsp;</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px;
+gap: 4px;
+
+display: none;
+width: 32px;
+height: 32px;
+
+/* Specific/None */
+border-radius: 32px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* _input Caption / Default */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+display: none;
+width: 45px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;

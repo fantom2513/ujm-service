@@ -1,0 +1,2520 @@
+/* Result / Default */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+position: relative;
+width: 1440px;
+height: 900px;
+
+background: #F4F5F8;
+border-radius: 0px;
+
+
+/* HEADER */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 24px;
+gap: 40px;
+
+width: 1440px;
+height: 72px;
+
+background: rgba(255, 255, 255, 0.8);
+border-bottom: 1px solid rgba(35, 50, 100, 0.1);
+backdrop-filter: blur(7.5px);
+/* Note: backdrop-filter has minimal browser support */
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Title */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+margin: 0 auto;
+width: 1213px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button / Secondary
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 20px;
+gap: 12px;
+
+width: 152px;
+height: 40px;
+
+background: rgba(24, 77, 229, 0.05);
+border: 0px solid rgba(24, 77, 229, 0.3);
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 112px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* _x / Button / Progress indicator */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* arrow-left */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 25%;
+bottom: 25%;
+
+border: 1.5px solid #000078;
+
+
+/* Button */
+
+width: 80px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #000078;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Badge
+
+<p>Компактный ярлык, отображающий статус, свойство или другую метаинформацию. Располагается рядом с другими элементами интерфейса</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 6px;
+gap: 4px;
+
+display: none;
+width: 19px;
+height: 20px;
+
+/* Error/Error */
+background: #FF0239;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 28px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Attention/Attention */
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* Title */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 1049px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* UX-архитектура */
+
+display: none;
+width: 1049px;
+height: 24px;
+
+/* Headlines/H4 */
+font-family: 'Inter Display';
+font-style: normal;
+font-weight: 700;
+font-size: 20px;
+line-height: 24px;
+/* identical to box height, or 120% */
+display: flex;
+align-items: center;
+letter-spacing: 0.28px;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Frame 2131329719 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 16px;
+
+margin: 0 auto;
+width: 350px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button / Secondary
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 20px;
+gap: 12px;
+
+width: 160px;
+height: 40px;
+
+background: rgba(24, 77, 229, 0.05);
+border: 0px solid rgba(24, 77, 229, 0.3);
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 120px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* _x / Button / Progress indicator */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* plus */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 20.83%;
+bottom: 20.83%;
+
+border: 1.5px solid #000078;
+
+
+/* Button */
+
+width: 88px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #000078;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Badge
+
+<p>Компактный ярлык, отображающий статус, свойство или другую метаинформацию. Располагается рядом с другими элементами интерфейса</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 6px;
+gap: 4px;
+
+display: none;
+width: 19px;
+height: 20px;
+
+/* Error/Error */
+background: #FF0239;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 28px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Attention/Attention */
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* Frame 2131329713 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-end;
+padding: 0px;
+gap: 4px;
+
+width: 174px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button / Primary
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 20px;
+gap: 12px;
+
+width: 174px;
+height: 40px;
+
+background: #000078;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 134px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* _x / Button / Progress indicator */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* download */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 16.67%;
+right: 16.67%;
+top: 16.67%;
+bottom: 12.5%;
+
+border: 1.5px solid #FFFFFF;
+
+
+/* Button */
+
+width: 102px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Badge
+
+<p>Компактный ярлык, отображающий статус, свойство или другую метаинформацию. Располагается рядом с другими элементами интерфейса</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 6px;
+gap: 4px;
+
+display: none;
+width: 19px;
+height: 20px;
+
+/* Error/Error */
+background: #FF0239;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 28px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Attention/Attention */
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* Dropdown / Context Menu */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 8px;
+
+display: none;
+width: 229px;
+height: 136px;
+
+background: #FFFFFF;
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Frame 2131329722 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 0px;
+
+width: 1440px;
+height: 828px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 1;
+
+
+/* chat */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: flex-end;
+align-items: flex-start;
+padding: 24px;
+gap: 16px;
+
+width: 440px;
+height: 828px;
+
+background: #FFFFFF;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 40px;
+
+width: 392px;
+height: 400px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 392px;
+height: 144px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Files layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 8px;
+
+width: 392px;
+height: 72px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Attachment
+
+<p>Элемент управления процессом загрузки и хранения файлов</p>
+
+<p>Сообщает, что файл доступен для просмотра или скачивания</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 16px;
+gap: 12px;
+
+width: 392px;
+height: 72px;
+min-height: 72px;
+
+background: rgba(26, 51, 115, 0.05);
+border-radius: 16px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* File badge
+
+<p>Отображает файлы,<strong style="white-space: pre-wrap;"> </strong>которые хранятся и перемещаются в системных интерфейсах компании</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+width: 40px;
+height: 40px;
+
+background: #FFFFFF;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* File layer */
+
+width: 40px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 26.67%;
+right: 26.67%;
+top: 20%;
+bottom: 20%;
+
+border: 2px solid #6885AB;
+
+
+/* Text & Status layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 308px;
+height: 40px;
+min-height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Label */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+
+width: 308px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Демо-полис добровольного медицинского страхования */
+
+width: 308px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+
+color: #2B5CE9;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Data layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+gap: 2px;
+
+width: 308px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Format layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 28px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Size layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 45px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* 46.5 КБ */
+
+width: 45px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* , */
+
+display: none;
+width: 4px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Date layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 2px;
+
+display: none;
+width: 143px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 1;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-end;
+padding: 0px 0px 0px 32px;
+gap: 10px;
+
+width: 392px;
+height: 64px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: flex-end;
+padding: 12px 16px;
+gap: 10px;
+
+width: 360px;
+height: 64px;
+
+background: #E8EDFC;
+border-radius: 20px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Button text */
+
+width: 298px;
+height: 40px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* or 143% */
+display: flex;
+align-items: center;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* .Building Blocks / Select / Global Chevron */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* chevron-down */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 25%;
+right: 25%;
+top: 37.5%;
+bottom: 37.5%;
+
+border: 1.5px solid rgba(21, 33, 73, 0.66);
+
+
+/* Frame 2131329730 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 12px;
+
+width: 392px;
+height: 216px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 12px;
+
+width: 392px;
+height: 68px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Description */
+
+width: 392px;
+height: 68px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* or 143% */
+display: flex;
+align-items: center;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Actions */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+flex-wrap: wrap;
+justify-content: flex-end;
+align-items: flex-start;
+align-content: flex-end;
+padding: 0px;
+gap: 8px;
+
+width: 392px;
+height: 136px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Button / Secondary
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 20px;
+gap: 12px;
+
+width: 321px;
+height: 40px;
+
+border: 1px solid rgba(24, 77, 229, 0.3);
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 281px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* _x / Button / Progress indicator */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* layout-grid */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 16.67%;
+right: 16.67%;
+top: 16.67%;
+bottom: 16.67%;
+
+border: 1.5px solid #000078;
+
+
+/* Button */
+
+width: 249px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #000078;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Badge
+
+<p>Компактный ярлык, отображающий статус, свойство или другую метаинформацию. Располагается рядом с другими элементами интерфейса</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 6px;
+gap: 4px;
+
+display: none;
+width: 19px;
+height: 20px;
+
+/* Error/Error */
+background: #FF0239;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 28px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Attention/Attention */
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* Button / Secondary
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 20px;
+gap: 12px;
+
+width: 189px;
+height: 40px;
+
+border: 1px solid rgba(24, 77, 229, 0.3);
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 149px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* _x / Button / Progress indicator */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* schema */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 16.67%;
+top: 8.33%;
+bottom: 8.33%;
+
+border: 1.5px solid #000078;
+
+
+/* Button */
+
+width: 117px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #000078;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Badge
+
+<p>Компактный ярлык, отображающий статус, свойство или другую метаинформацию. Располагается рядом с другими элементами интерфейса</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 6px;
+gap: 4px;
+
+display: none;
+width: 19px;
+height: 20px;
+
+/* Error/Error */
+background: #FF0239;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 28px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Attention/Attention */
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* Button / Secondary
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+*/
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 20px;
+gap: 12px;
+
+width: 244px;
+height: 40px;
+
+border: 1px solid rgba(24, 77, 229, 0.3);
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 204px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* _x / Button / Progress indicator */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* line */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 16.67%;
+right: 16.67%;
+top: 16.67%;
+bottom: 16.67%;
+
+border: 1.5px solid #000078;
+
+
+/* Button */
+
+width: 172px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: #000078;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Badge
+
+<p>Компактный ярлык, отображающий статус, свойство или другую метаинформацию. Располагается рядом с другими элементами интерфейса</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 6px;
+gap: 4px;
+
+display: none;
+width: 19px;
+height: 20px;
+
+/* Error/Error */
+background: #FF0239;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* new */
+
+display: none;
+width: 28px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Attention/Attention */
+color: #FF811A;
+
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+flex-grow: 0;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+flex-grow: 0;
+
+
+/* State layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 392px;
+height: 52px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Input layer */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 8px 16px;
+gap: 12px;
+
+width: 392px;
+height: 52px;
+
+background: rgba(26, 51, 115, 0.05);
+border-bottom: 1px solid rgba(26, 51, 115, 0.1);
+border-radius: 16px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* search */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Content and Label layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 0px;
+
+width: 288px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Label layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 0px;
+gap: 4px;
+
+width: 288px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Label */
+
+width: 127px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.66);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* * */
+
+display: none;
+width: 7px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+/* Error/Error */
+color: #FF0239;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Введите */
+
+display: none;
+width: 222px;
+height: 20px;
+
+/* Body/Body 2 */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.3);
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* x */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Layer R */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: flex-end;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 60px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* Button / Servise / Fill Duo
+
+<p>Доступно изменение размера компонента</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon R layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+width: 32px;
+height: 32px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Action ai */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 32px;
+height: 32px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button / Context
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+
+<p>⚠️ Тестовый вариант&nbsp;</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px;
+gap: 4px;
+
+width: 32px;
+height: 32px;
+
+/* Specific/None */
+border-radius: 32px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Content layer */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 12px;
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* paperclip */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 15.15%;
+right: 12.5%;
+top: 11.49%;
+bottom: 10.98%;
+
+border: 1.5px solid #152149;
+
+
+/* Button / Context
+
+<p>Buttons запускают действия и помогают пользователю выполнять ключевые задачи. Используйте их для продвижения продукта и акцентирования важных шагов. Primary используется как основная кнопка действия (CTA), одна на экран или форму</p>
+
+<p>⚠️ Тестовый вариант&nbsp;</p>
+*/
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 6px;
+gap: 4px;
+
+display: none;
+width: 32px;
+height: 32px;
+
+/* Specific/None */
+border-radius: 32px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* _input Caption / Default */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+display: none;
+width: 45px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Frame 2131329695 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: flex-end;
+align-items: flex-end;
+padding: 24px;
+
+width: 1000px;
+height: 828px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 1;
+
+
+/* Frame 2131329718 */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 10px;
+
+width: 952px;
+height: 724px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* IMG_8946 1 */
+
+width: 488.56px;
+height: 724px;
+
+background: url(bg_removal [Background removed].png);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Frame 2131329712 */
+
+width: 187px;
+height: 40px;
+
+/* Control/Segment
+
+Тень компонента Segmented Control
+*/
+filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.1));
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* x / Segment / Basic */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 16px;
+gap: 4px;
+
+position: absolute;
+width: 62px;
+height: 40px;
+left: 0px;
+top: 0px;
+
+/* Peak/Peak */
+background: #FFFFFF;
+border-radius: 12px 0px 0px 12px;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* minus */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 50%;
+bottom: 50%;
+
+border: 1.5px solid #152149;
+
+
+/* Frame 136 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-end;
+padding: 0px 0px 0px 4px;
+gap: 10px;
+
+display: none;
+width: 19px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 99 */
+
+width: 15px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* x / Segment / Basic */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 16px;
+gap: 4px;
+
+position: absolute;
+width: 63px;
+height: 40px;
+left: 62px;
+top: 0px;
+
+/* Peak/Peak */
+background: #FFFFFF;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 100% */
+
+width: 41px;
+height: 24px;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 16px;
+line-height: 24px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #152149;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Frame 136 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-end;
+padding: 0px 0px 0px 4px;
+gap: 10px;
+
+display: none;
+width: 19px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 99 */
+
+width: 15px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* x / Segment / Basic */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 10px 16px;
+gap: 4px;
+
+position: absolute;
+width: 62px;
+height: 40px;
+left: 125px;
+top: 0px;
+
+/* Peak/Peak */
+background: #FFFFFF;
+border-radius: 0px 12px 12px 0px;
+
+
+/* plus */
+
+display: none;
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* plus */
+
+width: 20px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.83%;
+right: 20.83%;
+top: 20.83%;
+bottom: 20.83%;
+
+border: 1.5px solid #152149;
+
+
+/* Frame 136 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-end;
+padding: 0px 0px 0px 4px;
+gap: 10px;
+
+display: none;
+width: 19px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* 99 */
+
+width: 15px;
+height: 16px;
+
+/* Caption/Caption */
+font-family: 'Inter';
+font-style: normal;
+font-weight: 400;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+
+color: rgba(21, 33, 73, 0.5);
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
