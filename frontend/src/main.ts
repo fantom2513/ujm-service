@@ -1,6 +1,6 @@
 ﻿import type { ApiError, AppState } from "./types/index.ts";
 import type { ChatMessage, DiagramResult, FileMeta, SourceType } from "../../shared/types/index.ts";
-import { generateDiagram, getConfig } from "./api/client.ts";
+import { generateDiagram, getConfig, sendChatMessage } from "./api/client.ts";
 import { inlineIcons } from "./generated/inline-icons.ts";
 import { clearState, defaultState, loadState, saveState } from "./state/session.ts";
 import { diagramSize, downloadPdf, downloadPng, downloadSvg, getCachedSvg, renderMermaid } from "./utils/export.ts";
@@ -44,6 +44,7 @@ let exportState: "idle" | "exporting" | "error" = "idle";
 let sourceDetailsOpen = false;
 let pendingChatScroll = false;
 let chatInputError = "";
+let pendingActionType: "FREEFORM" | "GROUP_SEMANTIC_BLOCKS" | "SIMPLIFY" | "HIGHLIGHT_MAIN_PATH" | "RESTORE_PREVIOUS" = "FREEFORM";
 const expandedUserMessages = new Set<string>();
 
 void getConfig().then((config) => {
@@ -403,6 +404,13 @@ function quickActions(): string {
   `;
 }
 
+function quickActionType(label: string): "GROUP_SEMANTIC_BLOCKS" | "SIMPLIFY" | "HIGHLIGHT_MAIN_PATH" | "FREEFORM" {
+  if (label === "Разбить схему на смысловые блоки") return "GROUP_SEMANTIC_BLOCKS";
+  if (label === "Упростить схему") return "SIMPLIFY";
+  if (label === "Выделить основной путь") return "HIGHLIGHT_MAIN_PATH";
+  return "FREEFORM";
+}
+
 function generatingMessage(): string {
   return `<div class="message-generating"><span>Анализирую</span>${svgIcon("chevron-down.svg", "generating-icon")}</div>`;
 }
@@ -669,7 +677,9 @@ function bindResultEvents(): void {
 
   document.querySelectorAll<HTMLButtonElement>("[data-quick]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.chatDraft = button.dataset.quick || "";
+      const label = button.dataset.quick || "";
+      pendingActionType = quickActionType(label);
+      state.chatDraft = label;
       persist();
       void sendChat();
     });
@@ -861,6 +871,9 @@ async function sendChat(): Promise<void> {
   };
 
   const shouldScroll = isMessagesNearBottom();
+  const actionType = pendingActionType;
+  pendingActionType = "FREEFORM";
+  const attachmentFile = chatFiles[0];
   state.result.chat.push(userMessage);
   state.chatDraft = "";
   chatInputError = "";
@@ -870,18 +883,31 @@ async function sendChat(): Promise<void> {
   render();
 
   try {
-    await delay(700);
+    const form = new FormData();
+    form.set("mermaidCode", state.result.mermaidCode);
+    form.set("previousMermaidCode", state.previousMermaidCode ?? "");
+    form.set("message", text);
+    form.set("actionType", actionType);
+    form.set("sourceText", state.result.sourceText ?? "");
+    form.set("additionalDetails", state.result.details ?? "");
+    if (attachmentFile) form.set("file", attachmentFile);
+
+    const result = await sendChatMessage(form) as { mermaidCode: string; previousMermaidCode: string; message: string };
     if (!state.result) return;
+
+    state.previousMermaidCode = result.previousMermaidCode;
+    state.result.mermaidCode = result.mermaidCode;
     state.result.chat.push({
       id: crypto.randomUUID(),
       role: "assistant",
-      text: mockAssistantResponse(text),
+      text: result.message,
       createdAt: new Date().toISOString()
     });
     chatFiles = [];
     state.chatAttachment = undefined;
     state.chatAttachments = undefined;
     if (shouldScroll) queueChatScroll(true);
+    void renderMermaidAndUpdate(result.mermaidCode);
   } catch (error) {
     state.chatDraft = draftBeforeSend;
     if (state.result) {
@@ -899,15 +925,6 @@ async function sendChat(): Promise<void> {
     persist();
     render();
   }
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
-function mockAssistantResponse(text: string): string {
-  const topic = text ? "по вашему сообщению" : "по приложенному файлу";
-  return `Готово. Я учёл запрос ${topic}. На этом этапе это демонстрационный ответ: схема не изменяется, а логика AI-редактирования будет подключена отдельно.`;
 }
 async function exportDiagram(type: "png" | "svg" | "pdf"): Promise<void> {
   exportState = "exporting";

@@ -25,6 +25,7 @@ export interface AppState {
   page: Page;
   start: StartState;
   result?: DiagramResult;
+  previousMermaidCode?: string;
   view: DiagramViewState;
   chatDraft: string;
   chatAttachment?: FileMeta;
