@@ -1,6 +1,8 @@
 import { LLMError } from "./errors.ts";
 import type { LLMErrorCode, ResponseFormatMode, VLLMClient } from "./client.ts";
 
+// Errors that won't change on retry — the model/client produced a bad payload,
+// not a transient failure.
 const NO_RETRY_CODES = new Set<LLMErrorCode>([
   "SCHEMA_MISMATCH",
   "STRUCTURED_OUTPUT_UNSUPPORTED",
@@ -8,6 +10,10 @@ const NO_RETRY_CODES = new Set<LLMErrorCode>([
   "EMPTY_RESPONSE",
 ]);
 
+// Subset of NO_RETRY_CODES relevant to completeJsonWithFallback's response_format
+// chain. EMPTY_RESPONSE is deliberately excluded: it comes from completeText's
+// Mermaid extraction, not JSON parsing, so stepping down json_schema/json_object/none
+// can't fix it — don't "sync" this set with NO_RETRY_CODES.
 const FALLBACK_CODES = new Set<LLMErrorCode>([
   "SCHEMA_MISMATCH",
   "STRUCTURED_OUTPUT_UNSUPPORTED",
