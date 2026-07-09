@@ -1,17 +1,17 @@
 import type { ApiError } from "../types/index.ts";
 
 export async function getConfig(): Promise<{ productHomeUrl: string }> {
-  const response = await fetch("/api/config");
+  const response = await fetch("api/config");
   const payload = await response.json();
   return { productHomeUrl: payload.productHomeUrl || "http://localhost:3000/" };
 }
 
 export async function generateDiagram(form: FormData): Promise<unknown> {
-  return requestJson("/api/generate", form);
+  return requestJson("api/generate", form);
 }
 
 export async function sendChatMessage(form: FormData): Promise<unknown> {
-  return requestJson("/api/chat", form);
+  return requestJson("api/chat", form);
 }
 
 async function requestJson(url: string, body: FormData): Promise<unknown> {

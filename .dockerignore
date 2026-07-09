@@ -1,0 +1,10 @@
+.git
+.worktrees
+node_modules
+frontend/dist
+.env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+docs/superpowers

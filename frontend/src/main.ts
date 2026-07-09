@@ -541,7 +541,7 @@ function downloadLocalFile(file: File | Blob): void {
 }
 
 function downloadSampleFile(): void {
-  triggerDownload(`/${encodeURIComponent("Пример ТЗ.docx")}`, "Пример ТЗ.docx");
+  triggerDownload(encodeURIComponent("Пример ТЗ.docx"), "Пример ТЗ.docx");
 }
 
 function triggerDownload(href: string, filename: string): void {

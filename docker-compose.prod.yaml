@@ -1,0 +1,30 @@
+networks:
+  cx_net:
+    external: true
+
+services:
+  ux-architecture-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ux-architecture-backend:prod
+    container_name: ux-architecture-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_HOST: 0.0.0.0
+    networks:
+      - cx_net
+
+  ux-architecture-frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: ux-architecture-frontend:prod
+    container_name: ux-architecture-frontend
+    restart: unless-stopped
+    networks:
+      - cx_net
+    depends_on:
+      - ux-architecture-backend

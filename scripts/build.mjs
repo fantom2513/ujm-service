@@ -9,7 +9,7 @@ const srcRoot = join(frontendRoot, "src");
 const distRoot = join(frontendRoot, "dist");
 const assetsRoot = join(distRoot, "assets");
 const referenceIconsRoot = join(root, "Референсы", "Иконки");
-const chatIconsRoot = join(root, "Референсы", "result", "chat", "icons");
+const chatIconsRoot = join(root, "Референсы", "Result", "Chat", "icons");
 const assetVersion = "chat-details-files-1";
 
 async function walk(dir) {

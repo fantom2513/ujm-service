@@ -1,0 +1,112 @@
+stages:
+  - build
+  - deploy
+
+.changes: &changes
+  - Dockerfile
+  - frontend/**/*
+  - backend/**/*
+  - shared/**/*
+  - docker-compose*.yaml
+  - package.json
+  - pnpm-lock.yaml
+  - .gitlab-ci.yml
+
+build-test:
+  stage: build
+  image: nexus.sogaz.ru/docker:25.0
+  services:
+    - docker:25.0-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
+  tags:
+    - ux02-copilot_docker
+  script:
+    - echo "$ENV_TEST" > .env
+    - echo "ENV loaded"
+    - docker compose -f docker-compose.test.yaml build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "test"
+      changes: *changes
+    - if: $CI_COMMIT_BRANCH == "test"
+      when: manual
+
+build-prod:
+  stage: build
+  image: nexus.sogaz.ru/docker:25.0
+  services:
+    - docker:25.0-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
+  tags:
+    - ux01-copilot_docker
+  script:
+    - echo "$ENV_PROD" > .env
+    - echo "ENV loaded"
+    - docker compose -f docker-compose.prod.yaml build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes: *changes
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: manual
+
+deploy-test:
+  stage: deploy
+  image: nexus.sogaz.ru/docker:25.0-dind
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
+    DOCKER_TLS_CERTDIR: ""
+  tags:
+    - ux02-copilot_docker
+  script:
+    - echo "$ENV_TEST" > .env
+    - echo "ENV loaded"
+    - docker compose -f docker-compose.test.yaml up -d --build --force-recreate
+    - echo "Waiting for ux-architecture-backend to be healthy..."
+    - |
+      for i in $(seq 1 30); do
+        status=$(docker inspect --format='{{.State.Health.Status}}' ux-architecture-backend 2>/dev/null || echo "starting")
+        if [ "$status" = "healthy" ]; then echo "backend healthy"; break; fi
+        if [ "$i" = "30" ]; then echo "backend did not become healthy in time" && exit 1; fi
+        sleep 3
+      done
+  rules:
+    - if: $CI_COMMIT_BRANCH == "test"
+      changes: *changes
+      when: always
+    - if: $CI_COMMIT_BRANCH == "test"
+      when: manual
+
+deploy-prod:
+  stage: deploy
+  image: nexus.sogaz.ru/docker:25.0-dind
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
+    DOCKER_TLS_CERTDIR: ""
+  tags:
+    - ux01-copilot_docker
+  script:
+    - echo "$ENV_PROD" > .env
+    - echo "ENV loaded"
+    - docker compose -f docker-compose.prod.yaml up -d --build --force-recreate
+    - echo "Waiting for ux-architecture-backend to be healthy..."
+    - |
+      for i in $(seq 1 30); do
+        status=$(docker inspect --format='{{.State.Health.Status}}' ux-architecture-backend 2>/dev/null || echo "starting")
+        if [ "$status" = "healthy" ]; then echo "backend healthy"; break; fi
+        if [ "$i" = "30" ]; then echo "backend did not become healthy in time" && exit 1; fi
+        sleep 3
+      done
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes: *changes
+      when: manual
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: manual
+
+include:
+  - project: 'sast/sast'
+    ref: master
+    file: 'runSast.yml'
