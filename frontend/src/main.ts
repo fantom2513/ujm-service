@@ -1,6 +1,7 @@
 ﻿import type { ApiError, AppState } from "./types/index.ts";
 import type { ChatMessage, DiagramResult, FileMeta, SourceType } from "../../shared/types/index.ts";
 import { generateDiagram, getConfig } from "./api/client.ts";
+import { inlineIcons } from "./generated/inline-icons.ts";
 import { clearState, defaultState, loadState, saveState } from "./state/session.ts";
 import { diagramSize, downloadPdf, downloadPng, downloadSvg, renderDiagramSvg } from "./utils/export.ts";
 
@@ -114,7 +115,7 @@ function startPage(): string {
             </ul>
             <button class="sample-link" type="button">Скачать пример ТЗ</button>
             <button id="build" class="primary-action build-action ${isLoading ? "is-loading" : ""}" ${isLoading ? "disabled" : ""}>
-              ${isLoading ? icon("Content layer.svg", "spinner-icon") : icon("sparkles.svg", "button-icon")}
+              ${isLoading ? svgIcon("Content layer.svg", "spinner-icon") : svgIcon("sparkles.svg", "button-icon")}
               ${isLoading ? "" : "<span>Построить схему</span>"}
             </button>
           </aside>
@@ -132,7 +133,7 @@ function productNav(): string {
       <a>Тепловая карта</a>
       <a>CJM</a>
       <a class="active">UX-архитектура</a>
-      <button class="gear-button" type="button" aria-label="Настройки">${icon("sun.svg", "nav-icon")}</button>
+      <button class="gear-button" type="button" aria-label="Настройки">${svgIcon("sun.svg", "nav-icon")}</button>
     </nav>
   `;
 }
@@ -140,7 +141,7 @@ function productNav(): string {
 function serviceButton(): string {
   return `
     <button class="service-button" type="button" aria-label="Подсказка по деталям задачи" aria-describedby="details-service-tooltip">
-      ${icon("Service.svg", "help-icon")}
+      ${svgIcon("Service.svg", "help-icon")}
       <span id="details-service-tooltip" class="service-tooltip" role="tooltip">Например, укажите, для кого строить схему, какие этапы добавить или исключить и какой дополнительный сценарий учесть</span>
     </button>
   `;
@@ -230,9 +231,9 @@ function attachmentRow(file: FileMeta, status: AttachmentStatus): string {
         ${isLoadingStatus ? `<span class="attachment-progress" aria-hidden="true"><span></span></span>` : ""}
       </span>
       <span class="attachment-actions">
-        ${isLoadingStatus ? `<button type="button" class="attachment-remove icon-action" aria-label="Отменить загрузку">${icon("trash.svg", "button-icon")}</button>` : ""}
-        ${isError ? `<button type="button" class="attachment-retry icon-action" aria-label="Повторить загрузку">${icon("reload.svg", "button-icon")}</button><button type="button" class="attachment-remove icon-action" aria-label="Удалить файл">${icon("trash.svg", "button-icon")}</button>` : ""}
-        ${isSuccess ? `${icon("check.svg", "attachment-ok")}<button type="button" class="attachment-remove icon-action" aria-label="Удалить файл">${icon("trash.svg", "button-icon")}</button>` : ""}
+        ${isLoadingStatus ? `<button type="button" class="attachment-remove icon-action" aria-label="Отменить загрузку">${svgIcon("trash.svg", "button-icon")}</button>` : ""}
+        ${isError ? `<button type="button" class="attachment-retry icon-action" aria-label="Повторить загрузку">${svgIcon("reload.svg", "button-icon")}</button><button type="button" class="attachment-remove icon-action" aria-label="Удалить файл">${svgIcon("trash.svg", "button-icon")}</button>` : ""}
+        ${isSuccess ? `${icon("check.svg", "attachment-ok")}<button type="button" class="attachment-remove icon-action" aria-label="Удалить файл">${svgIcon("trash.svg", "button-icon")}</button>` : ""}
       </span>
     </div>
   `;
@@ -415,13 +416,14 @@ function chatMessage(message: ChatMessage): string {
   }
 
   const hasText = Boolean(message.text.trim());
+  const hasAttachments = attachments.length > 0;
   const isOpen = expandedUserMessages.has(message.id);
   const textBlock = hasText ? `
     <div class="user-message-content">
       <p class="user-message-text ${isOpen ? "is-open" : "is-collapsed"}">${escapeHtml(message.text)}</p>
       <button class="user-message-toggle" type="button" data-user-message-toggle="${escapeHtml(message.id)}" aria-expanded="${isOpen}" aria-label="${isOpen ? "Свернуть сообщение" : "Развернуть сообщение"}">${svgIcon("chevron-down.svg", "user-message-toggle-icon")}</button>
     </div>` : "";
-  return `<div class="message user ${isOpen ? "is-open" : ""}" data-message-id="${escapeHtml(message.id)}">${textBlock}${attachmentCards}</div>`;
+  return `<div class="message user ${isOpen ? "is-open" : ""} ${hasAttachments ? "has-attachments" : ""}" data-message-id="${escapeHtml(message.id)}">${attachmentCards}${textBlock}</div>`;
 }
 
 function messageAttachmentCard(file: FileMeta): string {
@@ -480,7 +482,9 @@ function icon(name: string, className = "icon", alt = ""): string {
 }
 
 function svgIcon(name: string, className = "button-icon"): string {
-  return icon(name, className);
+  const svg = inlineIcons[name];
+  if (!svg) return icon(name, className);
+  return svg.replace("<svg", `<svg class="${escapeHtml(className)}" aria-hidden="true" focusable="false"`);
 }
 
 function setSourceFile(file: File): void {
