@@ -7,7 +7,7 @@ import type { ApiErrorPayload, MultipartBody, UploadedFile } from "../types/inde
 import { getExtension, hasPdfTextLayer, isTextSourceFormat, normalizeTextFile } from "../services/files/index.ts";
 import { isRecordingFormat, normalizeRecording } from "../services/recordings/index.ts";
 import { classifyWorkLink, normalizeLink } from "../services/links/index.ts";
-import { generateDiagramStub, chatEditStub } from "../services/openai/index.ts";
+import { generateDiagram, chatEditStub } from "../services/openai/index.ts";
 import { validateMermaid } from "../services/mermaid/index.ts";
 import { normalizeChatAttachment } from "../services/chatAttachments/index.ts";
 
@@ -169,7 +169,12 @@ async function handleGenerate(request: IncomingMessage, response: ServerResponse
     return sendApiError(response, 400, { code: "diagram-generation", message: userMessages["diagram-generation"] });
   }
 
-  const mermaidCode = generateDiagramStub(source, details);
+  let mermaidCode: string;
+  try {
+    mermaidCode = await generateDiagram(source, details);
+  } catch {
+    return sendApiError(response, 500, { code: "diagram-generation", message: userMessages["diagram-generation"] });
+  }
   const validation = validateMermaid(mermaidCode);
   if (!validation.ok) {
     return sendApiError(response, 500, { code: "diagram-generation", message: userMessages["diagram-generation"] });
@@ -180,6 +185,7 @@ async function handleGenerate(request: IncomingMessage, response: ServerResponse
     result: {
       title: "Тестовая User Flow-схема",
       mermaidCode,
+      sourceText: source.text,
       sourceContext: {
         type: source.type,
         title: source.title,

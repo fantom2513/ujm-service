@@ -39,6 +39,7 @@ export interface ChatMessage {
 export interface DiagramResult {
   title: string;
   mermaidCode: string;
+  sourceText: string;
   sourceContext: SourceContext;
   details?: string;
   chat: ChatMessage[];
