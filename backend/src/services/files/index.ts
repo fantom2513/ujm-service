@@ -1,4 +1,6 @@
 import type { UploadedFile, NormalizedSource } from "../../types/index.ts";
+import { parsePdf } from "./pdf.ts";
+import { parseDocx } from "./docx.ts";
 
 const textFormats = new Set(["txt", "docx", "pdf"]);
 const tableFormats = new Set(["xls", "xlsx", "csv"]);
@@ -26,17 +28,24 @@ export function hasPdfTextLayer(file: UploadedFile): boolean {
   return /\bBT\b/.test(content) && /(Tj|TJ)\b/.test(content);
 }
 
-export function normalizeTextFile(file: UploadedFile): NormalizedSource {
+export async function normalizeTextFile(file: UploadedFile): Promise<NormalizedSource> {
   const format = getExtension(file.filename);
   const safeName = sanitizeFilename(file.filename);
   let text = `Файл ${safeName} принят каркасом backend.`;
+  let stub = true;
 
   if (format === "txt" || format === "csv") {
     text = file.buffer.toString("utf8").slice(0, 12000);
-  }
-
-  if (format === "docx" || format === "pdf" || format === "xls" || format === "xlsx") {
+    stub = false;
+  } else if (format === "pdf") {
+    text = await parsePdf(file.buffer);
+    stub = !text;
+  } else if (format === "docx") {
+    text = await parseDocx(file.buffer);
+    stub = !text;
+  } else if (format === "xls" || format === "xlsx") {
     text = `Извлечение содержимого ${format.toUpperCase()} будет подключено в сервисе files. Сейчас используется тестовый контекст каркаса.`;
+    stub = true;
   }
 
   return {
@@ -49,6 +58,6 @@ export function normalizeTextFile(file: UploadedFile): NormalizedSource {
       format: format.toUpperCase(),
       size: file.size
     },
-    stub: format !== "txt" && format !== "csv"
+    stub
   };
 }

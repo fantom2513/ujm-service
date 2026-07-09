@@ -140,7 +140,7 @@ async function handleGenerate(request: IncomingMessage, response: ServerResponse
       return sendApiError(response, 400, { code: "attachment-error", message: userMessages["attachment-error"], field: "attachment" });
     }
 
-    source = normalizeTextFile(file);
+    source = await normalizeTextFile(file);
   } else if (sourceType === "recording") {
     const file = firstFile(body);
     if (!file || !file.filename) {
@@ -206,7 +206,7 @@ async function handleChat(request: IncomingMessage, response: ServerResponse): P
     if (attachment.size > config.maxChatAttachmentBytes) {
       return sendApiError(response, 400, { code: "file-size", message: userMessages["file-size-text"], field: "attachment" });
     }
-    const normalized = normalizeChatAttachment(attachment);
+    const normalized = await normalizeChatAttachment(attachment);
     if (!normalized.ok) {
       return sendApiError(response, 400, {
         code: normalized.reason === "format" ? "file-format" : "attachment-error",
