@@ -6,6 +6,10 @@ export type ResponseFormatMode = "json_schema" | "json_object" | "none";
 
 // ─── Pure helpers (exported for tests) ───────────────────────────────────────
 
+// Preserves object identity for unchanged subtrees (returns `obj` itself when nothing
+// changed) rather than always rebuilding. Required so that resolving a `$ref` to a leaf
+// definition returns the same object reference as the definition — callers/tests rely on
+// this for reference-equality checks, and it avoids unnecessary allocation for large schemas.
 export function _inlineRefs(obj: unknown, defs: Record<string, unknown>): unknown {
   if (Array.isArray(obj)) {
     const mapped = obj.map((item) => _inlineRefs(item, defs));
