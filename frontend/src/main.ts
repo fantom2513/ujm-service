@@ -3,7 +3,7 @@ import type { ChatMessage, DiagramResult, FileMeta, SourceType } from "../../sha
 import { generateDiagram, getConfig } from "./api/client.ts";
 import { inlineIcons } from "./generated/inline-icons.ts";
 import { clearState, defaultState, loadState, saveState } from "./state/session.ts";
-import { diagramSize, downloadPdf, downloadPng, downloadSvg, renderDiagramSvg } from "./utils/export.ts";
+import { diagramSize, downloadPdf, downloadPng, downloadSvg, getCachedSvg, renderMermaid } from "./utils/export.ts";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 const iconUrl = (name: string): string => `assets/icons/${encodeURIComponent(name)}`;
@@ -263,7 +263,7 @@ function resultPage(): string {
         </aside>
         <section class="diagram-panel">
           <div id="diagram-viewport" class="diagram-viewport">
-            <div id="diagram-content" class="diagram-content">${renderDiagramSvg()}</div>
+            <div id="diagram-content" class="diagram-content">${getCachedSvg()}</div>
           </div>
           <div class="diagram-controls">
             <button id="zoom-out" title="Уменьшить" ${isMinZoom ? "disabled" : ""}>${svgIcon("minus.svg", "control-icon")}</button>
@@ -797,6 +797,17 @@ function bindResultEvents(): void {
   };
 }
 
+async function renderMermaidAndUpdate(code: string): Promise<void> {
+  await renderMermaid(code);
+  const content = document.querySelector<HTMLDivElement>("#diagram-content");
+  if (content) {
+    content.innerHTML = getCachedSvg();
+    state.view = centeredView();
+    applyTransform(content);
+    persist();
+  }
+}
+
 async function buildDiagram(): Promise<void> {
   if (isLoading) return;
   state.start.error = validateBeforeSubmit();
@@ -824,6 +835,7 @@ async function buildDiagram(): Promise<void> {
     queueChatScroll(true);
     state.start.error = undefined;
     persist();
+    void renderMermaidAndUpdate(result.mermaidCode);
   } catch (error) {
     state.start.error = normalizeApiError(error);
   } finally {
