@@ -32,5 +32,12 @@ export const config: AppConfig = {
   maxTextFileBytes: megabytes(process.env.MAX_TEXT_FILE_MB, 10),
   maxRecordingFileBytes: megabytes(process.env.MAX_RECORDING_FILE_MB, 100),
   maxChatAttachmentBytes: megabytes(process.env.MAX_CHAT_ATTACHMENT_MB, 10),
-  requestTimeoutMs: Number(process.env.REQUEST_TIMEOUT_MS || "120000")
+  requestTimeoutMs: Number(process.env.REQUEST_TIMEOUT_MS || "120000"),
+  llmUrl: process.env.LLM_URL || "http://localhost:8000",
+  llmModel: process.env.LLM_MODEL || "google/gemma-4",
+  llmApiKey: process.env.LLM_API_KEY || undefined,
+  llmTimeoutMs: Number(process.env.LLM_TIMEOUT_MS || "120000"),
+  llmTemperature: Number(process.env.LLM_TEMPERATURE || "0.1"),
+  llmSeed: process.env.LLM_SEED ? Number(process.env.LLM_SEED) : undefined,
+  llmResponseFormatMode: (process.env.LLM_RESPONSE_FORMAT_MODE as "json_schema" | "json_object" | "none") || "json_schema"
 };

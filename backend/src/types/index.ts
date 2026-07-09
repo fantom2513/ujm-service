@@ -27,6 +27,14 @@ export interface AppConfig {
   maxRecordingFileBytes: number;
   maxChatAttachmentBytes: number;
   requestTimeoutMs: number;
+  // LLM
+  llmUrl: string;
+  llmModel: string;
+  llmApiKey: string | undefined;
+  llmTimeoutMs: number;
+  llmTemperature: number;
+  llmSeed: number | undefined;
+  llmResponseFormatMode: "json_schema" | "json_object" | "none";
 }
 
 export interface NormalizedSource {
