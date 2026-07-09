@@ -7,7 +7,8 @@ import type { ApiErrorPayload, MultipartBody, UploadedFile } from "../types/inde
 import { getExtension, hasPdfTextLayer, isTextSourceFormat, normalizeTextFile } from "../services/files/index.ts";
 import { isRecordingFormat, normalizeRecording } from "../services/recordings/index.ts";
 import { classifyWorkLink, normalizeLink } from "../services/links/index.ts";
-import { generateDiagram, chatEditStub } from "../services/openai/index.ts";
+import { chatEdit, generateDiagram } from "../services/openai/index.ts";
+import type { ChatPromptOptions } from "../services/openai/prompts.ts";
 import { validateMermaid } from "../services/mermaid/index.ts";
 import { normalizeChatAttachment } from "../services/chatAttachments/index.ts";
 
@@ -202,13 +203,57 @@ async function handleGenerate(request: IncomingMessage, response: ServerResponse
   });
 }
 
+const UNDO_PHRASES = [
+  "верни предыдущую версию",
+  "вернуть предыдущую версию",
+  "верни прошлую схему",
+  "отмени последнее изменение",
+  "откатить последнее изменение",
+  "назад к предыдущей схеме"
+];
+
+function normalizeUndoMessage(message: string): string {
+  return message.toLowerCase().trim().replace(/\s+/g, " ").replace(/[.!?]$/, "");
+}
+
 async function handleChat(request: IncomingMessage, response: ServerResponse): Promise<void> {
   const body = await readBody(request);
   const mermaidCode = body.fields.mermaidCode || "";
+  const previousMermaidCode = body.fields.previousMermaidCode || undefined;
   const message = body.fields.message || "";
-  const attachment = firstFile(body);
-  let attachmentNote = "";
+  const actionType = (body.fields.actionType as ChatPromptOptions["actionType"]) || "FREEFORM";
+  const sourceText = body.fields.sourceText || "";
+  const additionalDetails = body.fields.additionalDetails || "";
 
+  // Detect deterministic "undo" phrases even if the frontend sent FREEFORM.
+  const resolvedAction: ChatPromptOptions["actionType"] = UNDO_PHRASES.includes(normalizeUndoMessage(message))
+    ? "RESTORE_PREVIOUS"
+    : actionType;
+
+  if (resolvedAction === "RESTORE_PREVIOUS") {
+    const target = previousMermaidCode?.trim();
+    if (target && validateMermaid(target).ok) {
+      return sendJson(response, 200, {
+        ok: true,
+        result: {
+          mermaidCode: target,
+          previousMermaidCode: mermaidCode,
+          message: "Предыдущая версия схемы восстановлена."
+        }
+      });
+    }
+    return sendJson(response, 200, {
+      ok: true,
+      result: {
+        mermaidCode,
+        previousMermaidCode,
+        message: "Предыдущая версия схемы недоступна."
+      }
+    });
+  }
+
+  let attachmentContext = "";
+  const attachment = firstFile(body);
   if (attachment) {
     if (attachment.size > config.maxChatAttachmentBytes) {
       return sendApiError(response, 400, { code: "file-size", message: userMessages["file-size-text"], field: "attachment" });
@@ -221,20 +266,31 @@ async function handleChat(request: IncomingMessage, response: ServerResponse): P
         field: "attachment"
       });
     }
-    attachmentNote = " Прикрепленный файл принят как дополнительный контекст, но пока не влияет на схему.";
+    attachmentContext = normalized.text;
   }
 
-  const validation = validateMermaid(mermaidCode);
-  const safeCode = validation.ok ? mermaidCode : "";
-  sendJson(response, 200, {
-    ok: true,
-    result: {
-      mermaidCode: safeCode,
-      message: `${chatEditStub()}${attachmentNote}`,
-      temporary: true,
-      userMessage: message
-    }
-  });
+  try {
+    const result = await chatEdit({
+      sourceText,
+      additionalDetails,
+      currentMermaid: mermaidCode,
+      previousMermaid: previousMermaidCode,
+      actionType: resolvedAction,
+      userMessage: message,
+      attachmentContext
+    });
+    return sendJson(response, 200, {
+      ok: true,
+      result: {
+        mermaidCode: result.mermaidCode,
+        previousMermaidCode: mermaidCode,
+        message: result.message
+      }
+    });
+  } catch (err) {
+    console.error("chatEdit failed:", err);
+    return sendApiError(response, 500, { code: "diagram-generation", message: userMessages["diagram-generation"] });
+  }
 }
 
 async function handleStatic(request: IncomingMessage, response: ServerResponse): Promise<void> {

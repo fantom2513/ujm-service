@@ -1,6 +1,8 @@
 import { VLLMClient } from "../../infrastructure/llm/client.ts";
-import { executeWithRetry } from "../../infrastructure/llm/retry.ts";
-import { buildGeneratePrompt } from "./prompts.ts";
+import { completeJsonWithFallback, executeWithRetry } from "../../infrastructure/llm/retry.ts";
+import { LLMError } from "../../infrastructure/llm/errors.ts";
+import { buildChatPrompt, buildGeneratePrompt, buildRepairPrompt, type ChatPromptOptions } from "./prompts.ts";
+import { validateMermaid } from "../mermaid/index.ts";
 import { config } from "../../config/index.ts";
 import type { NormalizedSource } from "../../types/index.ts";
 
@@ -25,6 +27,58 @@ export async function generateDiagram(
   return executeWithRetry(() => client.completeText(prompt));
 }
 
-export function chatEditStub(): string {
-  return "Временная заглушка: AI-редактирование пока не подключено, схема оставлена без изменений.";
+const CHAT_OUTPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    mermaid: { type: "string" },
+    message: { type: "string" }
+  },
+  required: ["mermaid", "message"],
+  additionalProperties: false
+};
+
+export interface ChatEditResult {
+  mermaidCode: string;
+  message: string;
+}
+
+export async function chatEdit(opts: ChatPromptOptions): Promise<ChatEditResult> {
+  const prompt = buildChatPrompt(opts);
+
+  const raw = await completeJsonWithFallback(
+    (mode) => new VLLMClient({
+      url: config.llmUrl,
+      model: config.llmModel,
+      apiKey: config.llmApiKey,
+      timeoutMs: config.llmTimeoutMs,
+      temperature: config.llmTemperature,
+      seed: config.llmSeed,
+      responseFormatMode: mode
+    }),
+    config.llmResponseFormatMode,
+    (client) => client.completeJson(prompt, CHAT_OUTPUT_SCHEMA, "ChatOutput")
+  );
+
+  let mermaidCode = String(raw["mermaid"] ?? "").trim();
+  const message = String(raw["message"] ?? "").trim();
+
+  const validation = validateMermaid(mermaidCode);
+  if (!validation.ok) {
+    const repairClient = makeClient();
+    try {
+      const repaired = await repairClient.completeText(
+        buildRepairPrompt(mermaidCode, validation.reason, [])
+      );
+      const revalidation = validateMermaid(repaired);
+      if (revalidation.ok) {
+        mermaidCode = repaired;
+      } else {
+        throw new Error("Repair failed: " + revalidation.reason);
+      }
+    } catch {
+      throw new LLMError("SCHEMA_MISMATCH", "Generated Mermaid failed validation after repair");
+    }
+  }
+
+  return { mermaidCode, message };
 }
