@@ -38,11 +38,13 @@ export async function normalizeTextFile(file: UploadedFile): Promise<NormalizedS
     text = file.buffer.toString("utf8").slice(0, 12000);
     stub = false;
   } else if (format === "pdf") {
-    text = await parsePdf(file.buffer);
-    stub = !text;
+    const extracted = await parsePdf(file.buffer);
+    stub = !extracted;
+    text = extracted || `Файл ${safeName}: содержимое не удалось извлечь.`;
   } else if (format === "docx") {
-    text = await parseDocx(file.buffer);
-    stub = !text;
+    const extracted = await parseDocx(file.buffer);
+    stub = !extracted;
+    text = extracted || `Файл ${safeName}: содержимое не удалось извлечь.`;
   } else if (format === "xls" || format === "xlsx") {
     text = `Извлечение содержимого ${format.toUpperCase()} будет подключено в сервисе files. Сейчас используется тестовый контекст каркаса.`;
     stub = true;
