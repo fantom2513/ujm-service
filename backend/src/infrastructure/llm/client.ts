@@ -118,5 +118,93 @@ export class VLLMClient {
     return `${this.baseUrl}/chat/completions`;
   }
 
-  // completeText and completeJson added in Task 3
+  private async _post(
+    messages: { role: string; content: string }[],
+    responseFormat?: unknown,
+  ): Promise<{ content: string; reasoningContent: string }> {
+    const payload: Record<string, unknown> = {
+      model: this.model,
+      messages,
+      temperature: this.temperature,
+      stream: false,
+    };
+    if (this.seed !== undefined) payload["seed"] = this.seed;
+    if (responseFormat) payload["response_format"] = responseFormat;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+
+    try {
+      const response = await fetch(this.endpoint, {
+        method: "POST",
+        headers: this.headers,
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const body = await response.text().catch(() => "");
+        if (response.status === 422 && this.responseFormatMode !== "none") {
+          throw new LLMError(
+            "STRUCTURED_OUTPUT_UNSUPPORTED",
+            `Model rejected response_format: ${body.slice(0, 400)}`,
+          );
+        }
+        throw new LLMError("HTTP_ERROR", `LLM HTTP ${response.status}: ${body.slice(0, 400)}`);
+      }
+
+      const data = await response.json() as {
+        choices: { message: { content?: string; reasoning_content?: string } }[];
+      };
+      const msg = data.choices[0]?.message ?? {};
+      return {
+        content: msg.content ?? "",
+        reasoningContent: (msg as Record<string, string>).reasoning_content ?? "",
+      };
+    } catch (err) {
+      if (err instanceof LLMError) throw err;
+      if ((err as Error).name === "AbortError") {
+        throw new LLMError("TIMEOUT", `LLM timed out after ${this.timeoutMs}ms`);
+      }
+      throw new LLMError("NETWORK_ERROR", `LLM network error: ${err}`, err);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async completeText(prompt: string, system?: string): Promise<string> {
+    const messages: { role: string; content: string }[] = [];
+    if (system) messages.push({ role: "system", content: system });
+    messages.push({ role: "user", content: prompt });
+    const { content } = await this._post(messages);
+    return _extractMermaid(_stripThinkTags(content));
+  }
+
+  async completeJson(
+    prompt: string,
+    schema: Record<string, unknown>,
+    schemaName: string,
+    system?: string,
+  ): Promise<Record<string, unknown>> {
+    const messages: { role: string; content: string }[] = [];
+    if (system) messages.push({ role: "system", content: system });
+    messages.push({ role: "user", content: prompt });
+
+    const defs = (schema["$defs"] as Record<string, unknown>) ?? {};
+    const flatSchema = _inlineRefs(schema, defs) as Record<string, unknown>;
+
+    let responseFormat: unknown;
+    if (this.responseFormatMode === "json_schema") {
+      responseFormat = {
+        type: "json_schema",
+        json_schema: { name: schemaName, strict: false, schema: flatSchema },
+      };
+    } else if (this.responseFormatMode === "json_object") {
+      responseFormat = { type: "json_object" };
+    }
+
+    const { content, reasoningContent } = await this._post(messages, responseFormat);
+    const raw = content.includes("{") ? content : (reasoningContent.includes("{") ? reasoningContent : content);
+    return _extractJson(_stripThinkTags(raw));
+  }
 }

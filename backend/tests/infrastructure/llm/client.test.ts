@@ -1,11 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import {
   _inlineRefs,
   _stripThinkTags,
   _extractMermaid,
   _extractJson,
+  VLLMClient,
 } from "../../../src/infrastructure/llm/client.ts";
+import { LLMError } from "../../../src/infrastructure/llm/errors.ts";
 
 test("_inlineRefs: no refs → passthrough (drops $defs)", () => {
   const schema = { type: "object", properties: { a: { type: "string" } } };
@@ -85,4 +89,97 @@ test("_extractJson: throws INVALID_JSON when no JSON", () => {
     err = e;
   }
   assert.equal((err as { code?: string }).code, "INVALID_JSON");
+});
+
+// ─── HTTP layer (Task 3) ─────────────────────────────────────────────────────
+
+function mockLlmServer(
+  responseBody: unknown,
+  statusCode = 200,
+): { url: string; close: () => void } {
+  const server = createServer((_req, res) => {
+    res.writeHead(statusCode, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(responseBody));
+  });
+  server.listen(0);
+  const { port } = server.address() as AddressInfo;
+  return { url: `http://127.0.0.1:${port}`, close: () => server.close() };
+}
+
+function llmResponse(content: string) {
+  return { choices: [{ message: { content, role: "assistant" } }] };
+}
+
+test("completeText: returns Mermaid from LLM response", async () => {
+  const { url, close } = mockLlmServer(llmResponse("flowchart LR\nA --> B"));
+  try {
+    const client = new VLLMClient({ url, model: "test", responseFormatMode: "none" });
+    const result = await client.completeText("make a diagram");
+    assert.ok(result.startsWith("flowchart LR"));
+  } finally { close(); }
+});
+
+test("completeText: strips think tags before extracting", async () => {
+  const { url, close } = mockLlmServer(
+    llmResponse("<think>reasoning</think>\nflowchart TB\nA --> B"),
+  );
+  try {
+    const client = new VLLMClient({ url, model: "test", responseFormatMode: "none" });
+    const result = await client.completeText("make a diagram");
+    assert.ok(result.startsWith("flowchart TB"));
+    assert.ok(!result.includes("<think>"));
+  } finally { close(); }
+});
+
+test("completeText: throws TIMEOUT when server too slow", async () => {
+  const server = createServer(() => { /* never respond */ });
+  server.listen(0);
+  const { port } = server.address() as AddressInfo;
+  try {
+    const client = new VLLMClient({
+      url: `http://127.0.0.1:${port}`,
+      model: "test",
+      timeoutMs: 50,
+      responseFormatMode: "none",
+    });
+    const err = await client.completeText("test").catch((e) => e) as LLMError;
+    assert.equal(err.code, "TIMEOUT");
+  } finally { server.close(); }
+});
+
+test("completeJson: parses JSON response with json_schema mode", async () => {
+  const payload = { mermaid: "flowchart LR\nA --> B", message: "done" };
+  const { url, close } = mockLlmServer(llmResponse(JSON.stringify(payload)));
+  try {
+    const client = new VLLMClient({ url, model: "test", responseFormatMode: "json_schema" });
+    const schema = {
+      type: "object",
+      properties: { mermaid: { type: "string" }, message: { type: "string" } },
+      required: ["mermaid", "message"],
+    };
+    const result = await client.completeJson("edit diagram", schema, "ChatOutput");
+    assert.equal(result["mermaid"], payload.mermaid);
+    assert.equal(result["message"], payload.message);
+  } finally { close(); }
+});
+
+test("completeJson: throws STRUCTURED_OUTPUT_UNSUPPORTED on 422", async () => {
+  const { url, close } = mockLlmServer({ error: "unsupported" }, 422);
+  try {
+    const client = new VLLMClient({ url, model: "test", responseFormatMode: "json_schema" });
+    const err = await client.completeJson("x", {}, "X").catch((e) => e) as LLMError;
+    assert.equal(err.code, "STRUCTURED_OUTPUT_UNSUPPORTED");
+  } finally { close(); }
+});
+
+test("completeJson: uses reasoning_content when content empty", async () => {
+  const payload = { mermaid: "flowchart LR\nA-->B", message: "ok" };
+  const { url, close } = mockLlmServer({
+    choices: [{ message: { content: "", reasoning_content: JSON.stringify(payload) } }],
+  });
+  try {
+    const client = new VLLMClient({ url, model: "test", responseFormatMode: "none" });
+    const result = await client.completeJson("x", {}, "X");
+    assert.equal(result["mermaid"], payload.mermaid);
+  } finally { close(); }
 });
