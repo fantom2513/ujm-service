@@ -143,8 +143,13 @@ export class VLLMClient {
     this.responseFormatMode = opts.responseFormatMode ?? "json_schema";
     this.headers = { "Content-Type": "application/json" };
     if (opts.apiKey) this.headers["Authorization"] = `Bearer ${opts.apiKey}`;
-    this.dispatcher = opts.insecureTls ? insecureDispatcher : undefined;
-    if (opts.insecureTls) applyInsecureTls();
+    // Fall back to reading LLM_TLS_INSECURE straight from the env so the flag
+    // works even if the caller (services/openai) wasn't wired to pass it — the
+    // env var reaches this constructor regardless of the options plumbing.
+    const insecure = opts.insecureTls ||
+      (process.env.LLM_TLS_INSECURE || "").trim().toLowerCase() === "true";
+    this.dispatcher = insecure ? insecureDispatcher : undefined;
+    if (insecure) applyInsecureTls();
   }
 
   get endpoint(): string {
