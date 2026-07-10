@@ -1,4 +1,5 @@
 stages:
+  - security
   - build
   - deploy
 
