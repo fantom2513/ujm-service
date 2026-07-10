@@ -35,6 +35,7 @@ export interface AppConfig {
   llmTemperature: number;
   llmSeed: number | undefined;
   llmResponseFormatMode: "json_schema" | "json_object" | "none";
+  llmInsecureTls: boolean;
 }
 
 export interface NormalizedSource {

@@ -39,5 +39,6 @@ export const config: AppConfig = {
   llmTimeoutMs: Number(process.env.LLM_TIMEOUT_MS || "120000"),
   llmTemperature: Number(process.env.LLM_TEMPERATURE || "0.1"),
   llmSeed: process.env.LLM_SEED ? Number(process.env.LLM_SEED) : undefined,
-  llmResponseFormatMode: (process.env.LLM_RESPONSE_FORMAT_MODE as "json_schema" | "json_object" | "none") || "json_schema"
+  llmResponseFormatMode: (process.env.LLM_RESPONSE_FORMAT_MODE as "json_schema" | "json_object" | "none") || "json_schema",
+  llmInsecureTls: process.env.LLM_TLS_INSECURE === "true"
 };

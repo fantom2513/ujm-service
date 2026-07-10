@@ -1,6 +1,13 @@
+import { Agent } from "undici";
 import { LLMError } from "./errors.ts";
 import type { LLMErrorCode } from "./errors.ts";
 export type { LLMErrorCode };
+
+// Node's global fetch() runs on undici, which manages its own TLS context and
+// does NOT read NODE_TLS_REJECT_UNAUTHORIZED (that only affects the legacy
+// tls/https core modules). To trust a self-signed/internal-CA endpoint we
+// have to hand fetch() an explicit insecure dispatcher instead.
+const insecureDispatcher = new Agent({ connect: { rejectUnauthorized: false } });
 
 export type ResponseFormatMode = "json_schema" | "json_object" | "none";
 
@@ -92,6 +99,7 @@ export interface VLLMClientOptions {
   temperature?: number;
   seed?: number;
   responseFormatMode?: ResponseFormatMode;
+  insecureTls?: boolean;
 }
 
 export class VLLMClient {
@@ -102,6 +110,7 @@ export class VLLMClient {
   responseFormatMode: ResponseFormatMode;
   protected readonly baseUrl: string;
   protected readonly headers: Record<string, string>;
+  protected readonly dispatcher: Agent | undefined;
 
   constructor(opts: VLLMClientOptions) {
     this.baseUrl = opts.url.replace(/\/chat\/completions$/, "").replace(/\/$/, "");
@@ -112,6 +121,7 @@ export class VLLMClient {
     this.responseFormatMode = opts.responseFormatMode ?? "json_schema";
     this.headers = { "Content-Type": "application/json" };
     if (opts.apiKey) this.headers["Authorization"] = `Bearer ${opts.apiKey}`;
+    this.dispatcher = opts.insecureTls ? insecureDispatcher : undefined;
   }
 
   get endpoint(): string {
@@ -135,12 +145,17 @@ export class VLLMClient {
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
-      const response = await fetch(this.endpoint, {
+      // `dispatcher` is an undici extension not present in the standard
+      // RequestInit type, so the options object needs a loose cast.
+      const requestInit = {
         method: "POST",
         headers: this.headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
-      });
+        dispatcher: this.dispatcher,
+      } as RequestInit;
+
+      const response = await fetch(this.endpoint, requestInit);
 
       if (!response.ok) {
         const body = await response.text().catch(() => "");

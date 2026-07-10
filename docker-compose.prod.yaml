@@ -15,10 +15,6 @@ services:
       - .env
     environment:
       APP_HOST: 0.0.0.0
-      # TEMPORARY: proxy-ai.sogaz.ru presents a cert signed by an internal CA
-      # we don't have a copy of. Disables TLS chain verification process-wide
-      # for this container. Remove once NODE_EXTRA_CA_CERTS can be set instead.
-      NODE_TLS_REJECT_UNAUTHORIZED: "0"
     networks:
       - cx_net
 

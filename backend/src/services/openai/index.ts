@@ -14,7 +14,8 @@ export function makeClient(): VLLMClient {
     timeoutMs: config.llmTimeoutMs,
     temperature: config.llmTemperature,
     seed: config.llmSeed,
-    responseFormatMode: config.llmResponseFormatMode
+    responseFormatMode: config.llmResponseFormatMode,
+    insecureTls: config.llmInsecureTls
   });
 }
 
@@ -53,7 +54,8 @@ export async function chatEdit(opts: ChatPromptOptions): Promise<ChatEditResult>
       timeoutMs: config.llmTimeoutMs,
       temperature: config.llmTemperature,
       seed: config.llmSeed,
-      responseFormatMode: mode
+      responseFormatMode: mode,
+      insecureTls: config.llmInsecureTls
     }),
     config.llmResponseFormatMode,
     (client) => client.completeJson(prompt, CHAT_OUTPUT_SCHEMA, "ChatOutput")

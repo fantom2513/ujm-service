@@ -14,6 +14,9 @@ importers:
       pdf-parse:
         specifier: ^2.4.5
         version: 2.4.5
+      undici:
+        specifier: ^7.28.0
+        version: 7.28.0
     devDependencies:
       '@types/pdf-parse':
         specifier: ^1.1.5
@@ -184,6 +187,10 @@ packages:
   undici-types@8.3.0:
     resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
+  undici@7.28.0:
+    resolution: {integrity: sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==}
+    engines: {node: '>=20.18.1'}
+
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
@@ -338,6 +345,8 @@ snapshots:
   underscore@1.13.8: {}
 
   undici-types@8.3.0: {}
+
+  undici@7.28.0: {}
 
   util-deprecate@1.0.2: {}
 
