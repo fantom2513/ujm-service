@@ -352,6 +352,10 @@ const server = createServer(async (request, response) => {
 server.requestTimeout = config.requestTimeoutMs;
 server.listen(config.port, config.host, () => {
   console.log(`Copilot Mermaid skeleton is running at http://${config.host}:${config.port}`);
+  console.log(
+    `LLM config: url=${config.llmUrl} model=${config.llmModel} ` +
+    `responseFormat=${config.llmResponseFormatMode} insecureTls=${config.llmInsecureTls}`,
+  );
 });
 
 function shutdown(signal: string): void {

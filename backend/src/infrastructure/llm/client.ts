@@ -1,12 +1,14 @@
-import { Agent } from "undici";
+import { Agent, fetch as undiciFetch } from "undici";
 import { LLMError } from "./errors.ts";
 import type { LLMErrorCode } from "./errors.ts";
 export type { LLMErrorCode };
 
-// Node's global fetch() runs on undici, which manages its own TLS context and
-// does NOT read NODE_TLS_REJECT_UNAUTHORIZED (that only affects the legacy
-// tls/https core modules). To trust a self-signed/internal-CA endpoint we
-// have to hand fetch() an explicit insecure dispatcher instead.
+// Node's global fetch() runs on an INTERNAL copy of undici, whose Dispatcher
+// class differs from the standalone `undici` package's — so a dispatcher built
+// here is silently ignored by globalThis.fetch (and NODE_TLS_REJECT_UNAUTHORIZED
+// only affects the legacy tls/https modules, not fetch). We therefore call the
+// standalone package's own fetch together with its own Agent, so the insecure
+// dispatcher is actually honored when trusting an internal-CA endpoint.
 const insecureDispatcher = new Agent({ connect: { rejectUnauthorized: false } });
 
 export type ResponseFormatMode = "json_schema" | "json_object" | "none";
@@ -145,17 +147,15 @@ export class VLLMClient {
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
-      // `dispatcher` is an undici extension not present in the standard
-      // RequestInit type, so the options object needs a loose cast.
-      const requestInit = {
+      // Use undici's own fetch (not globalThis.fetch) so that `dispatcher` —
+      // built from the same undici package's Agent — is actually applied.
+      const response = await undiciFetch(this.endpoint, {
         method: "POST",
         headers: this.headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
         dispatcher: this.dispatcher,
-      } as RequestInit;
-
-      const response = await fetch(this.endpoint, requestInit);
+      });
 
       if (!response.ok) {
         const body = await response.text().catch(() => "");
