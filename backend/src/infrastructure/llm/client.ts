@@ -1,15 +1,28 @@
-import { Agent, fetch as undiciFetch } from "undici";
+import { Agent, fetch as undiciFetch, setGlobalDispatcher } from "undici";
 import { LLMError } from "./errors.ts";
 import type { LLMErrorCode } from "./errors.ts";
 export type { LLMErrorCode };
 
-// Node's global fetch() runs on an INTERNAL copy of undici, whose Dispatcher
-// class differs from the standalone `undici` package's — so a dispatcher built
-// here is silently ignored by globalThis.fetch (and NODE_TLS_REJECT_UNAUTHORIZED
-// only affects the legacy tls/https modules, not fetch). We therefore call the
-// standalone package's own fetch together with its own Agent, so the insecure
-// dispatcher is actually honored when trusting an internal-CA endpoint.
+// Trusting an internal-CA / self-signed LLM endpoint.
+//
+// The per-request `dispatcher` init option is honored inconsistently: it worked
+// on Node 22 locally but the prod Node 24 image's undici build ignored it, so
+// rejectUnauthorized:false never reached the TLS socket (persistent
+// SELF_SIGNED_CERT_IN_CHAIN). NODE_TLS_REJECT_UNAUTHORIZED doesn't help either
+// (it only affects the legacy tls/https modules, not fetch).
+//
+// setGlobalDispatcher + undiciFetch both come from THIS same `undici` package,
+// so the global dispatcher is guaranteed to be honored regardless of Node
+// version. We still pass the per-request dispatcher as a belt-and-suspenders.
 const insecureDispatcher = new Agent({ connect: { rejectUnauthorized: false } });
+
+let globalInsecureApplied = false;
+function applyInsecureTls(): void {
+  if (globalInsecureApplied) return;
+  globalInsecureApplied = true;
+  setGlobalDispatcher(insecureDispatcher);
+  console.log("LLM: TLS verification disabled for outbound LLM requests (insecure dispatcher active)");
+}
 
 export type ResponseFormatMode = "json_schema" | "json_object" | "none";
 
@@ -124,6 +137,7 @@ export class VLLMClient {
     this.headers = { "Content-Type": "application/json" };
     if (opts.apiKey) this.headers["Authorization"] = `Bearer ${opts.apiKey}`;
     this.dispatcher = opts.insecureTls ? insecureDispatcher : undefined;
+    if (opts.insecureTls) applyInsecureTls();
   }
 
   get endpoint(): string {
