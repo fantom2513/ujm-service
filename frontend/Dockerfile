@@ -5,7 +5,7 @@
 FROM nexus.sogaz.ru/node:24-bookworm-slim AS build
 WORKDIR /app
 RUN npm config set registry https://nexus.sogaz.ru/npm/ \
-    && corepack enable \
+    && npm install -g pnpm \
     && pnpm config set registry https://nexus.sogaz.ru/npm/
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
