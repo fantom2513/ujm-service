@@ -1,7 +1,14 @@
 import { Agent, fetch as undiciFetch, setGlobalDispatcher } from "undici";
+import { createRequire } from "node:module";
 import { LLMError } from "./errors.ts";
 import type { LLMErrorCode } from "./errors.ts";
 export type { LLMErrorCode };
+
+let undiciVersion = "unknown";
+try {
+  undiciVersion = createRequire(import.meta.url)("undici/package.json").version;
+} catch { /* ignore */ }
+let loggedPostDiag = false;
 
 // Trusting an internal-CA / self-signed LLM endpoint.
 //
@@ -159,6 +166,15 @@ export class VLLMClient {
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+
+    if (!loggedPostDiag) {
+      loggedPostDiag = true;
+      console.log(
+        `LLM diag: undici=${undiciVersion} insecureApplied=${globalInsecureApplied} ` +
+        `hasDispatcher=${!!this.dispatcher} nodeExtraCa=${process.env.NODE_EXTRA_CA_CERTS || "none"} ` +
+        `httpsProxy=${process.env.HTTPS_PROXY || process.env.https_proxy || "none"}`,
+      );
+    }
 
     try {
       // Use undici's own fetch (not globalThis.fetch) so that `dispatcher` —
