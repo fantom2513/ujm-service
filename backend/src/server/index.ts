@@ -179,6 +179,7 @@ async function handleGenerate(request: IncomingMessage, response: ServerResponse
   }
   const validation = validateMermaid(mermaidCode);
   if (!validation.ok) {
+    console.error("generateDiagram validation failed:", validation.reason, "| first line:", mermaidCode.trim().split("\n")[0]);
     return sendApiError(response, 500, { code: "diagram-generation", message: userMessages["diagram-generation"] });
   }
 

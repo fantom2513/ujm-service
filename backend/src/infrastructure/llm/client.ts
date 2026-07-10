@@ -76,7 +76,7 @@ export function _extractMermaid(raw: string): string {
     .replace(/```mermaid\s*/g, "")
     .replace(/```\s*/g, "")
     .trim();
-  const start = cleaned.search(/flowchart\s+(LR|TB)/);
+  const start = cleaned.search(/flowchart\s+(TB|TD|BT|RL|LR)/);
   if (start === -1) {
     throw new LLMError("EMPTY_RESPONSE", `No flowchart found: ${raw.slice(0, 200)}`);
   }
