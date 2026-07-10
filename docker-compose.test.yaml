@@ -1,6 +1,7 @@
 networks:
   cx_net:
     external: true
+    name: cx_copilot_cx_net
 
 services:
   ux-architecture-backend:
