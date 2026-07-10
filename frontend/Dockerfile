@@ -4,13 +4,11 @@
 
 FROM nexus.sogaz.ru/node:24-bookworm-slim AS build
 WORKDIR /app
-RUN npm config set registry https://nexus.sogaz.ru/npm/ \
-    && npm install -g pnpm \
-    && pnpm config set registry https://nexus.sogaz.ru/npm/
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN npm config set registry https://nexus.sogaz.ru/npm/
+COPY package.json ./
+RUN npm install
 COPY . .
-RUN pnpm run build
+RUN npm run build
 
 FROM nexus.sogaz.ru/nginx:1.27-alpine
 COPY --from=build /app/frontend/dist /usr/share/nginx/html
