@@ -27,10 +27,44 @@ test("buildChatPrompt: contains all required fields", () => {
     actionType: "FREEFORM",
     userMessage: "добавь экран",
     attachmentContext: "",
+    history: [],
   });
   assert.ok(prompt.includes("flowchart LR"));
   assert.ok(prompt.includes("добавь экран"));
   assert.ok(prompt.includes("FREEFORM"));
+});
+
+test("buildChatPrompt: includes chat history when provided", () => {
+  const prompt = buildChatPrompt({
+    sourceText: "ТЗ",
+    additionalDetails: "детали",
+    currentMermaid: "flowchart LR\nA-->B",
+    previousMermaid: undefined,
+    actionType: "FREEFORM",
+    userMessage: "добавь экран",
+    attachmentContext: "",
+    history: [
+      { role: "user", text: "покажи процесс оплаты" },
+      { role: "assistant", text: "Добавил узел оплаты." },
+    ],
+  });
+  assert.ok(prompt.includes("<CHAT_HISTORY>"));
+  assert.ok(prompt.includes("покажи процесс оплаты"));
+  assert.ok(prompt.includes("Добавил узел оплаты."));
+});
+
+test("buildChatPrompt: empty history renders empty tag", () => {
+  const prompt = buildChatPrompt({
+    sourceText: "ТЗ",
+    additionalDetails: "детали",
+    currentMermaid: "flowchart LR\nA-->B",
+    previousMermaid: undefined,
+    actionType: "FREEFORM",
+    userMessage: "добавь экран",
+    attachmentContext: "",
+    history: [],
+  });
+  assert.ok(prompt.includes("<CHAT_HISTORY></CHAT_HISTORY>"));
 });
 
 test("buildRepairPrompt: contains candidate and error", () => {

@@ -49,6 +49,10 @@ export function buildGeneratePrompt(sourceText: string, additionalDetails: strin
   return `${GENERATE_SYSTEM}\n\n<SOURCE_SPECIFICATION>\n${safeSource}\n</SOURCE_SPECIFICATION>\n\n${detailsBlock}`;
 }
 
+export interface HistoryEntry {
+  role: "user" | "assistant";
+  text: string;
+}
 export interface ChatPromptOptions {
   sourceText: string;
   additionalDetails: string;
@@ -57,8 +61,14 @@ export interface ChatPromptOptions {
   actionType: "FREEFORM" | "GROUP_SEMANTIC_BLOCKS" | "SIMPLIFY" | "HIGHLIGHT_MAIN_PATH" | "RESTORE_PREVIOUS";
   userMessage: string;
   attachmentContext: string;
+  history: HistoryEntry[];
 }
 
+function formatHistory(history: HistoryEntry[]): string {
+  return history
+    .map((entry) => `${entry.role === "user" ? "Пользователь" : "Ассистент"}: ${sanitize(entry.text)}`)
+    .join("\n");
+}
 export function buildChatPrompt(opts: ChatPromptOptions): string {
   const prevBlock = opts.previousMermaid
     ? `<PREVIOUS_MERMAID>\n${opts.previousMermaid}\n</PREVIOUS_MERMAID>`
@@ -67,6 +77,10 @@ export function buildChatPrompt(opts: ChatPromptOptions): string {
   const attachBlock = opts.attachmentContext
     ? `<ATTACHMENT_CONTEXT>\n${sanitize(opts.attachmentContext)}\n</ATTACHMENT_CONTEXT>`
     : `<ATTACHMENT_CONTEXT></ATTACHMENT_CONTEXT>`;
+
+  const historyBlock = opts.history.length
+    ? `<CHAT_HISTORY>\n${formatHistory(opts.history)}\n</CHAT_HISTORY>`
+    : `<CHAT_HISTORY></CHAT_HISTORY>`;
 
   return `${EDIT_SYSTEM}
 
@@ -83,6 +97,8 @@ ${opts.currentMermaid}
 </CURRENT_MERMAID>
 
 ${prevBlock}
+
+${historyBlock}
 
 <ACTION_TYPE>
 ${opts.actionType}
