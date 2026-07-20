@@ -8,7 +8,7 @@ import { getExtension, hasPdfTextLayer, isTextSourceFormat, normalizeTextFile } 
 import { isRecordingFormat, normalizeRecording } from "../services/recordings/index.ts";
 import { classifyWorkLink, normalizeLink } from "../services/links/index.ts";
 import { chatEdit, generateDiagram } from "../services/openai/index.ts";
-import type { ChatPromptOptions } from "../services/openai/prompts.ts";
+import type { ChatPromptOptions, HistoryEntry } from "../services/openai/prompts.ts";
 import { validateMermaid } from "../services/mermaid/index.ts";
 import { normalizeChatAttachment } from "../services/chatAttachments/index.ts";
 
@@ -217,6 +217,24 @@ function normalizeUndoMessage(message: string): string {
   return message.toLowerCase().trim().replace(/\s+/g, " ").replace(/[.!?]$/, "");
 }
 
+function parseHistory(raw: string | undefined): HistoryEntry[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((entry): entry is HistoryEntry =>
+        !!entry &&
+        typeof entry === "object" &&
+        (entry.role === "user" || entry.role === "assistant") &&
+        typeof entry.text === "string"
+      )
+      .slice(-20);
+  } catch {
+    return [];
+  }
+}
+
 async function handleChat(request: IncomingMessage, response: ServerResponse): Promise<void> {
   const body = await readBody(request);
   const mermaidCode = body.fields.mermaidCode || "";
@@ -225,6 +243,7 @@ async function handleChat(request: IncomingMessage, response: ServerResponse): P
   const actionType = (body.fields.actionType as ChatPromptOptions["actionType"]) || "FREEFORM";
   const sourceText = body.fields.sourceText || "";
   const additionalDetails = body.fields.additionalDetails || "";
+  const history = parseHistory(body.fields.history);
 
   // Detect deterministic "undo" phrases even if the frontend sent FREEFORM.
   const resolvedAction: ChatPromptOptions["actionType"] = UNDO_PHRASES.includes(normalizeUndoMessage(message))
@@ -278,7 +297,8 @@ async function handleChat(request: IncomingMessage, response: ServerResponse): P
       previousMermaid: previousMermaidCode,
       actionType: resolvedAction,
       userMessage: message,
-      attachmentContext
+      attachmentContext,
+      history
     });
     return sendJson(response, 200, {
       ok: true,
