@@ -33,6 +33,7 @@ function opts(overrides: Partial<ChatPromptOptions> = {}): ChatPromptOptions {
     actionType: "FREEFORM",
     userMessage: "add a node",
     attachmentContext: "",
+    history: [],
     ...overrides
   };
 }
