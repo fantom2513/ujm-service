@@ -46,6 +46,7 @@ let pendingChatScroll = false;
 let chatInputError = "";
 let pendingActionType: "FREEFORM" | "GROUP_SEMANTIC_BLOCKS" | "SIMPLIFY" | "HIGHLIGHT_MAIN_PATH" | "RESTORE_PREVIOUS" = "FREEFORM";
 const expandedUserMessages = new Set<string>();
+const CHAT_HISTORY_WINDOW = 10;
 
 void getConfig().then((config) => {
   state.config = config;
@@ -870,6 +871,10 @@ async function sendChat(): Promise<void> {
     attachments
   };
 
+  const historyWindow = state.result.chat
+    .slice(-CHAT_HISTORY_WINDOW)
+    .map((entry) => ({ role: entry.role, text: entry.text }));
+
   const shouldScroll = isMessagesNearBottom();
   const actionType = pendingActionType;
   pendingActionType = "FREEFORM";
@@ -890,6 +895,7 @@ async function sendChat(): Promise<void> {
     form.set("actionType", actionType);
     form.set("sourceText", state.result.sourceText ?? "");
     form.set("additionalDetails", state.result.details ?? "");
+    form.set("history", JSON.stringify(historyWindow));
     if (attachmentFile) form.set("file", attachmentFile);
 
     const result = await sendChatMessage(form) as { mermaidCode: string; previousMermaidCode: string; message: string };
