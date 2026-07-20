@@ -136,6 +136,8 @@ export class VLLMClient {
   readonly temperature: number;
   readonly seed?: number;
   responseFormatMode: ResponseFormatMode;
+  // Set after each completeText/completeJson call; reflects that single call only.
+  // Not safe to read if this instance is ever shared across concurrent calls.
   lastUsage: LLMUsage | undefined;
   protected readonly baseUrl: string;
   protected readonly headers: Record<string, string>;

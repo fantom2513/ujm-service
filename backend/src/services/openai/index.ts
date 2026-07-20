@@ -88,5 +88,7 @@ export async function chatEdit(opts: ChatPromptOptions): Promise<ChatEditResult>
     }
   }
 
+  // Note: capturedUsage only reflects the primary completeJson call above -- if the repair
+  // path below runs, its completeText call's usage is not captured or merged in.
   return { mermaidCode, message, usage: capturedUsage };
 }
