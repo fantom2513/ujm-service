@@ -7,16 +7,22 @@ import { config } from "../../../src/config/index.ts";
 import type { ChatPromptOptions } from "../../../src/services/openai/prompts.ts";
 
 function mockLlmServer(
-  handler: (body: unknown) => { content: string },
+  handler: (body: unknown) => {
+    content: string;
+    usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  },
 ): { url: string; close: () => void } {
   const server = createServer((req, res) => {
     let raw = "";
     req.on("data", (chunk) => { raw += chunk; });
     req.on("end", () => {
       const parsed = raw ? JSON.parse(raw) : {};
-      const { content } = handler(parsed);
+      const { content, usage } = handler(parsed);
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ choices: [{ message: { content, role: "assistant" } }] }));
+      res.end(JSON.stringify({
+        choices: [{ message: { content, role: "assistant" } }],
+        ...(usage ? { usage } : {}),
+      }));
     });
   });
   server.listen(0);
@@ -77,6 +83,25 @@ test("chatEdit: invalid mermaid on first attempt triggers repair, repair succeed
     assert.equal(result.mermaidCode, "flowchart LR\nA --> B");
     assert.equal(result.message, "Готово.");
     assert.equal(callCount, 2);
+  } finally {
+    close();
+    config.llmUrl = originalUrl;
+    config.llmResponseFormatMode = originalMode;
+  }
+});
+
+test("chatEdit: propagates token usage from the LLM response", async () => {
+  const { url, close } = mockLlmServer(() => ({
+    content: JSON.stringify({ mermaid: "flowchart LR\nA --> B", message: "Готово." }),
+    usage: { prompt_tokens: 200, completion_tokens: 40, total_tokens: 240 },
+  }));
+  const originalUrl = config.llmUrl;
+  const originalMode = config.llmResponseFormatMode;
+  config.llmUrl = url;
+  config.llmResponseFormatMode = "none";
+  try {
+    const result = await chatEdit(opts());
+    assert.deepEqual(result.usage, { promptTokens: 200, completionTokens: 40, totalTokens: 240 });
   } finally {
     close();
     config.llmUrl = originalUrl;

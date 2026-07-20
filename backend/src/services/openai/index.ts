@@ -1,4 +1,4 @@
-import { VLLMClient } from "../../infrastructure/llm/client.ts";
+import { VLLMClient, type LLMUsage } from "../../infrastructure/llm/client.ts";
 import { completeJsonWithFallback, executeWithRetry } from "../../infrastructure/llm/retry.ts";
 import { LLMError } from "../../infrastructure/llm/errors.ts";
 import { buildChatPrompt, buildGeneratePrompt, buildRepairPrompt, type ChatPromptOptions } from "./prompts.ts";
@@ -41,10 +41,12 @@ const CHAT_OUTPUT_SCHEMA = {
 export interface ChatEditResult {
   mermaidCode: string;
   message: string;
+  usage: LLMUsage | undefined;
 }
 
 export async function chatEdit(opts: ChatPromptOptions): Promise<ChatEditResult> {
   const prompt = buildChatPrompt(opts);
+  let capturedUsage: LLMUsage | undefined;
 
   const raw = await completeJsonWithFallback(
     (mode) => new VLLMClient({
@@ -58,7 +60,11 @@ export async function chatEdit(opts: ChatPromptOptions): Promise<ChatEditResult>
       insecureTls: config.llmInsecureTls
     }),
     config.llmResponseFormatMode,
-    (client) => client.completeJson(prompt, CHAT_OUTPUT_SCHEMA, "ChatOutput")
+    async (client) => {
+      const result = await client.completeJson(prompt, CHAT_OUTPUT_SCHEMA, "ChatOutput");
+      capturedUsage = client.lastUsage;
+      return result;
+    }
   );
 
   let mermaidCode = String(raw["mermaid"] ?? "").trim();
@@ -82,5 +88,5 @@ export async function chatEdit(opts: ChatPromptOptions): Promise<ChatEditResult>
     }
   }
 
-  return { mermaidCode, message };
+  return { mermaidCode, message, usage: capturedUsage };
 }

@@ -305,7 +305,8 @@ async function handleChat(request: IncomingMessage, response: ServerResponse): P
       result: {
         mermaidCode: result.mermaidCode,
         previousMermaidCode: mermaidCode,
-        message: result.message
+        message: result.message,
+        usage: result.usage
       }
     });
   } catch (err) {
