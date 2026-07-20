@@ -423,6 +423,10 @@ SuccessA["✅ Процесс завершён"]
 
 Иконки ✅ и ❌ размещай только внутри текста узла.
 
+Каждому условному узлу (`{"..."}`) назначай класс `decision`. Если условный узел
+представляет однозначно отрицательный сценарий (проверка, которая типично
+приводит к отказу), назначай `decisionNegative` вместо `decision`.
+
 СТИЛИ
 
 Всегда добавляй:
@@ -430,6 +434,8 @@ SuccessA["✅ Процесс завершён"]
 classDef page fill:#FFFFFF,stroke:#333333
 classDef error fill:#FFCDD2,stroke:#C62828,color:#B71C1C,stroke-width:2px
 classDef success fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:2px
+classDef decision fill:#ECECFF,stroke:#9370DB,stroke-width:1px
+classDef decisionNegative fill:#FFCDD2,stroke:#C62828,stroke-width:2px
 
 Назначай классы только существующим узлам.
 
