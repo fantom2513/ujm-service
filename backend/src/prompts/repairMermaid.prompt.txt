@@ -191,6 +191,11 @@ classDef page fill:#FFFFFF,stroke:#333333
 classDef error fill:#FFCDD2,stroke:#C62828,color:#B71C1C,stroke-width:2px
 classDef success fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:2px
 
+Если в коде используются `decision`/`decisionNegative`, можешь добавить:
+
+classDef decision fill:#ECECFF,stroke:#9370DB,stroke-width:1px
+classDef decisionNegative fill:#FFCDD2,stroke:#C62828,stroke-width:2px
+
 Если в коде используется `mainPath`, можешь добавить:
 
 classDef mainPath fill:#EEF4FF,stroke:#2563EB,color:#1E3A8A,stroke-width:3px
