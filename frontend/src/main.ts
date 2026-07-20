@@ -1,4 +1,4 @@
-﻿import type { ApiError, AppState } from "./types/index.ts";
+import type { ApiError, AppState } from "./types/index.ts";
 import type { ChatMessage, DiagramResult, FileMeta, SourceType } from "../../shared/types/index.ts";
 import { generateDiagram, getConfig, sendChatMessage } from "./api/client.ts";
 import { inlineIcons } from "./generated/inline-icons.ts";
@@ -46,6 +46,7 @@ let pendingChatScroll = false;
 let chatInputError = "";
 let pendingActionType: "FREEFORM" | "GROUP_SEMANTIC_BLOCKS" | "SIMPLIFY" | "HIGHLIGHT_MAIN_PATH" | "RESTORE_PREVIOUS" = "FREEFORM";
 const expandedUserMessages = new Set<string>();
+// Simple fixed window; token-aware trimming is future work (post Python migration).
 const CHAT_HISTORY_WINDOW = 10;
 
 void getConfig().then((config) => {
