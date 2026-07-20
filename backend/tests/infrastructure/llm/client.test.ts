@@ -183,3 +183,25 @@ test("completeJson: uses reasoning_content when content empty", async () => {
     assert.equal(result["mermaid"], payload.mermaid);
   } finally { close(); }
 });
+
+test("completeJson: exposes usage from response on client.lastUsage", async () => {
+  const payload = { mermaid: "flowchart LR\nA-->B", message: "ok" };
+  const { url, close } = mockLlmServer({
+    choices: [{ message: { content: JSON.stringify(payload) } }],
+    usage: { prompt_tokens: 120, completion_tokens: 30, total_tokens: 150 },
+  });
+  try {
+    const client = new VLLMClient({ url, model: "test", responseFormatMode: "none" });
+    await client.completeJson("x", {}, "X");
+    assert.deepEqual(client.lastUsage, { promptTokens: 120, completionTokens: 30, totalTokens: 150 });
+  } finally { close(); }
+});
+
+test("completeText: usage is undefined when response omits it", async () => {
+  const { url, close } = mockLlmServer(llmResponse("flowchart LR\nA --> B"));
+  try {
+    const client = new VLLMClient({ url, model: "test", responseFormatMode: "none" });
+    await client.completeText("make a diagram");
+    assert.equal(client.lastUsage, undefined);
+  } finally { close(); }
+});

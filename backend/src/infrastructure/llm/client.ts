@@ -33,6 +33,12 @@ function applyInsecureTls(): void {
 
 export type ResponseFormatMode = "json_schema" | "json_object" | "none";
 
+export interface LLMUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
 // ─── Pure helpers (exported for tests) ───────────────────────────────────────
 
 // Preserves object identity for unchanged subtrees (returns `obj` itself when nothing
@@ -130,6 +136,7 @@ export class VLLMClient {
   readonly temperature: number;
   readonly seed?: number;
   responseFormatMode: ResponseFormatMode;
+  lastUsage: LLMUsage | undefined;
   protected readonly baseUrl: string;
   protected readonly headers: Record<string, string>;
   protected readonly dispatcher: Agent | undefined;
@@ -159,7 +166,7 @@ export class VLLMClient {
   private async _post(
     messages: { role: string; content: string }[],
     responseFormat?: unknown,
-  ): Promise<{ content: string; reasoningContent: string }> {
+  ): Promise<{ content: string; reasoningContent: string; usage: LLMUsage | undefined }> {
     const payload: Record<string, unknown> = {
       model: this.model,
       messages,
@@ -205,11 +212,20 @@ export class VLLMClient {
 
       const data = await response.json() as {
         choices: { message: { content?: string; reasoning_content?: string } }[];
+        usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
       };
       const msg = data.choices[0]?.message ?? {};
+      const usage: LLMUsage | undefined = data.usage
+        ? {
+            promptTokens: data.usage.prompt_tokens ?? 0,
+            completionTokens: data.usage.completion_tokens ?? 0,
+            totalTokens: data.usage.total_tokens ?? 0,
+          }
+        : undefined;
       return {
         content: msg.content ?? "",
         reasoningContent: (msg as Record<string, string>).reasoning_content ?? "",
+        usage,
       };
     } catch (err) {
       if (err instanceof LLMError) throw err;
@@ -226,7 +242,8 @@ export class VLLMClient {
     const messages: { role: string; content: string }[] = [];
     if (system) messages.push({ role: "system", content: system });
     messages.push({ role: "user", content: prompt });
-    const { content } = await this._post(messages);
+    const { content, usage } = await this._post(messages);
+    this.lastUsage = usage;
     return _extractMermaid(_stripThinkTags(content));
   }
 
@@ -253,7 +270,8 @@ export class VLLMClient {
       responseFormat = { type: "json_object" };
     }
 
-    const { content, reasoningContent } = await this._post(messages, responseFormat);
+    const { content, reasoningContent, usage } = await this._post(messages, responseFormat);
+    this.lastUsage = usage;
     const raw = content.includes("{") ? content : (reasoningContent.includes("{") ? reasoningContent : content);
     return _extractJson(_stripThinkTags(raw));
   }
