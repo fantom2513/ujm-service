@@ -18,6 +18,13 @@ test("buildGeneratePrompt: sanitizes backtick injection", () => {
   assert.ok(!prompt.includes("```"));
 });
 
+test("buildGeneratePrompt: uses the full system prompt, not the old trimmed stand-in", () => {
+  const prompt = buildGeneratePrompt("Source", "");
+  assert.ok(prompt.includes("ГЛАВНЫЙ ПРИНЦИП"));
+  assert.ok(prompt.includes("classDef decision fill:#ECECFF"));
+  assert.ok(!prompt.includes("Trimmed to key"));
+});
+
 test("buildChatPrompt: contains all required fields", () => {
   const prompt = buildChatPrompt({
     sourceText: "ТЗ",
@@ -67,9 +74,28 @@ test("buildChatPrompt: empty history renders empty tag", () => {
   assert.ok(prompt.includes("<CHAT_HISTORY></CHAT_HISTORY>"));
 });
 
+test("buildChatPrompt: full system prompt includes the FREEFORM color-direction rule", () => {
+  const prompt = buildChatPrompt({
+    sourceText: "ТЗ",
+    additionalDetails: "",
+    currentMermaid: "flowchart LR\nA-->B",
+    previousMermaid: undefined,
+    actionType: "FREEFORM",
+    userMessage: "покрась узлы проверки",
+    attachmentContext: "",
+    history: [],
+  });
+  assert.ok(prompt.includes("classDef decisionNegative fill:#FFCDD2"));
+  assert.ok(prompt.includes("источника к целевым узлам"));
+});
+
 test("buildRepairPrompt: contains candidate and error", () => {
   const prompt = buildRepairPrompt("flowchart LR\nbroken", "parse error", ["TOO_WIDE"]);
   assert.ok(prompt.includes("flowchart LR"));
   assert.ok(prompt.includes("parse error"));
   assert.ok(prompt.includes("TOO_WIDE"));
+});
+test("buildRepairPrompt: full system prompt allows decision/decisionNegative classDef", () => {
+  const prompt = buildRepairPrompt("flowchart LR\nbroken", "parse error", []);
+  assert.ok(prompt.includes("decisionNegative"));
 });
