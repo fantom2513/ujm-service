@@ -53,6 +53,7 @@ export interface HistoryEntry {
   role: "user" | "assistant";
   text: string;
 }
+
 export interface ChatPromptOptions {
   sourceText: string;
   additionalDetails: string;
@@ -69,6 +70,7 @@ function formatHistory(history: HistoryEntry[]): string {
     .map((entry) => `${entry.role === "user" ? "Пользователь" : "Ассистент"}: ${sanitize(entry.text)}`)
     .join("\n");
 }
+
 export function buildChatPrompt(opts: ChatPromptOptions): string {
   const prevBlock = opts.previousMermaid
     ? `<PREVIOUS_MERMAID>\n${opts.previousMermaid}\n</PREVIOUS_MERMAID>`
