@@ -820,6 +820,12 @@ async function renderMermaidAndUpdate(code: string): Promise<void> {
   }
 }
 
+function restoreResultView(): void {
+  if (state.page === "result" && state.result) {
+    void renderMermaidAndUpdate(state.result.mermaidCode);
+  }
+}
+
 async function buildDiagram(): Promise<void> {
   if (isLoading) return;
   state.start.error = validateBeforeSubmit();
@@ -1200,6 +1206,8 @@ function escapeHtml(value: string): string {
 window.addEventListener("popstate", () => {
   state = loadState();
   render();
+  restoreResultView();
 });
 
 render();
+restoreResultView();
