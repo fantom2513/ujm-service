@@ -1527,6 +1527,7 @@ h1 {
   border-radius: 8px;
   background: transparent;
   padding: 0;
+  color: var(--muted-soft);
   opacity: 0.8;
 }
 
@@ -1538,6 +1539,7 @@ h1 {
 .ai-actions button:active,
 .ai-actions button[aria-pressed="true"] {
   opacity: 1;
+  color: var(--blue-bright);
 }
 
 .ai-action-icon {
