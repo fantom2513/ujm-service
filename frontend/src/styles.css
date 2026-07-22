@@ -1448,6 +1448,10 @@ h1 {
   padding: 16px;
   border-radius: 16px;
   background: rgba(26, 51, 115, 0.05);
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .message-file-icon {

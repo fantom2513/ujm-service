@@ -30,6 +30,7 @@ let state: AppState = loadState();
 let selectedFile: File | undefined;
 let sourceFile: File | undefined;
 let chatFiles: File[] = [];
+const messageFiles = new Map<string, File[]>();
 let isLoading = false;
 let isChatLoading = false;
 let isChatComposing = false;
@@ -419,7 +420,7 @@ function generatingMessage(): string {
 
 function chatMessage(message: ChatMessage): string {
   const attachments = message.attachments?.length ? message.attachments : message.attachment ? [message.attachment] : [];
-  const attachmentCards = attachments.length ? `<div class="message-attachments">${attachments.map(messageAttachmentCard).join("")}</div>` : "";
+  const attachmentCards = attachments.length ? `<div class="message-attachments">${attachments.map((file, index) => messageAttachmentCard(file, message.id, index)).join("")}</div>` : "";
   const actions = message.role === "assistant" && !message.temporary ? aiMessageActions(message) : "";
   if (message.role !== "user") {
     return `<div class="message ${message.role}" data-message-id="${escapeHtml(message.id)}"><p>${escapeHtml(message.text)}</p>${attachmentCards}${actions}</div>`;
@@ -436,15 +437,15 @@ function chatMessage(message: ChatMessage): string {
   return `<div class="message user ${isOpen ? "is-open" : ""} ${hasAttachments ? "has-attachments" : ""}" data-message-id="${escapeHtml(message.id)}">${attachmentCards}${textBlock}</div>`;
 }
 
-function messageAttachmentCard(file: FileMeta): string {
+function messageAttachmentCard(file: FileMeta, messageId: string, index: number): string {
   return `
-    <div class="message-file-card">
+    <button type="button" class="message-file-card" data-message-file="${escapeHtml(messageId)}:${index}">
       ${icon("File badge.svg", "message-file-icon")}
       <span class="message-file-info">
         <span class="message-file-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</span>
         <small>${escapeHtml(file.format)} · ${formatBytes(file.size)}</small>
       </span>
-    </div>
+    </button>
   `;
 }
 
@@ -691,6 +692,14 @@ function bindResultEvents(): void {
     if (sourceFile) downloadLocalFile(sourceFile);
   });
 
+  document.querySelectorAll<HTMLButtonElement>("[data-message-file]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const [messageId, indexRaw] = (button.dataset.messageFile || "").split(":");
+      const file = messageFiles.get(messageId)?.[Number(indexRaw)];
+      if (file) downloadLocalFile(file);
+    });
+  });
+
   document.querySelector<HTMLButtonElement>("[data-source-details-toggle]")?.addEventListener("click", (event) => {
     const button = event.currentTarget as HTMLButtonElement;
     if (!button.closest(".source-message")?.classList.contains("has-overflow")) return;
@@ -879,6 +888,7 @@ async function sendChat(): Promise<void> {
     attachment: attachments[0],
     attachments
   };
+  if (chatFiles.length) messageFiles.set(userMessage.id, [...chatFiles]);
 
   const historyWindow = state.result.chat
     .slice(-CHAT_HISTORY_WINDOW)
