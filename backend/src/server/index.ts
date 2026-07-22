@@ -12,6 +12,7 @@ import { chatEdit, generateDiagram } from "../services/openai/index.ts";
 import type { ChatPromptOptions, HistoryEntry } from "../services/openai/prompts.ts";
 import { validateMermaid } from "../services/mermaid/index.ts";
 import { normalizeChatAttachment } from "../services/chatAttachments/index.ts";
+import { parseFeedbackEntry, recordFeedback } from "../services/feedback/index.ts";
 
 const distRoot = join(process.cwd(), "frontend", "dist");
 
@@ -24,7 +25,8 @@ const userMessages: Record<string, string> = {
   "invalid-link": "Неверный формат ссылки",
   "source-unavailable": "Источник недоступен. Проверьте ссылку и права доступа",
   "diagram-generation": "Схема не сформирована. Перезагрузите страницу или повторите попытку позже",
-  "attachment-error": "Ошибка загрузки файла"
+  "attachment-error": "Ошибка загрузки файла",
+  "invalid-request": "Некорректный запрос"
 };
 
 function sendJson(response: ServerResponse, status: number, payload: unknown): void {
@@ -275,6 +277,16 @@ async function handleChat(request: IncomingMessage, response: ServerResponse): P
   }
 }
 
+async function handleFeedback(request: IncomingMessage, response: ServerResponse): Promise<void> {
+  const body = await readBody(request);
+  const entry = parseFeedbackEntry(body.fields);
+  if (!entry) {
+    return sendApiError(response, 400, { code: "invalid-request", message: userMessages["invalid-request"] });
+  }
+  recordFeedback(entry);
+  return sendJson(response, 200, { ok: true });
+}
+
 async function handleStatic(request: IncomingMessage, response: ServerResponse): Promise<void> {
   const url = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
   const pathName = decodeURIComponent(url.pathname);
@@ -324,6 +336,9 @@ const server = createServer(async (request, response) => {
     }
     if (request.url?.startsWith("/api/chat") && request.method === "POST") {
       return await handleChat(request, response);
+    }
+    if (request.url?.startsWith("/api/feedback") && request.method === "POST") {
+      return await handleFeedback(request, response);
     }
     return await handleStatic(request, response);
   } catch {

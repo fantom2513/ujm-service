@@ -23,3 +23,15 @@ async function requestJson(url: string, body: FormData): Promise<unknown> {
   }
   return payload.result;
 }
+
+export async function sendFeedback(payload: { messageId: string; kind: "rating" | "copy"; value?: "up" | "down" }): Promise<void> {
+  try {
+    await fetch("api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch (error) {
+    console.error("Failed to send feedback:", error);
+  }
+}

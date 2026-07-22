@@ -8,7 +8,8 @@ export type UserErrorCode =
   | "invalid-link"
   | "source-unavailable"
   | "diagram-generation"
-  | "attachment-error";
+  | "attachment-error"
+  | "invalid-request";
 
 export interface FileMeta {
   name: string;

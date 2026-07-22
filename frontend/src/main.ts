@@ -1,6 +1,6 @@
 import type { ApiError, AppState } from "./types/index.ts";
 import type { ChatMessage, DiagramResult, FileMeta, SourceType } from "../../shared/types/index.ts";
-import { generateDiagram, getConfig, sendChatMessage } from "./api/client.ts";
+import { generateDiagram, getConfig, sendChatMessage, sendFeedback } from "./api/client.ts";
 import { inlineIcons } from "./generated/inline-icons.ts";
 import { clearState, defaultState, loadState, saveState } from "./state/session.ts";
 import { diagramSize, downloadPdf, downloadPng, downloadSvg, getCachedSvg, renderMermaid } from "./utils/export.ts";
@@ -719,6 +719,7 @@ function bindResultEvents(): void {
       message.feedback = message.feedback === value ? undefined : value;
       persist();
       render();
+      if (message.feedback) void sendFeedback({ messageId: id, kind: "rating", value: message.feedback });
     });
   });
 
@@ -728,6 +729,7 @@ function bindResultEvents(): void {
       const message = state.result?.chat.find((item) => item.id === id);
       if (!message) return;
       void navigator.clipboard?.writeText(message.text);
+      void sendFeedback({ messageId: id, kind: "copy" });
     });
   });
 
