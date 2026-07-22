@@ -69,8 +69,12 @@ async function readBody(request: IncomingMessage): Promise<MultipartBody> {
   }
 
   if (contentType.includes("application/json")) {
-    const parsed = JSON.parse(buffer.toString("utf8") || "{}") as Record<string, string>;
-    return { fields: parsed, files: [] };
+    try {
+      const parsed = JSON.parse(buffer.toString("utf8") || "{}") as Record<string, string>;
+      return { fields: parsed, files: [] };
+    } catch {
+      return { fields: {}, files: [] };
+    }
   }
 
   return { fields: {}, files: [] };
