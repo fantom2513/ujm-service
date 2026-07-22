@@ -129,14 +129,29 @@ function startPage(): string {
   `;
 }
 
+interface ProductNavLink {
+  label: string;
+  url: string;
+}
+
+// TODO(product): fill in the remaining URLs once those services are ready to link to.
+const PRODUCT_NAV_LINKS: ProductNavLink[] = [
+  { label: "UMUX-Оценка", url: "https://cxcop.sogaz.ru/umux" },
+  { label: "UX Debt", url: "" },
+  { label: "Тепловая карта", url: "" },
+  { label: "CJM", url: "" }
+];
+
 function productNav(): string {
+  const links = PRODUCT_NAV_LINKS.map((link) =>
+    link.url
+      ? `<a href="${escapeHtml(link.url)}">${escapeHtml(link.label)}</a>`
+      : `<span class="product-nav-placeholder">${escapeHtml(link.label)}</span>`
+  ).join("");
   return `
     <nav class="product-nav" aria-label="Сервисы">
-      <a>UMUX-Оценка</a>
-      <a>UX Debt</a>
-      <a>Тепловая карта</a>
-      <a>CJM</a>
-      <a class="active">UX-архитектура</a>
+      ${links}
+      <a class="active" aria-current="page">UX-архитектура</a>
       <button class="gear-button" type="button" aria-label="Настройки">${svgIcon("sun.svg", "nav-icon")}</button>
     </nav>
   `;

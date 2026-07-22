@@ -120,6 +120,12 @@ p {
   font-weight: 300;
 }
 
+.product-nav-placeholder {
+  color: var(--muted-soft);
+  white-space: nowrap;
+  cursor: default;
+}
+
 .gear-button {
   margin-left: auto;
   width: 88px;
