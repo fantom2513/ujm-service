@@ -1368,6 +1368,11 @@ h1 {
   gap: 8px;
 }
 
+.message.user:not(.has-overflow) .user-message-content {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
 .message.user.has-attachments .user-message-content {
   max-width: calc(100% - 32px);
   min-height: 44px;

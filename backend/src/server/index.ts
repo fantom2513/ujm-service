@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
 import { config } from "../config/index.ts";
 import { parseMultipart } from "./multipart.ts";
+import { requiredSourceError } from "./generateGuard.ts";
 import type { ApiErrorPayload, MultipartBody, UploadedFile } from "../types/index.ts";
 import { getExtension, hasPdfTextLayer, isTextSourceFormat, normalizeTextFile } from "../services/files/index.ts";
 import { isRecordingFormat, normalizeRecording } from "../services/recordings/index.ts";
@@ -88,15 +89,23 @@ async function handleGenerate(request: IncomingMessage, response: ServerResponse
   const body = await readBody(request);
   const sourceType = body.fields.sourceType;
   const details = body.fields.details || "";
+  const file = firstFile(body);
+  const link = (body.fields.link || "").trim();
+
+  // #12: reject requests that carry no usable source before calling the LLM.
+  const missingSource = requiredSourceError({
+    sourceType,
+    hasFile: !!file && !!file.filename,
+    link
+  });
+  if (missingSource) {
+    return sendApiError(response, 400, { code: missingSource, message: userMessages[missingSource] });
+  }
+
   let source;
 
   if (sourceType === "text-file") {
-    const file = firstFile(body);
-    if (!file || !file.filename) {
-      return sendApiError(response, 400, { code: "file-required", message: userMessages["file-required"] });
-    }
-
-    const format = getExtension(file.filename);
+    const format = getExtension(file!.filename);
     if (file.size > config.maxTextFileBytes) {
       return sendApiError(response, 400, { code: "file-size", message: userMessages["file-size-text"] });
     }
@@ -109,12 +118,7 @@ async function handleGenerate(request: IncomingMessage, response: ServerResponse
 
     source = await normalizeTextFile(file);
   } else if (sourceType === "recording") {
-    const file = firstFile(body);
-    if (!file || !file.filename) {
-      return sendApiError(response, 400, { code: "file-required", message: userMessages["file-required"] });
-    }
-
-    const format = getExtension(file.filename);
+    const format = getExtension(file!.filename);
     if (file.size > config.maxRecordingFileBytes) {
       return sendApiError(response, 400, { code: "file-size", message: userMessages["file-size-recording"] });
     }
@@ -124,10 +128,6 @@ async function handleGenerate(request: IncomingMessage, response: ServerResponse
 
     source = normalizeRecording(file);
   } else if (sourceType === "link") {
-    const link = (body.fields.link || "").trim();
-    if (!link) {
-      return sendApiError(response, 400, { code: "link-required", message: userMessages["link-required"] });
-    }
     if (!classifyWorkLink(link)) {
       return sendApiError(response, 400, { code: "invalid-link", message: userMessages["invalid-link"] });
     }
