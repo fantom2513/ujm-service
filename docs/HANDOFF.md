@@ -230,7 +230,8 @@ httpOnly-cookie `session_id` (фронт не трогаем — рекомен�
 
 1. Поднять локально (`docker-compose.test.yaml`), прогнать `npm test` из корня, убедиться в 73/73.
 2. Прочитать в этом порядке: этот файл → `2026-07-20-cx-copilot-prod-bugfix-plan-design.md`
-   → `2026-07-10-python-backend-infra-design.md` → `2026-07-22-mermaid-validation-pipeline-roadmap.md`.
+   → `2026-07-10-python-backend-infra-design.md` → `2026-07-22-mermaid-validation-pipeline-roadmap.md`
+   → `2026-07-24-prod-observations-backlog.md` (доработки, замеченные на проде после вех 1–3).
 3. TS-версия готова к передаче в тестирование: все 11 багов вех 1–3 закрыты
    (#17/#14/#12 — последними, см. раздел 3). Отдельного релиза ради них ждать не нужно.
 4. Начать Фазу 0 Python-плана. Перед стартом каждой фазы писать план в
