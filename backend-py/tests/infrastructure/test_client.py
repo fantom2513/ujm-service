@@ -1,3 +1,5 @@
+import json
+
 from app.infrastructure.llm.client import (
     extract_json,
     extract_mermaid,
@@ -75,3 +77,86 @@ def test_extract_json_raises_invalid_json_when_missing():
         assert False, "expected LLMError"
     except LLMError as err:
         assert err.code == "INVALID_JSON"
+
+
+import pytest
+
+from app.infrastructure.llm.client import VLLMClient
+from app.infrastructure.llm.errors import LLMError
+
+
+def _llm_response(content: str, reasoning_content: str | None = None) -> dict:
+    message = {"content": content}
+    if reasoning_content is not None:
+        message["reasoning_content"] = reasoning_content
+    return {"choices": [{"message": message}]}
+
+
+async def test_complete_text_returns_mermaid_from_response(mock_llm_server):
+    url = mock_llm_server(_llm_response("flowchart LR\nA --> B"))
+    client = VLLMClient(url=url, model="test", response_format_mode="none")
+    result = await client.complete_text("make a diagram")
+    assert result.startswith("flowchart LR")
+
+
+async def test_complete_text_strips_think_tags(mock_llm_server):
+    url = mock_llm_server(_llm_response("<think>reasoning</think>\nflowchart TB\nA --> B"))
+    client = VLLMClient(url=url, model="test", response_format_mode="none")
+    result = await client.complete_text("make a diagram")
+    assert result.startswith("flowchart TB")
+    assert "<think>" not in result
+
+
+async def test_complete_text_raises_timeout_when_server_too_slow(mock_llm_server):
+    url = mock_llm_server({}, delay_forever=True)
+    client = VLLMClient(url=url, model="test", timeout_ms=50, response_format_mode="none")
+    with pytest.raises(LLMError) as exc_info:
+        await client.complete_text("test")
+    assert exc_info.value.code == "TIMEOUT"
+
+
+async def test_complete_json_parses_with_json_schema_mode(mock_llm_server):
+    payload = {"mermaid": "flowchart LR\nA --> B", "message": "done"}
+    url = mock_llm_server(_llm_response(json.dumps(payload)))
+    client = VLLMClient(url=url, model="test", response_format_mode="json_schema")
+    schema = {
+        "type": "object",
+        "properties": {"mermaid": {"type": "string"}, "message": {"type": "string"}},
+        "required": ["mermaid", "message"],
+    }
+    result = await client.complete_json("edit diagram", schema, "ChatOutput")
+    assert result["mermaid"] == payload["mermaid"]
+    assert result["message"] == payload["message"]
+
+
+async def test_complete_json_raises_structured_output_unsupported_on_422(mock_llm_server):
+    url = mock_llm_server({"error": "unsupported"}, status_code=422)
+    client = VLLMClient(url=url, model="test", response_format_mode="json_schema")
+    with pytest.raises(LLMError) as exc_info:
+        await client.complete_json("x", {}, "X")
+    assert exc_info.value.code == "STRUCTURED_OUTPUT_UNSUPPORTED"
+
+
+async def test_complete_json_uses_reasoning_content_when_content_empty(mock_llm_server):
+    payload = {"mermaid": "flowchart LR\nA-->B", "message": "ok"}
+    url = mock_llm_server(_llm_response("", reasoning_content=json.dumps(payload)))
+    client = VLLMClient(url=url, model="test", response_format_mode="none")
+    result = await client.complete_json("x", {}, "X")
+    assert result["mermaid"] == payload["mermaid"]
+
+
+async def test_complete_json_exposes_usage_on_last_usage(mock_llm_server):
+    payload = {"mermaid": "flowchart LR\nA-->B", "message": "ok"}
+    body = _llm_response(json.dumps(payload))
+    body["usage"] = {"prompt_tokens": 120, "completion_tokens": 30, "total_tokens": 150}
+    url = mock_llm_server(body)
+    client = VLLMClient(url=url, model="test", response_format_mode="none")
+    await client.complete_json("x", {}, "X")
+    assert client.last_usage == {"prompt_tokens": 120, "completion_tokens": 30, "total_tokens": 150}
+
+
+async def test_complete_text_usage_is_none_when_response_omits_it(mock_llm_server):
+    url = mock_llm_server(_llm_response("flowchart LR\nA --> B"))
+    client = VLLMClient(url=url, model="test", response_format_mode="none")
+    await client.complete_text("make a diagram")
+    assert client.last_usage is None
