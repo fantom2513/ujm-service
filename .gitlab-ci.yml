@@ -1,5 +1,6 @@
 stages:
   - security
+  - test
   - build
   - deploy
 
@@ -12,6 +13,19 @@ stages:
   - package.json
   - pnpm-lock.yaml
   - .gitlab-ci.yml
+
+test-py:
+  stage: test
+  image: nexus.sogaz.ru/python:3.12-bookworm-slim
+  script:
+    - pip install --no-cache-dir uv
+    - cd backend-py
+    - uv sync
+    - uv run pytest -v
+  rules:
+    - changes:
+        - backend-py/**/*
+        - .gitlab-ci.yml
 
 build-test:
   stage: build
