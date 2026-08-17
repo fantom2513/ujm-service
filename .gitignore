@@ -9,3 +9,7 @@ backend/tmp/
 Thumbs.db
 desktop.ini
 .worktrees/
+backend-py/.venv/
+backend-py/__pycache__/
+backend-py/.pytest_cache/
+backend-py/uv.lock
