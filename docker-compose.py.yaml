@@ -1,0 +1,39 @@
+networks:
+  cx_net:
+    external: true
+    name: cx_copilot_cx_net
+
+volumes:
+  ux-architecture-postgres-data:
+
+services:
+  ux-architecture-postgres:
+    image: postgres:16-bookworm
+    container_name: ux-architecture-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: uxarch
+      POSTGRES_PASSWORD: uxarch
+      POSTGRES_DB: uxarch
+    volumes:
+      - ux-architecture-postgres-data:/var/lib/postgresql/data
+    networks:
+      - cx_net
+
+  ux-architecture-backend-py:
+    build:
+      context: .
+      dockerfile: backend-py/Dockerfile
+    image: ux-architecture-backend-py:dev
+    container_name: ux-architecture-backend-py
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8001
+      DATABASE_URL: postgresql+asyncpg://uxarch:uxarch@ux-architecture-postgres:5432/uxarch
+    depends_on:
+      - ux-architecture-postgres
+    networks:
+      - cx_net
