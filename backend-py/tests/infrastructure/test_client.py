@@ -1,6 +1,9 @@
 import json
 
+import pytest
+
 from app.infrastructure.llm.client import (
+    VLLMClient,
     extract_json,
     extract_mermaid,
     inline_refs,
@@ -77,12 +80,6 @@ def test_extract_json_raises_invalid_json_when_missing():
         assert False, "expected LLMError"
     except LLMError as err:
         assert err.code == "INVALID_JSON"
-
-
-import pytest
-
-from app.infrastructure.llm.client import VLLMClient
-from app.infrastructure.llm.errors import LLMError
 
 
 def _llm_response(content: str, reasoning_content: str | None = None) -> dict:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
@@ -16,6 +18,8 @@ from app.services.files.extract import (
 from app.services.links.classify import classify_work_link, normalize_link
 from app.services.openai.generate import generate_diagram
 from app.services.recordings.normalize import is_recording_format, normalize_recording
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -93,10 +97,23 @@ async def generate(request: Request):
     try:
         mermaid_code = await generate_diagram(source.text, details)
     except Exception:
+        # Parity with TS: backend/src/server/index.ts:143
+        # (`console.error("generateDiagram failed:", err)`).
+        logger.exception("generateDiagram failed")
         return _api_error(500, "diagram-generation")
 
     validation = validate_mermaid(mermaid_code)
     if not validation.ok:
+        # Parity with TS: backend/src/server/index.ts:148 — logs the
+        # validation reason and the bad output's first line, not the
+        # user-facing generic message, since the raw Mermaid may contain
+        # unsafe/oversized content unsuitable for a client-visible error.
+        first_line = mermaid_code.strip().split("\n", 1)[0]
+        logger.error(
+            "generateDiagram validation failed: %s | first line: %s",
+            validation.reason,
+            first_line,
+        )
         return _api_error(500, "diagram-generation")
 
     result = DiagramResult(

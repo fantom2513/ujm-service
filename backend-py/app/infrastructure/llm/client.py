@@ -3,7 +3,11 @@ from __future__ import annotations
 import json
 import re
 
+import httpx
+
 from app.infrastructure.llm.errors import LLMError
+
+ResponseFormatMode = str  # "json_schema" | "json_object" | "none"
 
 _THINK_TAGS = re.compile(r"<think>.*?</think>", re.DOTALL)
 _FLOWCHART_HEADER = re.compile(r"flowchart\s+(TB|TD|BT|RL|LR)")
@@ -86,11 +90,6 @@ def extract_json(raw: str) -> dict:
     if end == -1:
         raise LLMError("INVALID_JSON", f"Unbalanced braces in: {cleaned[start:start + 200]}")
     return json.loads(cleaned[start:end + 1])
-
-
-import httpx
-
-ResponseFormatMode = str  # "json_schema" | "json_object" | "none"
 
 
 class VLLMClient:
