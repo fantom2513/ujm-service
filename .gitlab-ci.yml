@@ -23,7 +23,13 @@ test-py:
     - uv sync
     - uv run pytest -v
   rules:
-    - changes:
+    # A bare `changes:` (no `if:`) evaluates to true unconditionally on
+    # pipeline sources with no prior-commit diff to compare against
+    # (scheduled/tag pipelines) — guard it to ordinary push/MR pipelines,
+    # matching how every other job in this file pairs `changes:` with an
+    # explicit `if:`.
+    - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
         - backend-py/**/*
         - .gitlab-ci.yml
 
