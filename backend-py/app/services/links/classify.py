@@ -10,7 +10,11 @@ def classify_work_link(value: str) -> str | None:
         parsed = urlparse(value)
         if not parsed.scheme or not parsed.netloc:
             return None
-        searchable = f"{parsed.netloc}{parsed.path}".lower()
+        # `.hostname`, not `.netloc` — netloc includes userinfo/port
+        # ("user:jira@host"), which would false-match on credentials rather
+        # than the actual host. Parity with TS: backend/src/services/links/
+        # index.ts:6 (`url.hostname`).
+        searchable = f"{parsed.hostname or ''}{parsed.path}".lower()
     except ValueError:
         return None
     if "jira" in searchable:

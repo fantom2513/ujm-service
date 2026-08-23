@@ -17,8 +17,13 @@ async def lifespan(app: FastAPI):
     app.state.db_sessionmaker = build_sessionmaker(engine)
     app.state.redis = build_redis_client(settings.redis_url)
     yield
-    await app.state.redis.aclose()
-    await engine.dispose()
+    try:
+        await app.state.redis.aclose()
+    finally:
+        # Must run even if closing Redis fails, or a flaky Redis on
+        # shutdown leaks the SQLAlchemy engine's connection pool on every
+        # restart/redeploy.
+        await engine.dispose()
 
 
 app = FastAPI(title="ujm-service backend-py", lifespan=lifespan)

@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ResponseFormatMode = Literal["json_schema", "json_object", "none"]
@@ -45,6 +45,27 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://uxarch:uxarch@localhost:5432/uxarch"
     redis_url: str = "redis://localhost:6379/2"
     redis_key_prefix: str = "uxarch:"
+
+    @field_validator("llm_seed", mode="before")
+    @classmethod
+    def _empty_seed_to_none(cls, raw: object) -> object:
+        # `.env.example` ships `LLM_SEED=` (empty) as a documented default —
+        # pydantic's int|None coercion rejects "" outright, which would
+        # crash Settings() at startup for anyone who does `cp .env.example .env`.
+        if raw == "":
+            return None
+        return raw
+
+    @field_validator("llm_insecure_tls", mode="before")
+    @classmethod
+    def _strict_true_string(cls, raw: object) -> object:
+        # Parity with TS: backend/src/config/index.ts:43 does a strict
+        # `=== "true"` check. Pydantic's default bool coercion also accepts
+        # "1"/"yes"/"on", which would silently disable TLS verification in
+        # this backend for env values the TS backend treats as false.
+        if isinstance(raw, str):
+            return raw.strip().lower() == "true"
+        return raw
 
     @property
     def max_text_file_bytes(self) -> int:

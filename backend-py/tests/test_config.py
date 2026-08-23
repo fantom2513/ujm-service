@@ -44,3 +44,26 @@ def test_llm_insecure_tls_true(monkeypatch):
     monkeypatch.setenv("LLM_TLS_INSECURE", "true")
     settings = Settings(_env_file=None)
     assert settings.llm_insecure_tls is True
+
+
+def test_llm_seed_empty_string_falls_back_to_none(monkeypatch):
+    # Regression: .env.example ships `LLM_SEED=` (empty) — this used to
+    # crash Settings() with a pydantic ValidationError at startup.
+    monkeypatch.setenv("LLM_SEED", "")
+    settings = Settings(_env_file=None)
+    assert settings.llm_seed is None
+
+
+def test_llm_insecure_tls_rejects_non_true_truthy_strings(monkeypatch):
+    # Parity with TS: backend/src/config/index.ts:43 does a strict
+    # `=== "true"` check — "1"/"yes"/"on" must NOT enable insecure TLS,
+    # unlike Pydantic's default bool coercion.
+    monkeypatch.setenv("LLM_TLS_INSECURE", "1")
+    settings = Settings(_env_file=None)
+    assert settings.llm_insecure_tls is False
+
+
+def test_llm_insecure_tls_true_is_case_insensitive(monkeypatch):
+    monkeypatch.setenv("LLM_TLS_INSECURE", "TRUE")
+    settings = Settings(_env_file=None)
+    assert settings.llm_insecure_tls is True
