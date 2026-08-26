@@ -1,3 +1,7 @@
+import io
+
+from openpyxl import Workbook
+
 from app.services.files.extract import (
     get_extension,
     has_pdf_text_layer,
@@ -5,6 +9,16 @@ from app.services.files.extract import (
     normalize_text_file,
     sanitize_filename,
 )
+
+
+def _xlsx_bytes() -> bytes:
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.append(["Name", "Age"])
+    sheet.append(["Alice", 30])
+    buffer = io.BytesIO()
+    workbook.save(buffer)
+    return buffer.getvalue()
 
 
 def test_get_extension_lowercases_and_strips_dot():
@@ -52,7 +66,15 @@ async def test_normalize_text_file_txt_uses_raw_content():
     assert result.file["format"] == "TXT"
 
 
-async def test_normalize_text_file_xlsx_is_stub():
-    result = await normalize_text_file("data.xlsx", b"binary", size=6)
+async def test_normalize_text_file_xlsx_extracts_real_content():
+    content = _xlsx_bytes()
+    result = await normalize_text_file("data.xlsx", content, size=len(content))
+    assert result.stub is False
+    assert "Alice" in result.text
+    assert "30" in result.text
+    assert result.file["format"] == "XLSX"
+
+
+async def test_normalize_text_file_xls_is_stub():
+    result = await normalize_text_file("legacy.xls", b"binary", size=6)
     assert result.stub is True
-    assert "XLSX" in result.text
