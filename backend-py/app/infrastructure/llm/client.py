@@ -99,6 +99,8 @@ class VLLMClient:
         model: str,
         api_key: str | None = None,
         timeout_ms: int = 120_000,
+        connect_timeout_ms: int = 5_000,
+        pool_timeout_ms: int = 5_000,
         temperature: float = 0.1,
         seed: int | None = None,
         response_format_mode: ResponseFormatMode = "json_schema",
@@ -107,6 +109,8 @@ class VLLMClient:
         self.base_url = url.removesuffix("/chat/completions").rstrip("/")
         self.model = model
         self.timeout_ms = timeout_ms
+        self.connect_timeout_ms = connect_timeout_ms
+        self.pool_timeout_ms = pool_timeout_ms
         self.temperature = temperature
         self.seed = seed
         self.response_format_mode = response_format_mode
@@ -136,7 +140,15 @@ class VLLMClient:
         if response_format:
             payload["response_format"] = response_format
 
-        timeout = httpx.Timeout(self.timeout_ms / 1000)
+        # read/write default to timeout_ms (generation can legitimately take that
+        # long); connect/pool get their own short budgets so a dead/unreachable
+        # server or an exhausted client fails fast instead of waiting as long as
+        # a real generation would.
+        timeout = httpx.Timeout(
+            self.timeout_ms / 1000,
+            connect=self.connect_timeout_ms / 1000,
+            pool=self.pool_timeout_ms / 1000,
+        )
         try:
             async with httpx.AsyncClient(verify=self._verify, timeout=timeout) as http_client:
                 response = await http_client.post(self.endpoint, headers=self.headers, json=payload)

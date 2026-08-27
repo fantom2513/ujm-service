@@ -1,4 +1,6 @@
 import json
+import socket
+import time
 
 import pytest
 
@@ -10,6 +12,7 @@ from app.infrastructure.llm.client import (
     strip_think_tags,
 )
 from app.infrastructure.llm.errors import LLMError
+from app.infrastructure.llm.retry import execute_with_retry
 
 
 def test_inline_refs_no_refs_passthrough_drops_defs():
@@ -110,6 +113,58 @@ async def test_complete_text_raises_timeout_when_server_too_slow(mock_llm_server
     with pytest.raises(LLMError) as exc_info:
         await client.complete_text("test")
     assert exc_info.value.code == "TIMEOUT"
+
+
+async def test_complete_text_raises_network_error_fast_when_port_is_closed():
+    # Nothing listens on this port, so the OS rejects the connection
+    # (ECONNREFUSED) well before timeout_ms elapses — this is what the short
+    # connect timeout is for, distinct from a slow-to-respond server. The
+    # OS-level rejection itself isn't instant on every platform (Windows adds
+    # a ~2s floor even for a local refused connection), so we assert against
+    # a generous fraction of timeout_ms rather than an absolute constant.
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(("127.0.0.1", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    url = f"http://127.0.0.1:{port}"
+    timeout_ms = 30_000
+    client = VLLMClient(url=url, model="test", timeout_ms=timeout_ms, response_format_mode="none")
+
+    start = time.monotonic()
+    with pytest.raises(LLMError) as exc_info:
+        await client.complete_text("test")
+    elapsed = time.monotonic() - start
+
+    assert exc_info.value.code == "NETWORK_ERROR"
+    assert elapsed < (timeout_ms / 1000) / 2, f"expected a fast connection-refused failure, took {elapsed}s"
+
+
+async def test_execute_with_retry_does_not_retry_timeout_end_to_end(mock_llm_server):
+    call_counter = [0]
+    url = mock_llm_server({}, delay_forever=True, call_counter=call_counter)
+    client = VLLMClient(url=url, model="test", timeout_ms=50, response_format_mode="none")
+
+    with pytest.raises(LLMError) as exc_info:
+        await execute_with_retry(
+            lambda: client.complete_text("test"), max_attempts=3, base_delay_ms=0, max_delay_ms=0
+        )
+
+    assert exc_info.value.code == "TIMEOUT"
+    assert call_counter[0] == 1
+
+
+async def test_execute_with_retry_retries_network_error_end_to_end(mock_llm_server):
+    call_counter = [0]
+    url = mock_llm_server({}, reset_connection=True, call_counter=call_counter)
+    client = VLLMClient(url=url, model="test", timeout_ms=5_000, response_format_mode="none")
+
+    with pytest.raises(LLMError) as exc_info:
+        await execute_with_retry(
+            lambda: client.complete_text("test"), max_attempts=3, base_delay_ms=0, max_delay_ms=0
+        )
+
+    assert exc_info.value.code == "NETWORK_ERROR"
+    assert call_counter[0] == 3
 
 
 async def test_complete_json_parses_with_json_schema_mode(mock_llm_server):

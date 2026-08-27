@@ -16,8 +16,20 @@ class _MockLLMHandler(BaseHTTPRequestHandler):
     response_body: dict = {}
     status_code: int = 200
     delay_forever: bool = False
+    reset_connection: bool = False
+    call_counter: list[int] | None = None
 
     def do_POST(self):  # noqa: N802 (stdlib naming)
+        if self.call_counter is not None:
+            self.call_counter[0] += 1
+        if self.reset_connection:
+            # Close the socket without writing any response bytes — the
+            # client already finished sending its request by this point, so
+            # it sees the connection die while waiting for a reply (a broken
+            # connection), not a timeout. Distinct failure mode from
+            # delay_forever below (server alive but never answers).
+            self.connection.close()
+            return
         if self.delay_forever:
             # Bounded sleep, not `while True: pass` — a busy-spin pegs a CPU
             # core at 100% for the rest of the test session (shutdown() can't
@@ -41,11 +53,23 @@ class _MockLLMHandler(BaseHTTPRequestHandler):
 def mock_llm_server():
     servers: list[HTTPServer] = []
 
-    def _make(response_body: dict, status_code: int = 200, delay_forever: bool = False) -> str:
+    def _make(
+        response_body: dict,
+        status_code: int = 200,
+        delay_forever: bool = False,
+        reset_connection: bool = False,
+        call_counter: list[int] | None = None,
+    ) -> str:
         handler = type(
             "Handler",
             (_MockLLMHandler,),
-            {"response_body": response_body, "status_code": status_code, "delay_forever": delay_forever},
+            {
+                "response_body": response_body,
+                "status_code": status_code,
+                "delay_forever": delay_forever,
+                "reset_connection": reset_connection,
+                "call_counter": call_counter,
+            },
         )
         server = HTTPServer(("127.0.0.1", 0), handler)
         servers.append(server)

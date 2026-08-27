@@ -16,6 +16,8 @@ def test_defaults_match_ts_backend():
     assert settings.llm_model == "google/gemma-4"
     assert settings.llm_api_key is None
     assert settings.llm_timeout_ms == 120_000
+    assert settings.llm_connect_timeout_ms == 5_000
+    assert settings.llm_pool_timeout_ms == 5_000
     assert settings.llm_temperature == 0.1
     assert settings.llm_seed is None
     assert settings.llm_response_format_mode == "json_schema"

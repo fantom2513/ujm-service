@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     llm_model: str = "google/gemma-4"
     llm_api_key: str | None = None
     llm_timeout_ms: int = 120_000
+    llm_connect_timeout_ms: int = 5_000
+    llm_pool_timeout_ms: int = 5_000
     llm_temperature: float = 0.1
     llm_seed: int | None = None
     llm_response_format_mode: ResponseFormatMode = "json_schema"

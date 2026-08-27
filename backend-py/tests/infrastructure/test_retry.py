@@ -17,14 +17,28 @@ async def test_execute_with_retry_returns_value_on_first_success():
     assert calls == 1
 
 
-async def test_execute_with_retry_retries_on_timeout():
+async def test_execute_with_retry_does_not_retry_timeout():
+    calls = 0
+
+    async def fn():
+        nonlocal calls
+        calls += 1
+        raise LLMError("TIMEOUT", "timed out")
+
+    with pytest.raises(LLMError) as exc_info:
+        await execute_with_retry(fn, max_attempts=3, base_delay_ms=0, max_delay_ms=0)
+    assert calls == 1
+    assert exc_info.value.code == "TIMEOUT"
+
+
+async def test_execute_with_retry_retries_on_network_error():
     calls = 0
 
     async def fn():
         nonlocal calls
         calls += 1
         if calls < 3:
-            raise LLMError("TIMEOUT", "timed out")
+            raise LLMError("NETWORK_ERROR", "connection reset")
         return "ok"
 
     result = await execute_with_retry(fn, max_attempts=3, base_delay_ms=0, max_delay_ms=0)

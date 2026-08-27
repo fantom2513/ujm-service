@@ -7,11 +7,20 @@ from app.infrastructure.llm.errors import LLMError
 
 # Errors that won't change on retry — the model/client produced a bad
 # payload, not a transient failure.
+#
+# TIMEOUT is deliberately included too, despite being "transient" in the usual
+# sense: vLLM serves a shared generation queue, so a request that didn't get an
+# answer within the read timeout almost always means the queue is backed up,
+# not a one-off blip. Retrying resubmits a brand-new generation request into
+# that same overloaded queue, adding load instead of relieving it. NETWORK_ERROR
+# (refused/reset connections, i.e. failures before generation ever started) is
+# not in this set — those are cheap to retry and don't touch the queue.
 NO_RETRY_CODES = {
     "SCHEMA_MISMATCH",
     "STRUCTURED_OUTPUT_UNSUPPORTED",
     "INVALID_JSON",
     "EMPTY_RESPONSE",
+    "TIMEOUT",
 }
 
 # Subset of NO_RETRY_CODES relevant to complete_json_with_fallback's
