@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import io
+import logging
 
 from docx import Document
 from docx.table import Table
 from docx.text.paragraph import Paragraph
+
+logger = logging.getLogger(__name__)
 
 
 def _extract_text(buffer: bytes) -> str:
@@ -39,4 +42,5 @@ async def parse_docx(buffer: bytes) -> str:
     try:
         return await asyncio.to_thread(_extract_text, buffer)
     except Exception:
+        logger.exception("parse_docx failed for buffer of %d bytes", len(buffer))
         return ""
