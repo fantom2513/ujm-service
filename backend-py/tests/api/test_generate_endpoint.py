@@ -75,6 +75,35 @@ def test_generate_text_file_success_returns_200(client, monkeypatch):
     assert body["result"]["sourceText"] == "Hello world"
 
 
+def test_generate_link_jira_success_returns_200(client, monkeypatch):
+    from app.services.files.extract import NormalizedSource
+
+    async def fake_normalize_link(value):
+        return NormalizedSource(
+            type="link",
+            title="Jira: ABC-1",
+            text="Fix the bug\n\nSteps to reproduce...",
+            description=f"Jira · {value}",
+            url=value,
+            stub=False,
+        )
+
+    async def fake_generate_diagram(source_text, details, client=None):
+        return "flowchart LR\nA --> B"
+
+    monkeypatch.setattr("app.api.generate.normalize_link", fake_normalize_link)
+    monkeypatch.setattr("app.api.generate.generate_diagram", fake_generate_diagram)
+
+    response = client.post(
+        "/api/generate",
+        data={"sourceType": "link", "link": "https://jira.example.com/browse/ABC-1"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is True
+    assert body["result"]["sourceContext"]["stub"] is False
+
+
 def test_generate_llm_failure_returns_500_diagram_generation(client, monkeypatch):
     async def fake_generate_diagram(source_text, details, client=None):
         raise RuntimeError("LLM down")
