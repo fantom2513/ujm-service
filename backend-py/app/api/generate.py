@@ -90,7 +90,7 @@ async def generate(request: Request):
     elif source_type == "link":
         if not classify_work_link(link):
             return _api_error(400, "invalid-link")
-        source = normalize_link(link)
+        source = await normalize_link(link)
     else:
         return _api_error(400, "diagram-generation")
 

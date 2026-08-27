@@ -42,6 +42,12 @@ class Settings(BaseSettings):
     llm_response_format_mode: ResponseFormatMode = "json_schema"
     llm_insecure_tls: bool = Field(default=False, validation_alias="LLM_TLS_INSECURE")
 
+    jira_url: str | None = None
+    jira_username: str | None = None
+    jira_password: str | None = None
+    jira_timeout_ms: int = 30_000
+    jira_insecure_tls: bool = Field(default=False, validation_alias="JIRA_TLS_INSECURE")
+
     database_url: str = "postgresql+asyncpg://uxarch:uxarch@localhost:5432/uxarch"
     redis_url: str = "redis://localhost:6379/2"
     redis_key_prefix: str = "uxarch:"
@@ -56,7 +62,7 @@ class Settings(BaseSettings):
             return None
         return raw
 
-    @field_validator("llm_insecure_tls", mode="before")
+    @field_validator("llm_insecure_tls", "jira_insecure_tls", mode="before")
     @classmethod
     def _strict_true_string(cls, raw: object) -> object:
         # Parity with TS: backend/src/config/index.ts:43 does a strict

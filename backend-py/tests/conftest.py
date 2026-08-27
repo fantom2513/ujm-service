@@ -2,9 +2,14 @@ from __future__ import annotations
 
 import json
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
+
+# Comfortably longer than any client-side timeout_ms used in delay_forever
+# tests (they use 50ms), short enough not to slow the suite down noticeably.
+_DELAY_FOREVER_SECONDS = 2
 
 
 class _MockLLMHandler(BaseHTTPRequestHandler):
@@ -14,9 +19,14 @@ class _MockLLMHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):  # noqa: N802 (stdlib naming)
         if self.delay_forever:
-            # Never respond — used to exercise client-side timeout handling.
-            while True:
-                pass
+            # Bounded sleep, not `while True: pass` — a busy-spin pegs a CPU
+            # core at 100% for the rest of the test session (shutdown() can't
+            # interrupt a handler stuck inside a request), which starves
+            # other tests and causes spurious timeouts elsewhere. The client
+            # has already given up by the time this returns, so there's
+            # nothing to send back.
+            time.sleep(_DELAY_FOREVER_SECONDS)
+            return
         body = json.dumps(self.response_body).encode("utf-8")
         self.send_response(self.status_code)
         self.send_header("Content-Type", "application/json")
@@ -48,10 +58,58 @@ def mock_llm_server():
 
     for server in servers:
         # server.shutdown() blocks until serve_forever() notices the flag and
-        # exits its loop. A handler stuck in a busy loop (delay_forever=True,
-        # used to exercise client-side timeouts) never returns control to that
-        # loop, so a direct call here would hang teardown forever. Run it on a
-        # bounded side thread instead and close the socket regardless.
+        # exits its loop. HTTPServer handles one request at a time on that
+        # same thread, so a handler mid-sleep (delay_forever=True, used to
+        # exercise client-side timeouts) can't return control to the loop
+        # until its sleep finishes — a direct call here would block teardown
+        # for up to that long. Run it on a bounded side thread instead and
+        # close the socket regardless.
+        shutdown_thread = threading.Thread(target=server.shutdown, daemon=True)
+        shutdown_thread.start()
+        shutdown_thread.join(timeout=1)
+        server.server_close()
+
+
+class _MockJiraHandler(BaseHTTPRequestHandler):
+    response_body: dict = {}
+    status_code: int = 200
+    delay_forever: bool = False
+
+    def do_GET(self):  # noqa: N802 (stdlib naming)
+        if self.delay_forever:
+            # See _MockLLMHandler.do_POST — bounded sleep, not a busy-spin.
+            time.sleep(_DELAY_FOREVER_SECONDS)
+            return
+        body = json.dumps(self.response_body).encode("utf-8")
+        self.send_response(self.status_code)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, *args):  # silence stdlib's default request logging
+        pass
+
+
+@pytest.fixture
+def mock_jira_server():
+    servers: list[HTTPServer] = []
+
+    def _make(response_body: dict, status_code: int = 200, delay_forever: bool = False) -> str:
+        handler = type(
+            "Handler",
+            (_MockJiraHandler,),
+            {"response_body": response_body, "status_code": status_code, "delay_forever": delay_forever},
+        )
+        server = HTTPServer(("127.0.0.1", 0), handler)
+        servers.append(server)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        port = server.server_address[1]
+        return f"http://127.0.0.1:{port}"
+
+    yield _make
+
+    for server in servers:
         shutdown_thread = threading.Thread(target=server.shutdown, daemon=True)
         shutdown_thread.start()
         shutdown_thread.join(timeout=1)
