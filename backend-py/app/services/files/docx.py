@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import asyncio
 import io
 import logging
 
 from docx import Document
 from docx.table import Table
 from docx.text.paragraph import Paragraph
+
+from app.services.files._common import parse_in_thread
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +40,4 @@ async def parse_docx(buffer: bytes) -> str:
     runs on a worker thread via `asyncio.to_thread` to avoid blocking the
     event loop for the duration of a large upload's parse.
     """
-    try:
-        return await asyncio.to_thread(_extract_text, buffer)
-    except Exception:
-        logger.exception("parse_docx failed for buffer of %d bytes", len(buffer))
-        return ""
+    return await parse_in_thread(_extract_text, buffer, logger, "parse_docx")

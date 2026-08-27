@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import asyncio
 import io
 import logging
 
 from openpyxl import load_workbook
+
+from app.services.files._common import parse_in_thread
 
 logger = logging.getLogger(__name__)
 
@@ -88,8 +89,4 @@ async def parse_xlsx(buffer: bytes) -> str:
     выполняется в отдельном потоке через `asyncio.to_thread`, чтобы не
     блокировать event loop на время разбора большого файла.
     """
-    try:
-        return await asyncio.to_thread(_extract_text, buffer)
-    except Exception:
-        logger.exception("parse_xlsx failed for buffer of %d bytes", len(buffer))
-        return ""
+    return await parse_in_thread(_extract_text, buffer, logger, "parse_xlsx")
