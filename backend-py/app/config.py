@@ -44,7 +44,7 @@ class Settings(BaseSettings):
 
     jira_url: str | None = None
     jira_username: str | None = None
-    jira_api_token: str | None = None
+    jira_password: str | None = None
     jira_timeout_ms: int = 30_000
     jira_insecure_tls: bool = Field(default=False, validation_alias="JIRA_TLS_INSECURE")
 

@@ -10,8 +10,6 @@ JiraErrorCode = Literal[
 
 
 class JiraError(Exception):
-    def __init__(self, code: JiraErrorCode, message: str, cause: Exception | None = None):
+    def __init__(self, code: JiraErrorCode, message: str):
         super().__init__(message)
         self.code: JiraErrorCode = code
-        if cause is not None:
-            self.__cause__ = cause

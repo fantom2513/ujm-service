@@ -6,13 +6,18 @@ from urllib.parse import urlparse
 from app.config import get_settings
 from app.infrastructure.jira.client import JiraClient
 from app.infrastructure.jira.errors import JiraError
+from app.infrastructure.llm.retry import execute_with_retry
 from app.services.files.extract import NormalizedSource
 
-# Ключ задачи Jira: буква, затем буквы/цифры проекта, дефис, номер (напр.
-# "ABC-123"). Ищем регистронезависимо и в пути, и в query-строке — ключ может
-# быть частью пути ("/browse/ABC-123") или значением параметра
-# ("?selectedIssue=abc-123").
+# Jira issue key: a letter, then project letters/digits, a hyphen, a
+# number (e.g. "ABC-123"). Searched case-insensitively in both the path
+# and the query string — the key can be part of the path
+# ("/browse/ABC-123") or a parameter value ("?selectedIssue=abc-123").
 _JIRA_KEY_PATTERN = re.compile(r"[A-Za-z][A-Za-z0-9]+-\d+")
+
+# Don't retry deterministic errors — a retry can't fix them: bad
+# credentials stay bad, a missing issue won't suddenly appear.
+_JIRA_NO_RETRY_CODES = {"UNAUTHORIZED", "NOT_FOUND"}
 
 
 def extract_jira_key(url: str) -> str | None:
@@ -59,11 +64,11 @@ def _stub_source(link_type: str | None, value: str) -> NormalizedSource:
 
 
 async def _normalize_jira_link(value: str) -> NormalizedSource | None:
-    """Возвращает реальный источник по Jira-ссылке, либо None, если нужно
-    откатиться на заглушку (Jira не настроена, в ссылке нет ключа задачи,
-    или запрос к Jira завершился ошибкой)."""
+    """Returns a real source for a Jira link, or None when the caller
+    should fall back to the stub (Jira isn't configured, the link has no
+    issue key, or the Jira request failed)."""
     settings = get_settings()
-    if not (settings.jira_url and settings.jira_username and settings.jira_api_token):
+    if not (settings.jira_url and settings.jira_username and settings.jira_password):
         return None
     key = extract_jira_key(value)
     if key is None:
@@ -71,12 +76,16 @@ async def _normalize_jira_link(value: str) -> NormalizedSource | None:
     client = JiraClient(
         settings.jira_url,
         settings.jira_username,
-        settings.jira_api_token,
+        settings.jira_password,
         settings.jira_timeout_ms,
         settings.jira_insecure_tls,
     )
     try:
-        issue = await client.get_issue(key)
+        issue = await execute_with_retry(
+            lambda: client.get_issue(key),
+            error_type=JiraError,
+            no_retry_codes=_JIRA_NO_RETRY_CODES,
+        )
     except JiraError:
         return None
     return NormalizedSource(

@@ -29,13 +29,18 @@ async def execute_with_retry(
     max_attempts: int = 3,
     base_delay_ms: int = 1_000,
     max_delay_ms: int = 30_000,
+    error_type: type[Exception] = LLMError,
+    no_retry_codes: set[str] = NO_RETRY_CODES,
 ):
-    last_err: LLMError | None = None
+    # Generic over `error_type` so non-LLM callers (e.g. JiraClient) can
+    # reuse the same retry/backoff loop with their own error class and
+    # non-retryable code set, instead of duplicating this loop per client.
+    last_err: Exception | None = None
     for attempt in range(max_attempts):
         try:
             return await fn()
-        except LLMError as err:
-            if err.code in NO_RETRY_CODES:
+        except error_type as err:
+            if err.code in no_retry_codes:
                 raise
             last_err = err
             if attempt < max_attempts - 1:

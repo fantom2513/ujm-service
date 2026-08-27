@@ -7,7 +7,7 @@ def _jira_settings(**overrides) -> Settings:
     fields = {
         "jira_url": "https://jira.example.com",
         "jira_username": "user",
-        "jira_api_token": "token",
+        "jira_password": "token",
     }
     fields.update(overrides)
     return Settings(_env_file=None, **fields)
@@ -109,14 +109,19 @@ async def test_normalize_link_jira_success(monkeypatch):
     assert "Steps to reproduce..." in result.text
 
 
-async def test_normalize_link_jira_error_is_stub(monkeypatch):
+async def test_normalize_link_jira_error_is_stub_without_retry(monkeypatch):
+    # NOT_FOUND is deterministic — retrying can't make a missing issue
+    # appear, so this must fail on the first attempt, not three times.
     monkeypatch.setattr("app.services.links.classify.get_settings", lambda: _jira_settings())
+    calls = 0
 
     class FailingClient:
         def __init__(self, *args, **kwargs):
             pass
 
         async def get_issue(self, key):
+            nonlocal calls
+            calls += 1
             raise JiraError("NOT_FOUND", f"Jira issue {key} not found")
 
     monkeypatch.setattr("app.services.links.classify.JiraClient", FailingClient)
@@ -124,3 +129,32 @@ async def test_normalize_link_jira_error_is_stub(monkeypatch):
     result = await normalize_link("https://jira.example.com/browse/ABC-1")
     assert result.type == "link"
     assert result.stub is True
+    assert calls == 1
+
+
+async def test_normalize_link_jira_retries_transient_error_then_succeeds(monkeypatch):
+    monkeypatch.setattr("app.services.links.classify.get_settings", lambda: _jira_settings())
+    monkeypatch.setattr("app.infrastructure.llm.retry.asyncio.sleep", lambda _seconds: _noop())
+    calls = 0
+
+    class FlakyThenOkClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def get_issue(self, key):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                raise JiraError("TIMEOUT", "Jira timed out")
+            return {"summary": "Fixed on retry", "description": "..."}
+
+    monkeypatch.setattr("app.services.links.classify.JiraClient", FlakyThenOkClient)
+
+    result = await normalize_link("https://jira.example.com/browse/ABC-1")
+    assert result.stub is False
+    assert "Fixed on retry" in result.text
+    assert calls == 2
+
+
+async def _noop():
+    return None

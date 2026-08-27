@@ -55,6 +55,54 @@ async def test_execute_with_retry_raises_last_error_after_exhausting():
     assert exc_info.value.code == "HTTP_ERROR"
 
 
+class _CustomError(Exception):
+    def __init__(self, code: str):
+        super().__init__(code)
+        self.code = code
+
+
+async def test_execute_with_retry_supports_custom_error_type():
+    calls = 0
+
+    async def fn():
+        nonlocal calls
+        calls += 1
+        if calls < 2:
+            raise _CustomError("TRANSIENT")
+        return "ok"
+
+    result = await execute_with_retry(
+        fn,
+        max_attempts=3,
+        base_delay_ms=0,
+        max_delay_ms=0,
+        error_type=_CustomError,
+        no_retry_codes={"PERMANENT"},
+    )
+    assert result == "ok"
+    assert calls == 2
+
+
+async def test_execute_with_retry_custom_no_retry_codes_stop_immediately():
+    calls = 0
+
+    async def fn():
+        nonlocal calls
+        calls += 1
+        raise _CustomError("PERMANENT")
+
+    with pytest.raises(_CustomError):
+        await execute_with_retry(
+            fn,
+            max_attempts=3,
+            base_delay_ms=0,
+            max_delay_ms=0,
+            error_type=_CustomError,
+            no_retry_codes={"PERMANENT"},
+        )
+    assert calls == 1
+
+
 async def test_complete_json_with_fallback_falls_back_on_structured_output_unsupported():
     modes: list[str] = []
 
