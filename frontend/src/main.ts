@@ -1242,7 +1242,10 @@ function extensionOf(name: string): string {
 }
 
 function normalizeApiError(error: unknown): ApiError {
-  if (error && typeof error === "object" && "message" in error) return error as ApiError;
+  // Require both "code" and "message" -- a bare Error/SyntaxError (e.g. from
+  // a failed JSON.parse) also has "message" and would otherwise pass through
+  // with its raw, technical text shown straight to the user.
+  if (error && typeof error === "object" && "code" in error && "message" in error) return error as ApiError;
   return { code: "diagram-generation", message: "Схема не сформирована. Перезагрузите страницу или повторите попытку позже" };
 }
 

@@ -18,7 +18,11 @@ async function getMermaid(): Promise<MermaidApi> {
   const mod = await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs") as {
     default: MermaidApi;
   };
-  mod.default.initialize({ startOnLoad: false, securityLevel: "strict" });
+  // suppressErrorRendering: mermaid otherwise injects its own error UI (a
+  // "bomb" icon + raw parser error) directly into document.body on a parse
+  // failure, regardless of whether the caller catches render()'s rejection --
+  // that's the stray element that showed up under the chat panel.
+  mod.default.initialize({ startOnLoad: false, securityLevel: "strict", suppressErrorRendering: true });
   mermaidApi = mod.default;
   return mermaidApi;
 }
