@@ -667,6 +667,15 @@ function bindEvents(): void {
   document.querySelector<HTMLButtonElement>(".sample-link")?.addEventListener("click", downloadSampleFile);
 
   document.querySelector<HTMLButtonElement>("#build")?.addEventListener("click", () => void buildDiagram());
+  // generationToast() renders on the start page (startPage(), not
+  // resultPage()), so this must be bound unconditionally here -- inside
+  // bindResultEvents() it would never fire, since that function returns
+  // early whenever state.page !== "result".
+  document.querySelector<HTMLButtonElement>(".generation-toast button")?.addEventListener("click", () => {
+    state.start.error = undefined;
+    persist();
+    render();
+  });
   bindResultEvents();
 }
 
