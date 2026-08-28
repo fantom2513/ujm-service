@@ -685,6 +685,14 @@ function bindResultEvents(): void {
     clearState();
     state = structuredClone(defaultState);
     activeModal = null;
+    // These live outside AppState (File objects aren't serializable), so
+    // clearState()/defaultState above never touches them -- without this,
+    // a "new diagram" reset leaves selectedFile pointing at the previous
+    // session's file, and buildDiagram() silently sends it again.
+    selectedFile = undefined;
+    sourceFile = undefined;
+    chatFiles = [];
+    messageFiles.clear();
     if (target === "home") {
       window.location.href = state.config.productHomeUrl;
       return;
