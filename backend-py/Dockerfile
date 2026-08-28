@@ -15,6 +15,8 @@ RUN groupadd --system --gid 1001 app && useradd --system --uid 1001 --gid app ap
 
 COPY --from=deps /app/.venv ./.venv
 COPY backend-py/app ./app
+COPY backend-py/alembic.ini ./
+COPY backend-py/alembic ./alembic
 # app/services/openai/prompts.py resolves _PROMPTS_DIR as
 # Path(__file__).resolve().parents[4] / "backend/src/prompts", i.e. "/backend/src/prompts"
 # from this image's WORKDIR — reuses the TS backend's prompt files without
@@ -35,3 +37,8 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 # Shell form so APP_PORT is actually read at container start instead of a
 # hardcoded literal disagreeing with the HEALTHCHECK's env-driven port.
 CMD uvicorn app.main:app --host 0.0.0.0 --port ${APP_PORT}
+
+# Migrations run as a separate, serialized step BEFORE starting/scaling app
+# replicas — never bundled into this image's own CMD, so N replicas starting
+# at once can never race to apply the same migration twice:
+#   docker run --rm --env-file .env <image> alembic upgrade head

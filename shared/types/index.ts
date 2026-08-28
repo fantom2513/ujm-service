@@ -9,7 +9,8 @@ export type UserErrorCode =
   | "source-unavailable"
   | "diagram-generation"
   | "attachment-error"
-  | "invalid-request";
+  | "invalid-request"
+  | "chat-message-failed";
 
 export interface FileMeta {
   name: string;

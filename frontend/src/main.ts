@@ -1,6 +1,7 @@
-import type { ApiError, AppState } from "./types/index.ts";
+import type { AppState } from "./types/index.ts";
 import type { ChatMessage, DiagramResult, FileMeta, SourceType } from "../../shared/types/index.ts";
 import { generateDiagram, getConfig, sendChatMessage, sendFeedback } from "./api/client.ts";
+import { normalizeApiError } from "./api/errors.ts";
 import { inlineIcons } from "./generated/inline-icons.ts";
 import { clearState, defaultState, loadState, saveState } from "./state/session.ts";
 import { diagramSize, downloadPdf, downloadPng, downloadSvg, getCachedSvg, renderMermaid } from "./utils/export.ts";
@@ -881,7 +882,7 @@ async function buildDiagram(): Promise<void> {
     persist();
     void renderMermaidAndUpdate(result.mermaidCode);
   } catch (error) {
-    state.start.error = normalizeApiError(error);
+    state.start.error = normalizeApiError(error, "generate");
   } finally {
     isLoading = false;
     render();
@@ -951,7 +952,7 @@ async function sendChat(): Promise<void> {
   } catch (error) {
     state.chatDraft = draftBeforeSend;
     if (state.result) {
-      const apiError = normalizeApiError(error);
+      const apiError = normalizeApiError(error, "chat");
       state.result.chat.push({
         id: crypto.randomUUID(),
         role: "assistant",
@@ -1196,11 +1197,6 @@ function fileMeta(file: File): FileMeta {
 
 function extensionOf(name: string): string {
   return name.toLowerCase().split(".").pop() || "";
-}
-
-function normalizeApiError(error: unknown): ApiError {
-  if (error && typeof error === "object" && "message" in error) return error as ApiError;
-  return { code: "diagram-generation", message: "Схема не сформирована. Перезагрузите страницу или повторите попытку позже" };
 }
 
 function closeDownloadOnOutside(event: Event): void {

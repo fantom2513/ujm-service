@@ -51,6 +51,11 @@ class Settings(BaseSettings):
     jira_insecure_tls: bool = Field(default=False, validation_alias="JIRA_TLS_INSECURE")
 
     database_url: str = "postgresql+asyncpg://uxarch:uxarch@localhost:5432/uxarch"
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
+    db_pool_timeout: int = 5
+    db_statement_timeout_ms: int = 30_000
+    db_idle_in_transaction_timeout_ms: int = 30_000
     redis_url: str = "redis://localhost:6379/2"
     redis_key_prefix: str = "uxarch:"
 

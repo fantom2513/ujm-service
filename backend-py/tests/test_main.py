@@ -40,3 +40,24 @@ def test_lifespan_wires_db_sessionmaker_and_redis_onto_app_state(client):
     # as dead code that no test exercises.
     assert app.state.db_sessionmaker is not None
     assert app.state.redis is not None
+
+
+def test_unhandled_exception_returns_safe_envelope_and_logs_traceback(monkeypatch, caplog):
+    def boom():
+        raise RuntimeError("boom: leaked secret path /etc/passwd")
+
+    monkeypatch.setattr("app.api.config_route.get_settings", boom)
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        with caplog.at_level("ERROR"):
+            response = client.get("/api/config")
+
+    assert response.status_code == 500
+    assert response.json() == {
+        "ok": False,
+        "error": {"code": "internal-error", "message": "Внутренняя ошибка сервера"},
+    }
+    assert "boom" not in response.text
+
+    assert "boom: leaked secret path /etc/passwd" in caplog.text
+    assert "Traceback" in caplog.text
