@@ -33,6 +33,9 @@ let chatFiles: File[] = [];
 const messageFiles = new Map<string, File[]>();
 let isLoading = false;
 let isChatLoading = false;
+const GENERATING_PHRASES = ["Анализирую", "Думаю…", "Вношу правки…", "Секунду, обновляю схему…"];
+const GENERATING_PHRASE_INTERVAL_MS = 2500;
+let generatingPhraseTimer: ReturnType<typeof setInterval> | undefined;
 let isChatComposing = false;
 let isFileChecking = false;
 let fileCheckToken = 0;
@@ -430,7 +433,28 @@ function quickActionType(label: string): "GROUP_SEMANTIC_BLOCKS" | "SIMPLIFY" | 
 }
 
 function generatingMessage(): string {
-  return `<div class="message-generating"><span>Анализирую</span>${svgIcon("chevron-down.svg", "generating-icon")}</div>`;
+  return `<div class="message-generating"><span class="message-generating-text">${GENERATING_PHRASES[0]}</span>${svgIcon("chevron-down.svg", "generating-icon")}</div>`;
+}
+
+// Rotates the "Анализирую"-style status text while waiting for the LLM
+// response. Updates the DOM node directly instead of calling render() so it
+// doesn't fight full re-renders triggered elsewhere -- worst case on an
+// unrelated render mid-wait, the text just reverts to the first phrase.
+function startGeneratingPhraseRotation(): void {
+  stopGeneratingPhraseRotation();
+  let index = 0;
+  generatingPhraseTimer = setInterval(() => {
+    index = (index + 1) % GENERATING_PHRASES.length;
+    const target = document.querySelector<HTMLSpanElement>(".message-generating-text");
+    if (target) target.textContent = GENERATING_PHRASES[index];
+  }, GENERATING_PHRASE_INTERVAL_MS);
+}
+
+function stopGeneratingPhraseRotation(): void {
+  if (generatingPhraseTimer !== undefined) {
+    clearInterval(generatingPhraseTimer);
+    generatingPhraseTimer = undefined;
+  }
 }
 
 function chatMessage(message: ChatMessage): string {
@@ -928,6 +952,7 @@ async function sendChat(): Promise<void> {
   if (shouldScroll) queueChatScroll(true);
   persist();
   render();
+  startGeneratingPhraseRotation();
 
   try {
     const form = new FormData();
@@ -969,6 +994,7 @@ async function sendChat(): Promise<void> {
       });
     }
   } finally {
+    stopGeneratingPhraseRotation();
     isChatLoading = false;
     persist();
     render();
