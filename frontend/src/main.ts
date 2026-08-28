@@ -208,8 +208,8 @@ function uploadSource(file?: FileMeta): string {
       <input id="source-file" type="file" accept="${accept}" ${isLoading ? "disabled" : ""} />
       ${uploadCopy}
     </label>
-    ${file ? attachmentRow(file, attachmentState) : ""}
-    ${error ? `<em class="inline-error">${escapeHtml(error)}</em>` : ""}
+    ${file ? attachmentRow(file, attachmentState, error) : ""}
+    ${!file && error ? `<em class="inline-error">${escapeHtml(error)}</em>` : ""}
   `;
 }
 
@@ -232,7 +232,7 @@ function attachmentStatus(error: string): AttachmentStatus {
   return selectedFile ? "success" : "static";
 }
 
-function attachmentRow(file: FileMeta, status: AttachmentStatus): string {
+function attachmentRow(file: FileMeta, status: AttachmentStatus, errorMessage = ""): string {
   const isLoadingStatus = status === "loading";
   const isError = status === "error";
   const isSuccess = status === "success";
@@ -240,7 +240,7 @@ function attachmentRow(file: FileMeta, status: AttachmentStatus): string {
   const detail = isLoadingStatus
     ? "Проверка файла..."
     : isError
-      ? "Не удалось загрузить файл"
+      ? errorMessage || "Не удалось загрузить файл"
       : `${file.format} · ${formatBytes(file.size)}`;
   return `
     <div class="attachment-row" data-state="${status}">
