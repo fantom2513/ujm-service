@@ -1,11 +1,37 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
+from sqlalchemy.ext.asyncio import create_async_engine
+
+from app.config import get_settings
+
+
+async def _is_db_reachable(database_url: str) -> bool:
+    engine = create_async_engine(database_url)
+    try:
+        async with engine.connect():
+            return True
+    except Exception:
+        return False
+    finally:
+        await engine.dispose()
+
+
+@pytest.fixture
+def real_database_url() -> str:
+    # DB integration tests can only run against a real Postgres — skip
+    # gracefully rather than fail when none is reachable (e.g. Docker not
+    # running locally), so `uv run pytest` stays green either way.
+    settings = get_settings()
+    if not asyncio.run(_is_db_reachable(settings.database_url)):
+        pytest.skip(f"Postgres not reachable at {settings.database_url!r} — skipping DB integration test")
+    return settings.database_url
 
 # Comfortably longer than any client-side timeout_ms used in delay_forever
 # tests (they use 50ms), short enough not to slow the suite down noticeably.

@@ -58,7 +58,7 @@ def upgrade() -> None:
             sa.ForeignKey("sessions.id", ondelete="CASCADE"),
             nullable=False,
         ),
-        sa.Column("mermaid_code", sa.Text(), nullable=True),
+        sa.Column("mermaid_code", sa.Text(), nullable=False),
         sa.Column(
             "parent_version_id",
             sa.BigInteger(),
