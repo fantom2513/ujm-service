@@ -32,3 +32,10 @@ test("normalizeApiError: rejects an error missing message", () => {
   const result = normalizeApiError(malformed, "generate");
   assert.equal(result.code, "diagram-generation");
 });
+
+test("normalizeApiError: preserves session errors from the chat API", () => {
+  for (const code of ["session-required", "session-not-found"] as const) {
+    const apiError = { code, message: "Session error" };
+    assert.deepEqual(normalizeApiError(apiError, "chat"), apiError);
+  }
+});

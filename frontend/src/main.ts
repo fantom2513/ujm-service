@@ -48,8 +48,6 @@ let pendingChatScroll = false;
 let chatInputError = "";
 let pendingActionType: "FREEFORM" | "GROUP_SEMANTIC_BLOCKS" | "SIMPLIFY" | "HIGHLIGHT_MAIN_PATH" | "RESTORE_PREVIOUS" = "FREEFORM";
 const expandedUserMessages = new Set<string>();
-// Simple fixed window; token-aware trimming is future work (post Python migration).
-const CHAT_HISTORY_WINDOW = 10;
 
 void getConfig().then((config) => {
   state.config = config;
@@ -767,8 +765,6 @@ function bindResultEvents(): void {
     resizeChatTextarea();
   };
   chatTextarea?.addEventListener("input", syncChatTextarea);
-  chatTextarea?.addEventListener("change", syncChatTextarea);
-  chatTextarea?.addEventListener("keyup", syncChatTextarea);
   chatTextarea?.addEventListener("compositionstart", () => {
     isChatComposing = true;
   });
@@ -870,7 +866,7 @@ async function buildDiagram(): Promise<void> {
     form.set("details", state.start.details);
     if (state.start.sourceType === "link") form.set("link", state.start.link);
     if (selectedFile) form.set("file", selectedFile);
-    const result = await generateDiagram(form) as DiagramResult;
+    const result = await generateDiagram(form);
     result.details = state.start.details;
     sourceFile = selectedFile;
     sourceDetailsOpen = false;
@@ -906,16 +902,14 @@ async function sendChat(): Promise<void> {
   };
   if (chatFiles.length) messageFiles.set(userMessage.id, [...chatFiles]);
 
-  const historyWindow = state.result.chat
-    .slice(-CHAT_HISTORY_WINDOW)
-    .map((entry) => ({ role: entry.role, text: entry.text }));
-
   const shouldScroll = isMessagesNearBottom();
   const actionType = pendingActionType;
   pendingActionType = "FREEFORM";
   const attachmentFile = chatFiles[0];
   state.result.chat.push(userMessage);
   state.chatDraft = "";
+  const chatTextarea = document.querySelector<HTMLTextAreaElement>("#chat-message");
+  if (chatTextarea) chatTextarea.value = "";
   chatInputError = "";
   isChatLoading = true;
   if (shouldScroll) queueChatScroll(true);
@@ -925,18 +919,14 @@ async function sendChat(): Promise<void> {
   try {
     const form = new FormData();
     form.set("mermaidCode", state.result.mermaidCode);
-    form.set("previousMermaidCode", state.previousMermaidCode ?? "");
     form.set("message", text);
     form.set("actionType", actionType);
-    form.set("sourceText", state.result.sourceText ?? "");
-    form.set("additionalDetails", state.result.details ?? "");
-    form.set("history", JSON.stringify(historyWindow));
     if (attachmentFile) form.set("file", attachmentFile);
 
-    const result = await sendChatMessage(form) as { mermaidCode: string; previousMermaidCode: string; message: string };
+    const result = await sendChatMessage(state.result.sessionId, form);
     if (!state.result) return;
 
-    state.previousMermaidCode = result.previousMermaidCode;
+    state.result.sessionId = result.sessionId;
     state.result.mermaidCode = result.mermaidCode;
     state.result.chat.push({
       id: crypto.randomUUID(),

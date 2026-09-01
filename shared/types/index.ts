@@ -10,6 +10,8 @@ export type UserErrorCode =
   | "diagram-generation"
   | "attachment-error"
   | "invalid-request"
+  | "session-required"
+  | "session-not-found"
   | "chat-message-failed";
 
 export interface FileMeta {
@@ -39,6 +41,7 @@ export interface ChatMessage {
 }
 
 export interface DiagramResult {
+  sessionId: string;
   title: string;
   mermaidCode: string;
   sourceText: string;
@@ -46,4 +49,10 @@ export interface DiagramResult {
   details?: string;
   chat: ChatMessage[];
   warnings: string[];
+}
+
+export interface ChatResult {
+  sessionId: string;
+  mermaidCode: string;
+  message: string;
 }

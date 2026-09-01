@@ -2,49 +2,129 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.api import deps
+from app.api.schemas import ChatResult
+from app.infrastructure.llm.errors import LLMError
 from app.main import app
-from app.services.chat.service import ChatService
+from app.services.chat.service import SessionNotFound
+
+
+class FakeChatService:
+    def __init__(self):
+        self.error: Exception | None = None
+        self.calls: list[dict] = []
+
+    async def run_chat(self, **kwargs) -> ChatResult:
+        self.calls.append(kwargs)
+        if self.error:
+            raise self.error
+        return ChatResult(
+            session_id=kwargs["session_id"],
+            mermaid_code="flowchart LR\nA-->B",
+            message="Готово",
+        )
 
 
 @pytest.fixture
-def client():
-    with TestClient(app, raise_server_exceptions=False) as test_client:
-        yield test_client
+def chat_service():
+    return FakeChatService()
 
 
-def test_chat_returns_501_with_standard_envelope(client):
-    response = client.post("/api/chat")
-    assert response.status_code == 501
+@pytest.fixture
+def client(chat_service):
+    app.dependency_overrides[deps.get_chat_service] = lambda: chat_service
+    try:
+        with TestClient(app, raise_server_exceptions=False) as test_client:
+            yield test_client
+    finally:
+        app.dependency_overrides.pop(deps.get_chat_service, None)
+
+
+def test_chat_requires_nonempty_session_id(client, chat_service):
+    response = client.post("/api/chat", data={"sessionId": "   "})
+
+    assert response.status_code == 400
     assert response.json() == {
         "ok": False,
-        "error": {"code": "not-implemented", "message": "Chat is not implemented yet"},
+        "sessionId": "",
+        "error": {
+            "code": "session-required",
+            "message": "Необходимо указать идентификатор сессии",
+        },
     }
+    assert chat_service.calls == []
 
 
-def test_chat_endpoint_respects_dependency_overrides(client):
-    # A dependency override that blows up on use only takes effect if
-    # app.dependency_overrides is actually being consulted for this route —
-    # if the override were ignored, the real get_redis would run instead and
-    # the response would stay 501.
-    def broken_redis():
-        raise RuntimeError("override was actually used")
+def test_chat_returns_session_not_found_without_leaking_ownership(client, chat_service):
+    chat_service.error = SessionNotFound()
 
-    app.dependency_overrides[deps.get_redis] = broken_redis
-    try:
-        response = client.post("/api/chat")
-    finally:
-        app.dependency_overrides.pop(deps.get_redis, None)
+    response = client.post(
+        "/api/chat",
+        data={"sessionId": "unknown", "message": "change it"},
+        headers={"X-User-Id": "mallory"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["sessionId"] == "unknown"
+    assert response.json()["error"]["code"] == "session-not-found"
+    assert chat_service.calls[0]["user_id"] == "mallory"
+
+
+def test_chat_success_returns_standard_result_and_passes_parsed_fields(
+    client, chat_service
+):
+    response = client.post(
+        "/api/chat",
+        data={
+            "sessionId": "session-1",
+            "message": "add B",
+            "actionType": "SIMPLIFY",
+            "mermaidCode": "client copy",
+            "sourceText": "must be ignored by the route",
+            "history": '[{"role":"user","text":"bogus"}]',
+        },
+        headers={"X-User-Id": "alice"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": True,
+        "result": {
+            "sessionId": "session-1",
+            "mermaidCode": "flowchart LR\nA-->B",
+            "message": "Готово",
+        },
+    }
+    assert chat_service.calls == [
+        {
+            "session_id": "session-1",
+            "user_id": "alice",
+            "message": "add B",
+            "action_type": "SIMPLIFY",
+            "client_mermaid": "client copy",
+        }
+    ]
+
+
+def test_chat_defaults_action_type_to_freeform(client, chat_service):
+    response = client.post(
+        "/api/chat",
+        data={"sessionId": "session-1", "message": "add B"},
+    )
+
+    assert response.status_code == 200
+    assert chat_service.calls[0]["action_type"] == "FREEFORM"
+
+
+def test_chat_llm_error_returns_diagram_generation_with_session_id(
+    client, chat_service
+):
+    chat_service.error = LLMError("SCHEMA_MISMATCH", "bad model output")
+
+    response = client.post(
+        "/api/chat",
+        data={"sessionId": "session-1", "message": "add B"},
+    )
 
     assert response.status_code == 500
-    assert response.json()["error"]["code"] == "internal-error"
-
-
-def test_chat_endpoint_never_constructs_chat_service(client, monkeypatch):
-    def boom(self, *args, **kwargs):
-        raise AssertionError("ChatService must not be constructed by the stub /api/chat route")
-
-    monkeypatch.setattr(ChatService, "__init__", boom)
-
-    response = client.post("/api/chat")
-
-    assert response.status_code == 501
+    assert response.json()["sessionId"] == "session-1"
+    assert response.json()["error"]["code"] == "diagram-generation"

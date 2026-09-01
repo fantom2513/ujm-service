@@ -9,7 +9,6 @@ export const defaultState: AppState = {
     link: "",
     details: ""
   },
-  previousMermaidCode: undefined,
   view: {
     scale: 1,
     x: 0,

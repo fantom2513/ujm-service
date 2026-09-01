@@ -1,15 +1,36 @@
-import json
-
 import pytest
 from fastapi.testclient import TestClient
 
+from app.api import deps
 from app.main import app
 
 
+class FakeChatService:
+    def __init__(self):
+        self.session_id = "test-session-id"
+        self.error: Exception | None = None
+        self.create_calls: list[dict] = []
+
+    async def create_session_with_version(self, **kwargs) -> str:
+        self.create_calls.append(kwargs)
+        if self.error:
+            raise self.error
+        return self.session_id
+
+
 @pytest.fixture
-def client():
-    with TestClient(app) as test_client:
-        yield test_client
+def chat_service():
+    return FakeChatService()
+
+
+@pytest.fixture
+def client(chat_service):
+    app.dependency_overrides[deps.get_chat_service] = lambda: chat_service
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        app.dependency_overrides.pop(deps.get_chat_service, None)
 
 
 def test_generate_missing_source_type_returns_400_diagram_generation(client):
@@ -57,7 +78,7 @@ def test_generate_text_file_too_large_returns_400_file_size(client):
     assert response.json()["error"]["code"] == "file-size"
 
 
-def test_generate_text_file_success_returns_200(client, monkeypatch):
+def test_generate_text_file_success_returns_200(client, chat_service, monkeypatch):
     async def fake_generate_diagram(source_text, details, client=None):
         return "flowchart LR\nA --> B"
 
@@ -67,12 +88,22 @@ def test_generate_text_file_success_returns_200(client, monkeypatch):
         "/api/generate",
         data={"sourceType": "text-file", "details": "some details"},
         files={"file": ("notes.txt", b"Hello world", "text/plain")},
+        headers={"X-User-Id": "alice"},
     )
     assert response.status_code == 200
     body = response.json()
     assert body["ok"] is True
     assert body["result"]["mermaidCode"].startswith("flowchart LR")
     assert body["result"]["sourceText"] == "Hello world"
+    assert body["result"]["sessionId"] == "test-session-id"
+    assert chat_service.create_calls == [
+        {
+            "source_text": "Hello world",
+            "additional_details": "some details",
+            "user_id": "alice",
+            "mermaid_code": "flowchart LR\nA --> B",
+        }
+    ]
 
 
 def test_generate_link_jira_success_returns_200(client, monkeypatch):
@@ -104,7 +135,7 @@ def test_generate_link_jira_success_returns_200(client, monkeypatch):
     assert body["result"]["sourceContext"]["stub"] is False
 
 
-def test_generate_llm_failure_returns_500_diagram_generation(client, monkeypatch):
+def test_generate_llm_failure_returns_500_diagram_generation(client, chat_service, monkeypatch):
     async def fake_generate_diagram(source_text, details, client=None):
         raise RuntimeError("LLM down")
 
@@ -115,5 +146,25 @@ def test_generate_llm_failure_returns_500_diagram_generation(client, monkeypatch
         data={"sourceType": "text-file"},
         files={"file": ("notes.txt", b"Hello world", "text/plain")},
     )
+    assert response.status_code == 500
+    assert response.json()["error"]["code"] == "diagram-generation"
+    assert chat_service.create_calls == []
+
+
+def test_generate_persistence_failure_returns_500_diagram_generation(
+    client, chat_service, monkeypatch
+):
+    async def fake_generate_diagram(source_text, details, client=None):
+        return "flowchart LR\nA --> B"
+
+    monkeypatch.setattr("app.api.generate.generate_diagram", fake_generate_diagram)
+    chat_service.error = RuntimeError("database write failed")
+
+    response = client.post(
+        "/api/generate",
+        data={"sourceType": "text-file"},
+        files={"file": ("notes.txt", b"Hello world", "text/plain")},
+    )
+
     assert response.status_code == 500
     assert response.json()["error"]["code"] == "diagram-generation"

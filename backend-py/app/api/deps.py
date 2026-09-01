@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
 from app.infrastructure.db.session import get_db_session
+from app.services.chat.service import ChatService
 
 
 async def get_redis(request: Request) -> Redis:
@@ -21,3 +22,14 @@ async def get_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 RedisDep = Annotated[Redis, Depends(get_redis)]
 DbSessionDep = Annotated[AsyncSession, Depends(get_db)]
+
+
+def get_chat_service(
+    db: DbSessionDep,
+    redis: RedisDep,
+    settings: SettingsDep,
+) -> ChatService:
+    return ChatService(db=db, redis=redis, settings=settings)
+
+
+ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]
