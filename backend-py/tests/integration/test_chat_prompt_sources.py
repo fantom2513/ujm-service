@@ -64,7 +64,7 @@ async def test_run_chat_builds_options_from_postgres_not_client_copy(
                 await db.flush()
                 await sessions.set_head(session_id, v2.id)
 
-        async def fake_chat_edit(options, settings=None):
+        async def fake_chat_edit(options, settings=None, *, deadline=None):
             captured["options"] = options
             captured["prompt"] = _render_captured_prompt(options)
             return ChatEditResult(
@@ -109,7 +109,7 @@ async def test_single_version_produces_exact_empty_previous_block(
     session_id = await create_initial_session(factory)
     captured = {}
 
-    async def fake_chat_edit(options, settings=None):
+    async def fake_chat_edit(options, settings=None, *, deadline=None):
         captured["prompt"] = _render_captured_prompt(options)
         return ChatEditResult(
             mermaid_code="flowchart LR\nA-->C",

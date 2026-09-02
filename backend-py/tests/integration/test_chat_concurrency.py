@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.infrastructure.db.models import DiagramVersion, Session
 from app.infrastructure.db.repositories import MessageRepository, SessionRepository
+from app.infrastructure.llm.errors import LLMError
 from app.services.chat.service import VersionConflict
 from app.services.openai.chat import ChatEditResult
 from tests.integration._chat_helpers import (
@@ -48,7 +49,7 @@ async def test_different_sessions_run_in_llm_concurrently_without_holding_connec
     both_entered = asyncio.Event()
     release_llm = asyncio.Event()
 
-    async def blocking_chat_edit(options, settings=None):
+    async def blocking_chat_edit(options, settings=None, *, deadline=None):
         entered_messages.add(options.user_message)
         if len(entered_messages) == 2:
             both_entered.set()
@@ -88,7 +89,7 @@ async def test_llm_error_still_releases_lease(real_database_url, monkeypatch):
     factory = async_sessionmaker(engine, expire_on_commit=False)
     session_id = await create_initial_session(factory)
 
-    async def failing_chat_edit(options, settings=None):
+    async def failing_chat_edit(options, settings=None, *, deadline=None):
         raise RuntimeError("injected LLM failure")
 
     monkeypatch.setattr("app.services.chat.service.chat_edit", failing_chat_edit)
@@ -98,6 +99,104 @@ async def test_llm_error_still_releases_lease(real_database_url, monkeypatch):
             await run_chat(factory, session_id)
         await assert_lease_released(factory, session_id)
     finally:
+        await delete_session(engine, session_id)
+        await engine.dispose()
+
+
+async def test_llm_timeout_uses_boundary_deadline_and_rolls_back_chat_writes(
+    real_database_url,
+    monkeypatch,
+):
+    await upgrade_head()
+    engine = create_async_engine(real_database_url)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    session_id = await create_initial_session(factory)
+    deadline_created = False
+    deadline_budget_ms: int | None = None
+    deadline_sentinel = object()
+    heartbeat_started = asyncio.Event()
+    heartbeat_stopped = asyncio.Event()
+    hold_heartbeat = asyncio.Event()
+    original_bind_user = SessionRepository.bind_user
+    original_acquire_lease = SessionRepository.acquire_lease
+
+    class ObservedDeadlineFactory:
+        @classmethod
+        def from_timeout_ms(cls, timeout_ms: int):
+            nonlocal deadline_created, deadline_budget_ms
+            deadline_created = True
+            deadline_budget_ms = timeout_ms
+            return deadline_sentinel
+
+    async def observed_bind_user(self, *args, **kwargs):
+        assert deadline_created is False
+        return await original_bind_user(self, *args, **kwargs)
+
+    async def observed_acquire_lease(self, *args, **kwargs):
+        assert deadline_created is True
+        return await original_acquire_lease(self, *args, **kwargs)
+
+    async def observed_heartbeat(self, session_id, lock_token):
+        heartbeat_started.set()
+        try:
+            await hold_heartbeat.wait()
+        finally:
+            heartbeat_stopped.set()
+
+    async def timeout_chat_edit(options, settings=None, *, deadline=None):
+        assert deadline is deadline_sentinel
+        await heartbeat_started.wait()
+        raise LLMError("TIMEOUT", "logical LLM deadline exhausted")
+
+    monkeypatch.setattr(
+        "app.services.chat.service.LLMDeadline",
+        ObservedDeadlineFactory,
+    )
+    monkeypatch.setattr(SessionRepository, "bind_user", observed_bind_user)
+    monkeypatch.setattr(SessionRepository, "acquire_lease", observed_acquire_lease)
+    monkeypatch.setattr(
+        "app.services.chat.service.ChatService._heartbeat_lease",
+        observed_heartbeat,
+    )
+    monkeypatch.setattr("app.services.chat.service.chat_edit", timeout_chat_edit)
+
+    try:
+        async with factory() as db:
+            stored = await SessionRepository(db).get(session_id)
+            assert stored is not None
+            original_head_id = stored.head_version_id
+
+        async with factory() as request_db:
+            service = make_chat_service(request_db, factory)
+            with pytest.raises(LLMError) as exc_info:
+                await service.run_chat(
+                    session_id=session_id,
+                    user_id="owner",
+                    message="change",
+                    action_type="FREEFORM",
+                    client_mermaid="ignored",
+                )
+
+        assert exc_info.value.code == "TIMEOUT"
+        assert deadline_budget_ms == 120_000
+        assert heartbeat_stopped.is_set()
+
+        async with factory() as db:
+            stored = await SessionRepository(db).get(session_id)
+            assert stored is not None
+            assert stored.user_id == "owner"
+            assert stored.head_version_id == original_head_id
+            assert stored.lock_token is None
+            assert stored.locked_until is None
+            assert await MessageRepository(db).list_by_session(session_id) == []
+            version_count = await db.scalar(
+                sa.select(sa.func.count())
+                .select_from(DiagramVersion)
+                .where(DiagramVersion.session_id == session_id)
+            )
+            assert version_count == 1
+    finally:
+        hold_heartbeat.set()
         await delete_session(engine, session_id)
         await engine.dispose()
 
@@ -112,7 +211,7 @@ async def test_cancellation_stops_heartbeat_and_releases_lease(
     llm_entered = asyncio.Event()
     hold_llm = asyncio.Event()
 
-    async def blocking_chat_edit(options, settings=None):
+    async def blocking_chat_edit(options, settings=None, *, deadline=None):
         llm_entered.set()
         await hold_llm.wait()
         raise AssertionError("Cancelled LLM should not resume")
@@ -151,7 +250,7 @@ async def test_heartbeat_uses_another_session_and_main_db_is_idle_during_llm(
         heartbeat_seen.set()
         return result
 
-    async def blocking_chat_edit(options, settings=None):
+    async def blocking_chat_edit(options, settings=None, *, deadline=None):
         llm_entered.set()
         await release_llm.wait()
         return ChatEditResult(
@@ -202,7 +301,7 @@ async def test_release_db_error_is_warning_and_does_not_mask_success(
     session_id = await create_initial_session(factory)
     warnings: list[str] = []
 
-    async def successful_chat_edit(options, settings=None):
+    async def successful_chat_edit(options, settings=None, *, deadline=None):
         return ChatEditResult(
             mermaid_code="flowchart LR\nA-->C",
             message="Changed",
@@ -239,7 +338,7 @@ async def test_expired_lease_takeover_fences_old_worker_and_rolls_back_everythin
     release_llm = asyncio.Event()
     takeover_token = "takeover-token"
 
-    async def blocking_chat_edit(options, settings=None):
+    async def blocking_chat_edit(options, settings=None, *, deadline=None):
         llm_entered.set()
         await release_llm.wait()
         return ChatEditResult(

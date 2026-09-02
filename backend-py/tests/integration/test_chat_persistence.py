@@ -27,9 +27,17 @@ async def test_run_chat_persists_two_messages_new_version_and_head(
     session_id = await create_initial_session(factory)
     active_db = None
     llm_transaction_states: list[bool] = []
+    completed_deadline = object()
 
-    async def fake_chat_edit(options, settings=None):
+    class CompletedDeadlineFactory:
+        @classmethod
+        def from_timeout_ms(cls, timeout_ms: int):
+            assert timeout_ms == 120_000
+            return completed_deadline
+
+    async def fake_chat_edit(options, settings=None, *, deadline=None):
         assert active_db is not None
+        assert deadline is completed_deadline
         llm_transaction_states.append(active_db.in_transaction())
         return ChatEditResult(
             mermaid_code="flowchart LR\nA-->B\nB-->C",
@@ -38,6 +46,10 @@ async def test_run_chat_persists_two_messages_new_version_and_head(
         )
 
     monkeypatch.setattr("app.services.chat.service.chat_edit", fake_chat_edit)
+    monkeypatch.setattr(
+        "app.services.chat.service.LLMDeadline",
+        CompletedDeadlineFactory,
+    )
 
     try:
         async with factory() as db:
@@ -93,7 +105,7 @@ async def test_run_chat_fenced_cas_failure_rolls_back_messages_version_and_head(
     factory = async_sessionmaker(engine, expire_on_commit=False)
     session_id = await create_initial_session(factory)
 
-    async def fake_chat_edit(options, settings=None):
+    async def fake_chat_edit(options, settings=None, *, deadline=None):
         return ChatEditResult(
             mermaid_code="flowchart LR\nA-->C",
             message="Changed",

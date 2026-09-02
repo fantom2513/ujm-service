@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from app.config import Settings, get_settings
 from app.domain.mermaid import validate_mermaid
 from app.infrastructure.llm.client import VLLMClient
+from app.infrastructure.llm.deadline import LLMDeadline
 from app.infrastructure.llm.errors import LLMError
 from app.infrastructure.llm.retry import complete_json_with_fallback
 from app.services.openai.prompts import build_chat_prompt, build_repair_prompt
@@ -41,15 +43,19 @@ class ChatEditResult:
     usage: dict[str, int] | None
 
 
-ClientFactory = Callable[[str], VLLMClient]
+ClientFactory = Callable[[str, LLMDeadline], VLLMClient]
 
 
-def _make_client(settings: Settings, response_format_mode: str) -> VLLMClient:
+def _make_client(
+    settings: Settings,
+    response_format_mode: str,
+    deadline: LLMDeadline,
+) -> VLLMClient:
     return VLLMClient(
         url=settings.llm_url,
         model=settings.llm_model,
+        deadline=deadline,
         api_key=settings.llm_api_key,
-        timeout_ms=settings.llm_timeout_ms,
         connect_timeout_ms=settings.llm_connect_timeout_ms,
         pool_timeout_ms=settings.llm_pool_timeout_ms,
         temperature=settings.llm_temperature,
@@ -63,9 +69,17 @@ async def chat_edit(
     options: ChatEditOptions,
     settings: Settings | None = None,
     make_client: ClientFactory | None = None,
+    *,
+    deadline: LLMDeadline,
 ) -> ChatEditResult:
     settings = settings or get_settings()
-    client_factory = make_client or (lambda mode: _make_client(settings, mode))
+    client_factory = make_client or (
+        lambda mode, shared_deadline: _make_client(
+            settings,
+            mode,
+            shared_deadline,
+        )
+    )
     prompt = build_chat_prompt(
         source_text=options.source_text,
         additional_details=options.additional_details,
@@ -89,23 +103,38 @@ async def chat_edit(
         client_factory,
         settings.llm_response_format_mode,
         complete,
+        deadline,
     )
+    deadline.require_remaining()
     mermaid_value = raw.get("mermaid")
     message_value = raw.get("message")
     mermaid_code = str(mermaid_value if mermaid_value is not None else "").strip()
     message = str(message_value if message_value is not None else "").strip()
 
     validation = validate_mermaid(mermaid_code)
+    deadline.require_remaining()
     if not validation.ok:
-        repair_client = client_factory(settings.llm_response_format_mode)
+        repair_client = client_factory(settings.llm_response_format_mode, deadline)
         try:
             repaired = await repair_client.complete_text(
                 build_repair_prompt(mermaid_code, validation.reason or "", [])
             )
+            deadline.require_remaining()
             revalidation = validate_mermaid(repaired)
+            deadline.require_remaining()
             if not revalidation.ok:
                 raise ValueError(f"Repair failed: {revalidation.reason}")
             mermaid_code = repaired
+        except asyncio.CancelledError:
+            raise
+        except LLMError as err:
+            if err.code == "TIMEOUT":
+                raise
+            raise LLMError(
+                "SCHEMA_MISMATCH",
+                "Generated Mermaid failed validation after repair",
+                err,
+            ) from err
         except Exception as err:
             raise LLMError(
                 "SCHEMA_MISMATCH",
@@ -114,4 +143,5 @@ async def chat_edit(
             ) from err
 
     # Matches the TS path: repair-call usage is not merged into primary usage.
+    deadline.require_remaining()
     return ChatEditResult(mermaid_code=mermaid_code, message=message, usage=captured_usage)

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 
 import httpx
 
+from app.infrastructure.llm.deadline import LLMDeadline
 from app.infrastructure.llm.errors import LLMError
 
 ResponseFormatMode = str  # "json_schema" | "json_object" | "none"
@@ -97,8 +99,8 @@ class VLLMClient:
         self,
         url: str,
         model: str,
+        deadline: LLMDeadline,
         api_key: str | None = None,
-        timeout_ms: int = 120_000,
         connect_timeout_ms: int = 5_000,
         pool_timeout_ms: int = 5_000,
         temperature: float = 0.1,
@@ -108,7 +110,7 @@ class VLLMClient:
     ):
         self.base_url = url.removesuffix("/chat/completions").rstrip("/")
         self.model = model
-        self.timeout_ms = timeout_ms
+        self.deadline = deadline
         self.connect_timeout_ms = connect_timeout_ms
         self.pool_timeout_ms = pool_timeout_ms
         self.temperature = temperature
@@ -140,23 +142,37 @@ class VLLMClient:
         if response_format:
             payload["response_format"] = response_format
 
-        # read/write default to timeout_ms (generation can legitimately take that
-        # long); connect/pool get their own short budgets so a dead/unreachable
-        # server or an exhausted client fails fast instead of waiting as long as
-        # a real generation would.
+        # Phase limits still fail fast for connection/pool contention, while the
+        # outer monotonic timeout guarantees that all HTTP phases together cannot
+        # consume more than the logical operation's remaining budget.
+        remaining = self.deadline.require_remaining()
         timeout = httpx.Timeout(
-            self.timeout_ms / 1000,
-            connect=self.connect_timeout_ms / 1000,
-            pool=self.pool_timeout_ms / 1000,
+            timeout=remaining,
+            connect=min(self.connect_timeout_ms / 1000, remaining),
+            read=remaining,
+            write=remaining,
+            pool=min(self.pool_timeout_ms / 1000, remaining),
         )
         try:
-            async with httpx.AsyncClient(verify=self._verify, timeout=timeout) as http_client:
-                response = await http_client.post(self.endpoint, headers=self.headers, json=payload)
+            async with asyncio.timeout(remaining):
+                async with httpx.AsyncClient(
+                    verify=self._verify, timeout=timeout
+                ) as http_client:
+                    response = await http_client.post(
+                        self.endpoint,
+                        headers=self.headers,
+                        json=payload,
+                    )
+        except asyncio.CancelledError:
+            raise
+        except TimeoutError as err:
+            raise LLMError("TIMEOUT", "LLM deadline exhausted during HTTP request") from err
         except httpx.TimeoutException as err:
-            raise LLMError("TIMEOUT", f"LLM timed out after {self.timeout_ms}ms") from err
+            raise LLMError("TIMEOUT", "LLM HTTP request timed out") from err
         except httpx.HTTPError as err:
             raise LLMError("NETWORK_ERROR", f"LLM network error: {err}", err) from err
 
+        self.deadline.require_remaining()
         if response.status_code >= 400:
             body = response.text
             if response.status_code == 422 and self.response_format_mode != "none":
@@ -176,11 +192,13 @@ class VLLMClient:
                 "completion_tokens": raw_usage.get("completion_tokens", 0),
                 "total_tokens": raw_usage.get("total_tokens", 0),
             }
-        return {
+        result = {
             "content": message.get("content") or "",
             "reasoning_content": message.get("reasoning_content") or "",
             "usage": usage,
         }
+        self.deadline.require_remaining()
+        return result
 
     async def complete_text(self, prompt: str, system: str | None = None) -> str:
         messages = []
@@ -189,7 +207,9 @@ class VLLMClient:
         messages.append({"role": "user", "content": prompt})
         result = await self._post(messages)
         self.last_usage = result["usage"]
-        return extract_mermaid(strip_think_tags(result["content"]))
+        mermaid = extract_mermaid(strip_think_tags(result["content"]))
+        self.deadline.require_remaining()
+        return mermaid
 
     async def complete_json(
         self,
@@ -220,4 +240,6 @@ class VLLMClient:
         raw = result["content"] if "{" in result["content"] else (
             result["reasoning_content"] if "{" in result["reasoning_content"] else result["content"]
         )
-        return extract_json(strip_think_tags(raw))
+        parsed = extract_json(strip_think_tags(raw))
+        self.deadline.require_remaining()
+        return parsed

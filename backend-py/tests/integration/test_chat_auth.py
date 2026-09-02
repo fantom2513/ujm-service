@@ -21,7 +21,7 @@ async def test_anonymous_session_is_bound_to_supplied_user(
     factory = async_sessionmaker(engine, expire_on_commit=False)
     session_id = await create_initial_session(factory, user_id=None)
 
-    async def fake_chat_edit(options, settings=None):
+    async def fake_chat_edit(options, settings=None, *, deadline=None):
         return ChatEditResult(
             mermaid_code="flowchart LR\nA-->C",
             message="Bound and changed",
@@ -57,7 +57,7 @@ async def test_anonymous_bind_survives_later_llm_failure(
     factory = async_sessionmaker(engine, expire_on_commit=False)
     session_id = await create_initial_session(factory, user_id=None)
 
-    async def failing_chat_edit(options, settings=None):
+    async def failing_chat_edit(options, settings=None, *, deadline=None):
         raise RuntimeError("injected LLM failure")
 
     monkeypatch.setattr("app.services.chat.service.chat_edit", failing_chat_edit)
@@ -98,7 +98,7 @@ async def test_concurrent_bind_by_different_users_chooses_exactly_one_owner(
     factory = async_sessionmaker(engine, expire_on_commit=False)
     session_id = await create_initial_session(factory, user_id=None)
 
-    async def stop_at_llm(options, settings=None):
+    async def stop_at_llm(options, settings=None, *, deadline=None):
         raise ReachedLLM
 
     monkeypatch.setattr("app.services.chat.service.chat_edit", stop_at_llm)
@@ -158,7 +158,7 @@ async def test_concurrent_bind_by_same_user_allows_both_requests(
             both_reached_acquire.set()
         return await original_acquire(self, *args, **kwargs)
 
-    async def stop_at_llm(options, settings=None):
+    async def stop_at_llm(options, settings=None, *, deadline=None):
         llm_entered.set()
         await release_llm.wait()
         raise ReachedLLM
@@ -216,7 +216,7 @@ async def test_owned_session_is_hidden_from_different_user(
     session_id = await create_initial_session(factory, user_id="alice")
     llm_called = False
 
-    async def forbidden_chat_edit(options, settings=None):
+    async def forbidden_chat_edit(options, settings=None, *, deadline=None):
         nonlocal llm_called
         llm_called = True
         raise AssertionError("LLM must not be called for a foreign session")
@@ -254,7 +254,7 @@ async def test_unknown_session_raises_same_not_found_error(
     factory = async_sessionmaker(engine, expire_on_commit=False)
     unknown_id = "definitely-not-a-real-session"
 
-    async def forbidden_chat_edit(options, settings=None):
+    async def forbidden_chat_edit(options, settings=None, *, deadline=None):
         raise AssertionError("LLM must not be called for a missing session")
 
     monkeypatch.setattr("app.services.chat.service.chat_edit", forbidden_chat_edit)

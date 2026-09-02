@@ -16,6 +16,7 @@ from app.infrastructure.db.repositories import (
     MessageRepository,
     SessionRepository,
 )
+from app.infrastructure.llm.deadline import LLMDeadline
 from app.services.openai.chat import ChatEditOptions, chat_edit
 
 logger = logging.getLogger(__name__)
@@ -128,6 +129,7 @@ class ChatService:
                     if current is None or current.user_id != user_id:
                         raise SessionNotFound
 
+        deadline = LLMDeadline.from_timeout_ms(self._settings.llm_deadline_ms)
         lock_token = secrets.token_urlsafe(32)
         lease_claimed = False
         heartbeat_task: asyncio.Task[None] | None = None
@@ -198,6 +200,7 @@ class ChatService:
                     user_message=message,
                 ),
                 self._settings,
+                deadline=deadline,
             )
 
             async with self._db.begin():

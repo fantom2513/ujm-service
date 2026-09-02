@@ -15,7 +15,7 @@ def test_defaults_match_ts_backend():
     assert settings.llm_url == "http://localhost:8000"
     assert settings.llm_model == "google/gemma-4"
     assert settings.llm_api_key is None
-    assert settings.llm_timeout_ms == 120_000
+    assert settings.llm_deadline_ms == 120_000
     assert settings.llm_connect_timeout_ms == 5_000
     assert settings.llm_pool_timeout_ms == 5_000
     assert settings.llm_temperature == 0.1
@@ -40,6 +40,12 @@ def test_llm_seed_parses_when_set(monkeypatch):
     monkeypatch.setenv("LLM_SEED", "42")
     settings = Settings(_env_file=None)
     assert settings.llm_seed == 42
+
+
+def test_llm_deadline_parses_when_set(monkeypatch):
+    monkeypatch.setenv("LLM_DEADLINE_MS", "45000")
+    settings = Settings(_env_file=None)
+    assert settings.llm_deadline_ms == 45_000
 
 
 def test_llm_insecure_tls_true(monkeypatch):

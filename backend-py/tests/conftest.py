@@ -33,8 +33,8 @@ def real_database_url() -> str:
         pytest.skip(f"Postgres not reachable at {settings.database_url!r} — skipping DB integration test")
     return settings.database_url
 
-# Comfortably longer than any client-side timeout_ms used in delay_forever
-# tests (they use 50ms), short enough not to slow the suite down noticeably.
+# Comfortably longer than any client-side deadline used in delay_forever tests
+# (they use 50ms), short enough not to slow the suite down noticeably.
 _DELAY_FOREVER_SECONDS = 2
 
 

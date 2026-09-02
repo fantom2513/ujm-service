@@ -201,7 +201,7 @@ async def test_two_undos_toggle_between_last_two_states(real_database_url, monke
     mermaid_b = "flowchart LR\nA-->C"
     session_id = await create_initial_session(factory, mermaid_code=mermaid_a)
 
-    async def return_b(options, settings=None):
+    async def return_b(options, settings=None, *, deadline=None):
         from app.services.openai.chat import ChatEditResult
 
         return ChatEditResult(mermaid_code=mermaid_b, message="Changed", usage=None)

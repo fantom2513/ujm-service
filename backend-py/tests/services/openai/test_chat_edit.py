@@ -5,6 +5,8 @@ from collections import defaultdict, deque
 import pytest
 
 from app.config import Settings
+from app.domain.mermaid import validate_mermaid
+from app.infrastructure.llm.deadline import LLMDeadline
 from app.infrastructure.llm.errors import LLMError
 from app.services.openai.chat import (
     CHAT_OUTPUT_SCHEMA,
@@ -48,13 +50,15 @@ class ClientFactory:
     def __init__(self):
         self.clients: defaultdict[str, deque[FakeClient]] = defaultdict(deque)
         self.modes: list[str] = []
+        self.deadlines: list[LLMDeadline] = []
 
     def add(self, mode: str, client: FakeClient) -> FakeClient:
         self.clients[mode].append(client)
         return client
 
-    def __call__(self, mode: str) -> FakeClient:
+    def __call__(self, mode: str, deadline: LLMDeadline) -> FakeClient:
         self.modes.append(mode)
+        self.deadlines.append(deadline)
         assert self.clients[mode], f"No fake client configured for mode {mode!r}"
         return self.clients[mode].popleft()
 
@@ -75,6 +79,10 @@ def _settings(mode: str = "json_schema") -> Settings:
     return Settings(llm_response_format_mode=mode)
 
 
+def _deadline() -> LLMDeadline:
+    return LLMDeadline.from_timeout_ms(120_000)
+
+
 async def test_chat_edit_returns_structured_result_and_primary_usage():
     factory = ClientFactory()
     client = factory.add(
@@ -85,7 +93,12 @@ async def test_chat_edit_returns_structured_result_and_primary_usage():
         ),
     )
 
-    result = await chat_edit(_options(), _settings(), factory)
+    result = await chat_edit(
+        _options(),
+        _settings(),
+        factory,
+        deadline=_deadline(),
+    )
 
     assert result.mermaid_code == "flowchart LR\nA-->B\nB-->C"
     assert result.message == "Added C."
@@ -115,10 +128,16 @@ async def test_chat_edit_falls_back_through_response_format_modes():
         FakeClient(json_result={"mermaid": "flowchart TB\nA-->B", "message": "Done"}),
     )
 
-    result = await chat_edit(_options(), _settings(), factory)
+    result = await chat_edit(
+        _options(),
+        _settings(),
+        factory,
+        deadline=_deadline(),
+    )
 
     assert result.mermaid_code == "flowchart TB\nA-->B"
     assert factory.modes == ["json_schema", "json_object", "none"]
+    assert len({id(deadline) for deadline in factory.deadlines}) == 1
 
 
 async def test_chat_edit_repairs_invalid_mermaid_and_keeps_primary_usage():
@@ -138,13 +157,19 @@ async def test_chat_edit_repairs_invalid_mermaid_and_keeps_primary_usage():
         ),
     )
 
-    result = await chat_edit(_options(), _settings(), factory)
+    result = await chat_edit(
+        _options(),
+        _settings(),
+        factory,
+        deadline=_deadline(),
+    )
 
     assert result.mermaid_code == "flowchart LR\nA-->B"
     assert result.message == "Fixed it"
     assert result.usage == primary.last_usage
     assert result.usage != repair.last_usage
     assert factory.modes == ["json_schema", "json_schema"]
+    assert len({id(deadline) for deadline in factory.deadlines}) == 1
     assert len(repair.text_calls) == 1
     assert "<CANDIDATE_MERMAID>\nnot a flowchart\n</CANDIDATE_MERMAID>" in repair.text_calls[0]
     assert "Mermaid must start with 'flowchart'" in repair.text_calls[0]
@@ -159,7 +184,69 @@ async def test_chat_edit_raises_schema_mismatch_when_repair_is_still_invalid():
     factory.add("json_schema", FakeClient(text_result="bad repair result"))
 
     with pytest.raises(LLMError) as raised:
-        await chat_edit(_options(), _settings(), factory)
+        await chat_edit(
+            _options(),
+            _settings(),
+            factory,
+            deadline=_deadline(),
+        )
 
     assert raised.value.code == "SCHEMA_MISMATCH"
     assert str(raised.value) == "Generated Mermaid failed validation after repair"
+
+
+async def test_chat_edit_preserves_timeout_from_repair():
+    factory = ClientFactory()
+    factory.add(
+        "json_schema",
+        FakeClient(json_result={"mermaid": "bad first result", "message": "Done"}),
+    )
+    factory.add(
+        "json_schema",
+        FakeClient(error=LLMError("TIMEOUT", "repair deadline exhausted")),
+    )
+
+    with pytest.raises(LLMError) as raised:
+        await chat_edit(
+            _options(),
+            _settings(),
+            factory,
+            deadline=_deadline(),
+        )
+
+    assert raised.value.code == "TIMEOUT"
+    assert str(raised.value) == "repair deadline exhausted"
+    assert len({id(deadline) for deadline in factory.deadlines}) == 1
+
+
+async def test_chat_edit_does_not_start_repair_after_validation_expires_deadline(
+    monkeypatch,
+):
+    now = [0.0]
+    deadline = LLMDeadline.from_timeout_ms(1_000, clock=lambda: now[0])
+    factory = ClientFactory()
+    factory.add(
+        "json_schema",
+        FakeClient(json_result={"mermaid": "bad first result", "message": "Done"}),
+    )
+
+    def expiring_validation(mermaid_code: str):
+        result = validate_mermaid(mermaid_code)
+        now[0] = 1.0
+        return result
+
+    monkeypatch.setattr(
+        "app.services.openai.chat.validate_mermaid",
+        expiring_validation,
+    )
+
+    with pytest.raises(LLMError) as raised:
+        await chat_edit(
+            _options(),
+            _settings(),
+            factory,
+            deadline=deadline,
+        )
+
+    assert raised.value.code == "TIMEOUT"
+    assert factory.modes == ["json_schema"]
