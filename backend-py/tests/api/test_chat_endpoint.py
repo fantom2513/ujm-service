@@ -5,7 +5,11 @@ from app.api import deps
 from app.api.schemas import ChatResult
 from app.infrastructure.llm.errors import LLMError
 from app.main import app
-from app.services.chat.service import SessionNotFound
+from app.services.chat.service import (
+    RequestInProgress,
+    SessionNotFound,
+    VersionConflict,
+)
 
 
 class FakeChatService:
@@ -67,6 +71,34 @@ def test_chat_returns_session_not_found_without_leaking_ownership(client, chat_s
     assert response.json()["sessionId"] == "unknown"
     assert response.json()["error"]["code"] == "session-not-found"
     assert chat_service.calls[0]["user_id"] == "mallory"
+
+
+def test_chat_returns_request_in_progress_as_conflict(client, chat_service):
+    chat_service.error = RequestInProgress()
+
+    response = client.post(
+        "/api/chat",
+        data={"sessionId": "session-1", "message": "change it"},
+        headers={"X-User-Id": "alice"},
+    )
+
+    assert response.status_code == 409
+    assert response.json()["sessionId"] == "session-1"
+    assert response.json()["error"]["code"] == "request-in-progress"
+
+
+def test_chat_returns_version_conflict_as_conflict(client, chat_service):
+    chat_service.error = VersionConflict()
+
+    response = client.post(
+        "/api/chat",
+        data={"sessionId": "session-1", "message": "change it"},
+        headers={"X-User-Id": "alice"},
+    )
+
+    assert response.status_code == 409
+    assert response.json()["sessionId"] == "session-1"
+    assert response.json()["error"]["code"] == "version-conflict"
 
 
 def test_chat_success_returns_standard_result_and_passes_parsed_fields(

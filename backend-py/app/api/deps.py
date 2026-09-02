@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import Depends, Request
 from redis.asyncio import Redis
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.config import Settings, get_settings
 from app.infrastructure.db.session import get_db_session
@@ -19,17 +19,30 @@ async def get_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
+def get_db_sessionmaker(request: Request) -> async_sessionmaker[AsyncSession]:
+    return request.app.state.db_sessionmaker
+
+
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 RedisDep = Annotated[Redis, Depends(get_redis)]
 DbSessionDep = Annotated[AsyncSession, Depends(get_db)]
+DbSessionmakerDep = Annotated[
+    async_sessionmaker[AsyncSession], Depends(get_db_sessionmaker)
+]
 
 
 def get_chat_service(
     db: DbSessionDep,
+    db_sessionmaker: DbSessionmakerDep,
     redis: RedisDep,
     settings: SettingsDep,
 ) -> ChatService:
-    return ChatService(db=db, redis=redis, settings=settings)
+    return ChatService(
+        db=db,
+        db_sessionmaker=db_sessionmaker,
+        redis=redis,
+        settings=settings,
+    )
 
 
 ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]

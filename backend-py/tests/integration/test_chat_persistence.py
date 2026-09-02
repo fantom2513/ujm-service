@@ -1,4 +1,5 @@
 import sqlalchemy as sa
+import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.infrastructure.db.models import DiagramVersion
@@ -8,6 +9,7 @@ from app.infrastructure.db.repositories import (
     SessionRepository,
 )
 from app.services.openai.chat import ChatEditResult
+from app.services.chat.service import VersionConflict
 from tests.integration._chat_helpers import (
     create_initial_session,
     delete_session,
@@ -45,7 +47,7 @@ async def test_run_chat_persists_two_messages_new_version_and_head(
 
         async with factory() as db:
             active_db = db
-            result = await make_chat_service(db).run_chat(
+            result = await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
                 user_id=None,
                 message="add C",
@@ -83,7 +85,7 @@ async def test_run_chat_persists_two_messages_new_version_and_head(
         await engine.dispose()
 
 
-async def test_run_chat_write_failure_rolls_back_messages_version_and_head(
+async def test_run_chat_fenced_cas_failure_rolls_back_messages_version_and_head(
     real_database_url, monkeypatch
 ):
     await upgrade_head()
@@ -105,28 +107,24 @@ async def test_run_chat_write_failure_rolls_back_messages_version_and_head(
         assert original is not None
         original_head_id = original.head_version_id
 
-    async def fail_set_head(self, target_session_id: str, version_id: int) -> None:
-        raise RuntimeError("injected chat head failure")
+    async def reject_set_head(self, *args, **kwargs) -> int:
+        return 0
 
     monkeypatch.setattr(
-        "app.services.chat.service.SessionRepository.set_head",
-        fail_set_head,
+        "app.services.chat.service.SessionRepository.set_head_fenced",
+        reject_set_head,
     )
 
     try:
         async with factory() as db:
-            try:
-                await make_chat_service(db).run_chat(
+            with pytest.raises(VersionConflict):
+                await make_chat_service(db, factory).run_chat(
                     session_id=session_id,
                     user_id=None,
                     message="change",
                     action_type="FREEFORM",
                     client_mermaid="ignored",
                 )
-            except RuntimeError as err:
-                assert str(err) == "injected chat head failure"
-            else:
-                raise AssertionError("Injected chat persistence failure was not raised")
 
         async with factory() as db:
             stored = await SessionRepository(db).get(session_id)

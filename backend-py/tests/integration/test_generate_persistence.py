@@ -38,7 +38,12 @@ async def test_create_session_with_version_persists_complete_initial_state(
     session_id: str | None = None
     try:
         async with factory() as db:
-            service = ChatService(db=db, redis=None, settings=Settings())  # type: ignore[arg-type]
+            service = ChatService(
+                db=db,
+                db_sessionmaker=factory,
+                redis=None,  # type: ignore[arg-type]
+                settings=Settings(),
+            )
             session_id = await service.create_session_with_version(
                 source_text="server specification",
                 additional_details="extra constraints",
@@ -96,7 +101,12 @@ async def test_create_session_with_version_rolls_back_everything_on_head_failure
 
     try:
         async with factory() as db:
-            service = ChatService(db=db, redis=None, settings=Settings())  # type: ignore[arg-type]
+            service = ChatService(
+                db=db,
+                db_sessionmaker=factory,
+                redis=None,  # type: ignore[arg-type]
+                settings=Settings(),
+            )
             try:
                 await service.create_session_with_version(
                     source_text="server specification",

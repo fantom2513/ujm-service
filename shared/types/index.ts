@@ -12,6 +12,8 @@ export type UserErrorCode =
   | "invalid-request"
   | "session-required"
   | "session-not-found"
+  | "request-in-progress"
+  | "version-conflict"
   | "chat-message-failed";
 
 export interface FileMeta {

@@ -16,8 +16,13 @@ async def upgrade_head() -> None:
     await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
 
 
-def make_chat_service(db) -> ChatService:
-    return ChatService(db=db, redis=None, settings=Settings())  # type: ignore[arg-type]
+def make_chat_service(db, factory) -> ChatService:
+    return ChatService(
+        db=db,
+        db_sessionmaker=factory,
+        redis=None,  # type: ignore[arg-type]
+        settings=Settings(),
+    )
 
 
 async def create_initial_session(
@@ -29,7 +34,7 @@ async def create_initial_session(
     mermaid_code: str = "flowchart LR\nA-->B",
 ) -> str:
     async with factory() as db:
-        return await make_chat_service(db).create_session_with_version(
+        return await make_chat_service(db, factory).create_session_with_version(
             source_text=source_text,
             additional_details=additional_details,
             user_id=user_id,

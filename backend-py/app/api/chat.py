@@ -7,7 +7,11 @@ from fastapi.responses import JSONResponse
 
 from app.api.deps import ChatServiceDep
 from app.api.schemas import ApiError
-from app.services.chat.service import SessionNotFound
+from app.services.chat.service import (
+    RequestInProgress,
+    SessionNotFound,
+    VersionConflict,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +20,8 @@ router = APIRouter()
 _USER_MESSAGES = {
     "session-required": "Необходимо указать идентификатор сессии",
     "session-not-found": "Сессия не найдена",
+    "request-in-progress": "Для этой сессии уже выполняется запрос",
+    "version-conflict": "Состояние сессии изменилось. Повторите запрос",
     "diagram-generation": "Схема не сформирована. Перезагрузите страницу или повторите попытку позже",
 }
 
@@ -55,6 +61,10 @@ async def chat(request: Request, chat_service: ChatServiceDep) -> JSONResponse:
         )
     except SessionNotFound:
         return _api_error(404, "session-not-found", session_id)
+    except RequestInProgress:
+        return _api_error(409, "request-in-progress", session_id)
+    except VersionConflict:
+        return _api_error(409, "version-conflict", session_id)
     except Exception:
         logger.exception("Chat request failed for session %s", session_id)
         return _api_error(500, "diagram-generation", session_id)

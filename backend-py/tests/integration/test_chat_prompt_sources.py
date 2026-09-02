@@ -76,7 +76,7 @@ async def test_run_chat_builds_options_from_postgres_not_client_copy(
         monkeypatch.setattr("app.services.chat.service.chat_edit", fake_chat_edit)
 
         async with factory() as db:
-            await make_chat_service(db).run_chat(
+            await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
                 user_id=None,
                 message="CURRENT USER MESSAGE",
@@ -121,7 +121,7 @@ async def test_single_version_produces_exact_empty_previous_block(
 
     try:
         async with factory() as db:
-            await make_chat_service(db).run_chat(
+            await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
                 user_id=None,
                 message="change",
