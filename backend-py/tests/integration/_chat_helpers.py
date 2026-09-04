@@ -6,6 +6,7 @@ from alembic import command
 from alembic.config import Config
 
 from app.config import Settings
+from app.domain.identity import Principal
 from app.services.chat.service import ChatService
 
 BACKEND_PY_ROOT = Path(__file__).resolve().parents[2]
@@ -25,6 +26,12 @@ def make_chat_service(db, factory) -> ChatService:
     )
 
 
+def principal_for(user_id: str | None) -> Principal:
+    if user_id is None:
+        return Principal.anonymous()
+    return Principal.authenticated(user_id)
+
+
 async def create_initial_session(
     factory,
     *,
@@ -37,7 +44,7 @@ async def create_initial_session(
         return await make_chat_service(db, factory).create_session_with_version(
             source_text=source_text,
             additional_details=additional_details,
-            user_id=user_id,
+            principal=principal_for(user_id),
             mermaid_code=mermaid_code,
         )
 

@@ -7,6 +7,7 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ResponseFormatMode = Literal["json_schema", "json_object", "none"]
+IdentityMode = Literal["anonymous", "trusted_header"]
 
 
 def _megabytes_env_to_bytes(raw: str | None, fallback_mb: int) -> int:
@@ -27,6 +28,7 @@ class Settings(BaseSettings):
     app_host: str = "127.0.0.1"
     app_port: int = 4173
     product_home_url: str = "http://localhost:3000/"
+    identity_mode: IdentityMode = "anonymous"
 
     max_text_file_mb: str | None = None
     max_recording_file_mb: str | None = None

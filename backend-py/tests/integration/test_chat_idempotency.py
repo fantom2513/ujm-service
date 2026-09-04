@@ -21,6 +21,7 @@ from tests.integration._chat_helpers import (
     create_initial_session,
     delete_session,
     make_chat_service,
+    principal_for,
     upgrade_head,
 )
 
@@ -39,7 +40,7 @@ async def _run_chat(
         return await make_chat_service(db, factory).run_chat(
             session_id=session_id,
             request_id=request_id,
-            user_id=user_id,
+            principal=principal_for(user_id),
             message=message,
             action_type=action_type,
             client_mermaid=client_mermaid,

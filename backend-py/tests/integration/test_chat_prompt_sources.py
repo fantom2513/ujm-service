@@ -12,6 +12,7 @@ from tests.integration._chat_helpers import (
     create_initial_session,
     delete_session,
     make_chat_service,
+    principal_for,
     upgrade_head,
 )
 
@@ -79,7 +80,7 @@ async def test_run_chat_builds_options_from_postgres_not_client_copy(
             await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
                 request_id="request-prompt-context",
-                user_id=None,
+                principal=principal_for(None),
                 message="CURRENT USER MESSAGE",
                 action_type="FREEFORM",
                 client_mermaid="CLIENT MERMAID MUST NOT WIN",
@@ -125,7 +126,7 @@ async def test_single_version_produces_exact_empty_previous_block(
             await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
                 request_id="request-no-previous",
-                user_id=None,
+                principal=principal_for(None),
                 message="change",
                 action_type="FREEFORM",
                 client_mermaid="ignored",

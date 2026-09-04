@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from app.api.deps import ChatServiceDep
+from app.api.deps import ChatServiceDep, CurrentIdentity
 from app.api.schemas import ApiError, DiagramResult, FileMeta, SourceContext
 from app.config import get_settings
 from app.domain.generate_guard import required_source_error
@@ -53,7 +53,11 @@ def _api_error(
 
 
 @router.post("/api/generate")
-async def generate(request: Request, chat_service: ChatServiceDep):
+async def generate(
+    request: Request,
+    identity: CurrentIdentity,
+    chat_service: ChatServiceDep,
+):
     form = await request.form()
     source_type = form.get("sourceType")
     details = form.get("details", "") or ""
@@ -121,7 +125,7 @@ async def generate(request: Request, chat_service: ChatServiceDep):
         session_id = await chat_service.create_session_with_version(
             source_text=source.text,
             additional_details=details,
-            user_id=request.headers.get("X-User-Id") or None,
+            principal=identity,
             mermaid_code=mermaid_code,
         )
     except Exception:

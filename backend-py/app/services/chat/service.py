@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.api.schemas import ChatResult
 from app.config import Settings
 from app.domain.chat_request import compute_chat_request_hash
+from app.domain.identity import Principal
 from app.domain.undo import is_undo_request
 from app.infrastructure.db.models import DiagramVersion, Message, Session
 from app.infrastructure.db.repositories import (
@@ -64,9 +65,10 @@ class ChatService:
         *,
         source_text: str,
         additional_details: str,
-        user_id: str | None,
+        principal: Principal,
         mermaid_code: str,
     ) -> str:
+        owner_id = principal.subject
         session_id = secrets.token_urlsafe(32)
         sessions = SessionRepository(self._db)
         versions = DiagramVersionRepository(self._db)
@@ -75,7 +77,7 @@ class ChatService:
             sessions.add(
                 Session(
                     id=session_id,
-                    user_id=user_id,
+                    user_id=owner_id,
                     source_text=source_text,
                     additional_details=additional_details or None,
                 )
@@ -102,11 +104,12 @@ class ChatService:
         *,
         session_id: str,
         request_id: str,
-        user_id: str | None,
+        principal: Principal,
         message: str,
         action_type: str,
         client_mermaid: str,
     ) -> ChatResult:
+        owner_id = principal.subject
         sessions = SessionRepository(self._db)
         versions = DiagramVersionRepository(self._db)
         messages = MessageRepository(self._db)
@@ -123,17 +126,20 @@ class ChatService:
             stored_session = await sessions.get(session_id)
             if stored_session is None:
                 raise SessionNotFound
-            if stored_session.user_id is not None and stored_session.user_id != user_id:
+            if (
+                stored_session.user_id is not None
+                and stored_session.user_id != owner_id
+            ):
                 raise SessionNotFound
-            if stored_session.user_id is None and user_id:
-                if await sessions.bind_user(session_id, user_id) != 1:
+            if stored_session.user_id is None and owner_id is not None:
+                if await sessions.bind_user(session_id, owner_id) != 1:
                     # A concurrent request may have completed the same bind
                     # while this UPDATE waited. Do not trust stored_session:
                     # expire_on_commit=False keeps it in the identity map with
                     # its old user_id. Force a new SELECT and refresh it from
                     # PostgreSQL before deciding whether access is allowed.
                     current = await sessions.get_fresh(session_id)
-                    if current is None or current.user_id != user_id:
+                    if current is None or current.user_id != owner_id:
                         raise SessionNotFound
 
         deadline = LLMDeadline.from_timeout_ms(self._settings.llm_deadline_ms)
@@ -180,11 +186,11 @@ class ChatService:
         try:
             async with self._db.begin():
                 acquired = await sessions.acquire_lease(
-                    session_id, user_id, lock_token
+                    session_id, owner_id, lock_token
                 )
                 if acquired != 1:
                     current = await sessions.get_fresh(session_id)
-                    if current is None or current.user_id != user_id:
+                    if current is None or current.user_id != owner_id:
                         raise SessionNotFound
                     raise RequestInProgress
                 lease_claimed = True

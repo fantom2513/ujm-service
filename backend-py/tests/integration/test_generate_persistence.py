@@ -10,6 +10,7 @@ from alembic.config import Config
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.config import Settings
+from app.domain.identity import Principal
 from app.infrastructure.db.models import DiagramVersion
 from app.infrastructure.db.repositories import SessionRepository
 from app.services.chat.service import ChatService
@@ -47,7 +48,7 @@ async def test_create_session_with_version_persists_complete_initial_state(
             session_id = await service.create_session_with_version(
                 source_text="server specification",
                 additional_details="extra constraints",
-                user_id="alice",
+                principal=Principal.authenticated("alice"),
                 mermaid_code="flowchart LR\nA-->B",
             )
 
@@ -111,7 +112,7 @@ async def test_create_session_with_version_rolls_back_everything_on_head_failure
                 await service.create_session_with_version(
                     source_text="server specification",
                     additional_details="",
-                    user_id=None,
+                    principal=Principal.anonymous(),
                     mermaid_code="flowchart LR\nA-->B",
                 )
             except RuntimeError as err:

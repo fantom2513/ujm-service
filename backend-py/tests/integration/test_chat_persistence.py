@@ -15,6 +15,7 @@ from tests.integration._chat_helpers import (
     create_initial_session,
     delete_session,
     make_chat_service,
+    principal_for,
     upgrade_head,
 )
 
@@ -68,7 +69,7 @@ async def test_run_chat_persists_two_messages_new_version_and_head(
             result = await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
                 request_id="request-persist",
-                user_id=None,
+                principal=principal_for(None),
                 message="add C",
                 action_type="FREEFORM",
                 client_mermaid="client copy must be ignored",
@@ -140,7 +141,7 @@ async def test_run_chat_fenced_cas_failure_rolls_back_messages_version_and_head(
                 await make_chat_service(db, factory).run_chat(
                     session_id=session_id,
                     request_id="request-cas-failure",
-                    user_id=None,
+                    principal=principal_for(None),
                     message="change",
                     action_type="FREEFORM",
                     client_mermaid="ignored",

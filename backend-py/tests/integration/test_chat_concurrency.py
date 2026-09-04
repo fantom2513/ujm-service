@@ -18,6 +18,7 @@ from tests.integration._chat_helpers import (
     create_initial_session,
     delete_session,
     make_chat_service,
+    principal_for,
     upgrade_head,
 )
 
@@ -27,7 +28,7 @@ async def run_chat(factory, session_id: str, message: str = "change"):
         return await make_chat_service(db, factory).run_chat(
             session_id=session_id,
             request_id=f"request-{message}",
-            user_id=None,
+            principal=principal_for(None),
             message=message,
             action_type="FREEFORM",
             client_mermaid="ignored",
@@ -187,7 +188,7 @@ async def test_llm_timeout_uses_boundary_deadline_and_rolls_back_chat_writes(
                 await service.run_chat(
                     session_id=session_id,
                     request_id="request-timeout",
-                    user_id="owner",
+                    principal=principal_for("owner"),
                     message="change",
                     action_type="FREEFORM",
                     client_mermaid="ignored",
@@ -297,7 +298,7 @@ async def test_heartbeat_uses_another_session_and_main_db_is_idle_during_llm(
                 service.run_chat(
                     session_id=session_id,
                     request_id="request-heartbeat",
-                    user_id=None,
+                    principal=principal_for(None),
                     message="change",
                     action_type="FREEFORM",
                     client_mermaid="ignored",

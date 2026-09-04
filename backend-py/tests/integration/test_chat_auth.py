@@ -1,5 +1,6 @@
 import asyncio
 
+import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.infrastructure.db.repositories import MessageRepository, SessionRepository
@@ -9,6 +10,7 @@ from tests.integration._chat_helpers import (
     create_initial_session,
     delete_session,
     make_chat_service,
+    principal_for,
     upgrade_head,
 )
 
@@ -35,7 +37,7 @@ async def test_anonymous_session_is_bound_to_supplied_user(
             await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
                 request_id="request-bind-owner",
-                user_id="alice",
+                principal=principal_for("alice"),
                 message="change",
                 action_type="FREEFORM",
                 client_mermaid="ignored",
@@ -69,7 +71,7 @@ async def test_anonymous_bind_survives_later_llm_failure(
                 await make_chat_service(db, factory).run_chat(
                     session_id=session_id,
                     request_id="request-bind-before-error",
-                    user_id="alice",
+                    principal=principal_for("alice"),
                     message="change",
                     action_type="FREEFORM",
                     client_mermaid="ignored",
@@ -110,7 +112,7 @@ async def test_concurrent_bind_by_different_users_chooses_exactly_one_owner(
             return await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
                 request_id=f"request-competing-owner-{user_id}",
-                user_id=user_id,
+                principal=principal_for(user_id),
                 message="change",
                 action_type="FREEFORM",
                 client_mermaid="ignored",
@@ -174,7 +176,7 @@ async def test_concurrent_bind_by_same_user_allows_both_requests(
             return await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
                 request_id=request_id,
-                user_id="alice",
+                principal=principal_for("alice"),
                 message="change",
                 action_type="FREEFORM",
                 client_mermaid="ignored",
@@ -211,8 +213,15 @@ async def test_concurrent_bind_by_same_user_allows_both_requests(
         await engine.dispose()
 
 
-async def test_owned_session_is_hidden_from_different_user(
-    real_database_url, monkeypatch
+@pytest.mark.parametrize(
+    "caller_user_id",
+    ["mallory", None],
+    ids=["foreign", "anonymous"],
+)
+async def test_owned_session_is_hidden_from_foreign_or_anonymous_principal(
+    real_database_url,
+    monkeypatch,
+    caller_user_id,
 ):
     await upgrade_head()
     engine = create_async_engine(real_database_url)
@@ -233,7 +242,7 @@ async def test_owned_session_is_hidden_from_different_user(
                 await make_chat_service(db, factory).run_chat(
                     session_id=session_id,
                     request_id="request-wrong-owner",
-                    user_id="mallory",
+                    principal=principal_for(caller_user_id),
                     message="steal it",
                     action_type="FREEFORM",
                     client_mermaid="ignored",
@@ -246,6 +255,61 @@ async def test_owned_session_is_hidden_from_different_user(
         assert llm_called is False
         async with factory() as db:
             assert await MessageRepository(db).list_by_session(session_id) == []
+    finally:
+        await delete_session(engine, session_id)
+        await engine.dispose()
+
+
+@pytest.mark.parametrize(
+    "caller_user_id",
+    ["mallory", None],
+    ids=["foreign", "anonymous"],
+)
+async def test_completed_turn_is_hidden_from_foreign_or_anonymous_principal(
+    real_database_url,
+    monkeypatch,
+    caller_user_id,
+):
+    await upgrade_head()
+    engine = create_async_engine(real_database_url)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    session_id = await create_initial_session(factory, user_id="alice")
+    llm_calls = 0
+
+    async def fake_chat_edit(options, settings=None, *, deadline=None):
+        nonlocal llm_calls
+        llm_calls += 1
+        return ChatEditResult(
+            mermaid_code="flowchart LR\nA-->completed",
+            message="Completed",
+            usage=None,
+        )
+
+    monkeypatch.setattr("app.services.chat.service.chat_edit", fake_chat_edit)
+
+    try:
+        async with factory() as db:
+            await make_chat_service(db, factory).run_chat(
+                session_id=session_id,
+                request_id="request-completed-owner",
+                principal=principal_for("alice"),
+                message="complete it",
+                action_type="FREEFORM",
+                client_mermaid="ignored",
+            )
+
+        async with factory() as db:
+            with pytest.raises(SessionNotFound):
+                await make_chat_service(db, factory).run_chat(
+                    session_id=session_id,
+                    request_id="request-completed-owner",
+                    principal=principal_for(caller_user_id),
+                    message="complete it",
+                    action_type="FREEFORM",
+                    client_mermaid="ignored",
+                )
+
+        assert llm_calls == 1
     finally:
         await delete_session(engine, session_id)
         await engine.dispose()
@@ -270,7 +334,7 @@ async def test_unknown_session_raises_same_not_found_error(
                 await make_chat_service(db, factory).run_chat(
                     session_id=unknown_id,
                     request_id="request-missing-session",
-                    user_id=None,
+                    principal=principal_for(None),
                     message="change",
                     action_type="FREEFORM",
                     client_mermaid="ignored",

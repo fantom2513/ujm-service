@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.api import deps
+from app.domain.identity import Principal
 from app.main import app
 
 
@@ -24,7 +25,22 @@ def chat_service():
 
 
 @pytest.fixture
-def client(chat_service):
+def identity_override():
+    current = Principal.anonymous()
+
+    def set_identity(principal: Principal) -> None:
+        nonlocal current
+        current = principal
+
+    app.dependency_overrides[deps.get_current_identity] = lambda: current
+    try:
+        yield set_identity
+    finally:
+        app.dependency_overrides.pop(deps.get_current_identity, None)
+
+
+@pytest.fixture
+def client(chat_service, identity_override):
     app.dependency_overrides[deps.get_chat_service] = lambda: chat_service
     try:
         with TestClient(app) as test_client:
@@ -78,17 +94,19 @@ def test_generate_text_file_too_large_returns_400_file_size(client):
     assert response.json()["error"]["code"] == "file-size"
 
 
-def test_generate_text_file_success_returns_200(client, chat_service, monkeypatch):
+def test_generate_text_file_success_returns_200(
+    client, chat_service, identity_override, monkeypatch
+):
     async def fake_generate_diagram(source_text, details, client=None):
         return "flowchart LR\nA --> B"
 
     monkeypatch.setattr("app.api.generate.generate_diagram", fake_generate_diagram)
+    identity_override(Principal.authenticated("alice"))
 
     response = client.post(
         "/api/generate",
         data={"sourceType": "text-file", "details": "some details"},
         files={"file": ("notes.txt", b"Hello world", "text/plain")},
-        headers={"X-User-Id": "alice"},
     )
     assert response.status_code == 200
     body = response.json()
@@ -100,7 +118,7 @@ def test_generate_text_file_success_returns_200(client, chat_service, monkeypatc
         {
             "source_text": "Hello world",
             "additional_details": "some details",
-            "user_id": "alice",
+            "principal": Principal.authenticated("alice"),
             "mermaid_code": "flowchart LR\nA --> B",
         }
     ]

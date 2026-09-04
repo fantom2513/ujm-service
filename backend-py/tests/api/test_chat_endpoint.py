@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 
 from app.api import deps
 from app.api.schemas import ChatResult
+from app.domain.identity import Principal
 from app.infrastructure.llm.errors import LLMError
 from app.main import app
 from app.services.chat.service import (
@@ -35,7 +36,22 @@ def chat_service():
 
 
 @pytest.fixture
-def client(chat_service):
+def identity_override():
+    current = Principal.anonymous()
+
+    def set_identity(principal: Principal) -> None:
+        nonlocal current
+        current = principal
+
+    app.dependency_overrides[deps.get_current_identity] = lambda: current
+    try:
+        yield set_identity
+    finally:
+        app.dependency_overrides.pop(deps.get_current_identity, None)
+
+
+@pytest.fixture
+def client(chat_service, identity_override):
     app.dependency_overrides[deps.get_chat_service] = lambda: chat_service
     try:
         with TestClient(app, raise_server_exceptions=False) as test_client:
@@ -100,8 +116,11 @@ def test_chat_accepts_128_character_request_id_after_trimming(client, chat_servi
     assert chat_service.calls[0]["request_id"] == "r" * 128
 
 
-def test_chat_returns_session_not_found_without_leaking_ownership(client, chat_service):
+def test_chat_returns_session_not_found_without_leaking_ownership(
+    client, chat_service, identity_override
+):
     chat_service.error = SessionNotFound()
+    identity_override(Principal.authenticated("mallory"))
 
     response = client.post(
         "/api/chat",
@@ -110,13 +129,12 @@ def test_chat_returns_session_not_found_without_leaking_ownership(client, chat_s
             "requestId": "request-unknown",
             "message": "change it",
         },
-        headers={"X-User-Id": "mallory"},
     )
 
     assert response.status_code == 404
     assert response.json()["sessionId"] == "unknown"
     assert response.json()["error"]["code"] == "session-not-found"
-    assert chat_service.calls[0]["user_id"] == "mallory"
+    assert chat_service.calls[0]["principal"] == Principal.authenticated("mallory")
 
 
 def test_chat_returns_request_in_progress_as_conflict(client, chat_service):
@@ -129,7 +147,6 @@ def test_chat_returns_request_in_progress_as_conflict(client, chat_service):
             "requestId": "request-busy",
             "message": "change it",
         },
-        headers={"X-User-Id": "alice"},
     )
 
     assert response.status_code == 409
@@ -164,7 +181,6 @@ def test_chat_returns_version_conflict_as_conflict(client, chat_service):
             "requestId": "request-version-conflict",
             "message": "change it",
         },
-        headers={"X-User-Id": "alice"},
     )
 
     assert response.status_code == 409
@@ -173,8 +189,9 @@ def test_chat_returns_version_conflict_as_conflict(client, chat_service):
 
 
 def test_chat_success_returns_standard_result_and_passes_parsed_fields(
-    client, chat_service
+    client, chat_service, identity_override
 ):
+    identity_override(Principal.authenticated("alice"))
     response = client.post(
         "/api/chat",
         data={
@@ -186,7 +203,6 @@ def test_chat_success_returns_standard_result_and_passes_parsed_fields(
             "sourceText": "must be ignored by the route",
             "history": '[{"role":"user","text":"bogus"}]',
         },
-        headers={"X-User-Id": "alice"},
     )
 
     assert response.status_code == 200
@@ -202,7 +218,7 @@ def test_chat_success_returns_standard_result_and_passes_parsed_fields(
         {
             "session_id": "session-1",
             "request_id": "request-success",
-            "user_id": "alice",
+            "principal": Principal.authenticated("alice"),
             "message": "add B",
             "action_type": "SIMPLIFY",
             "client_mermaid": "client copy",

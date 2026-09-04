@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from app.api.deps import ChatServiceDep
+from app.api.deps import ChatServiceDep, CurrentIdentity
 from app.api.schemas import ApiError
 from app.services.chat.service import (
     RequestIdConflict,
@@ -45,7 +45,11 @@ def _api_error(status_code: int, code: str, session_id: str) -> JSONResponse:
 
 
 @router.post("/api/chat")
-async def chat(request: Request, chat_service: ChatServiceDep) -> JSONResponse:
+async def chat(
+    request: Request,
+    identity: CurrentIdentity,
+    chat_service: ChatServiceDep,
+) -> JSONResponse:
     form = await request.form()
     session_id = str(form.get("sessionId", "") or "").strip()
     if not session_id:
@@ -60,13 +64,12 @@ async def chat(request: Request, chat_service: ChatServiceDep) -> JSONResponse:
     message = str(form.get("message", "") or "")
     action_type = str(form.get("actionType", "") or "FREEFORM")
     client_mermaid = str(form.get("mermaidCode", "") or "")
-    user_id = request.headers.get("X-User-Id") or None
 
     try:
         result = await chat_service.run_chat(
             session_id=session_id,
             request_id=request_id,
-            user_id=user_id,
+            principal=identity,
             message=message,
             action_type=action_type,
             client_mermaid=client_mermaid,
