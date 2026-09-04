@@ -6,6 +6,7 @@ from app.api.schemas import ChatResult
 from app.infrastructure.llm.errors import LLMError
 from app.main import app
 from app.services.chat.service import (
+    RequestIdConflict,
     RequestInProgress,
     SessionNotFound,
     VersionConflict,
@@ -58,12 +59,57 @@ def test_chat_requires_nonempty_session_id(client, chat_service):
     assert chat_service.calls == []
 
 
+@pytest.mark.parametrize("request_id", [None, "", "   "])
+def test_chat_requires_nonempty_request_id(client, chat_service, request_id):
+    data = {"sessionId": "session-1"}
+    if request_id is not None:
+        data["requestId"] = request_id
+
+    response = client.post("/api/chat", data=data)
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "ok": False,
+        "sessionId": "session-1",
+        "error": {
+            "code": "request-id-required",
+            "message": "Необходимо указать идентификатор запроса",
+        },
+    }
+    assert chat_service.calls == []
+
+
+def test_chat_rejects_request_id_longer_than_128_characters(client, chat_service):
+    response = client.post(
+        "/api/chat",
+        data={"sessionId": "session-1", "requestId": "r" * 129},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "invalid-request"
+    assert chat_service.calls == []
+
+
+def test_chat_accepts_128_character_request_id_after_trimming(client, chat_service):
+    response = client.post(
+        "/api/chat",
+        data={"sessionId": "session-1", "requestId": f"  {'r' * 128}  "},
+    )
+
+    assert response.status_code == 200
+    assert chat_service.calls[0]["request_id"] == "r" * 128
+
+
 def test_chat_returns_session_not_found_without_leaking_ownership(client, chat_service):
     chat_service.error = SessionNotFound()
 
     response = client.post(
         "/api/chat",
-        data={"sessionId": "unknown", "message": "change it"},
+        data={
+            "sessionId": "unknown",
+            "requestId": "request-unknown",
+            "message": "change it",
+        },
         headers={"X-User-Id": "mallory"},
     )
 
@@ -78,7 +124,11 @@ def test_chat_returns_request_in_progress_as_conflict(client, chat_service):
 
     response = client.post(
         "/api/chat",
-        data={"sessionId": "session-1", "message": "change it"},
+        data={
+            "sessionId": "session-1",
+            "requestId": "request-busy",
+            "message": "change it",
+        },
         headers={"X-User-Id": "alice"},
     )
 
@@ -87,12 +137,33 @@ def test_chat_returns_request_in_progress_as_conflict(client, chat_service):
     assert response.json()["error"]["code"] == "request-in-progress"
 
 
+def test_chat_returns_request_id_conflict_as_conflict(client, chat_service):
+    chat_service.error = RequestIdConflict()
+
+    response = client.post(
+        "/api/chat",
+        data={
+            "sessionId": "session-1",
+            "requestId": "reused-request",
+            "message": "change it",
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json()["sessionId"] == "session-1"
+    assert response.json()["error"]["code"] == "request-id-conflict"
+
+
 def test_chat_returns_version_conflict_as_conflict(client, chat_service):
     chat_service.error = VersionConflict()
 
     response = client.post(
         "/api/chat",
-        data={"sessionId": "session-1", "message": "change it"},
+        data={
+            "sessionId": "session-1",
+            "requestId": "request-version-conflict",
+            "message": "change it",
+        },
         headers={"X-User-Id": "alice"},
     )
 
@@ -108,6 +179,7 @@ def test_chat_success_returns_standard_result_and_passes_parsed_fields(
         "/api/chat",
         data={
             "sessionId": "session-1",
+            "requestId": "  request-success  ",
             "message": "add B",
             "actionType": "SIMPLIFY",
             "mermaidCode": "client copy",
@@ -129,6 +201,7 @@ def test_chat_success_returns_standard_result_and_passes_parsed_fields(
     assert chat_service.calls == [
         {
             "session_id": "session-1",
+            "request_id": "request-success",
             "user_id": "alice",
             "message": "add B",
             "action_type": "SIMPLIFY",
@@ -140,7 +213,11 @@ def test_chat_success_returns_standard_result_and_passes_parsed_fields(
 def test_chat_defaults_action_type_to_freeform(client, chat_service):
     response = client.post(
         "/api/chat",
-        data={"sessionId": "session-1", "message": "add B"},
+        data={
+            "sessionId": "session-1",
+            "requestId": "request-default-action",
+            "message": "add B",
+        },
     )
 
     assert response.status_code == 200
@@ -154,7 +231,11 @@ def test_chat_llm_error_returns_diagram_generation_with_session_id(
 
     response = client.post(
         "/api/chat",
-        data={"sessionId": "session-1", "message": "add B"},
+        data={
+            "sessionId": "session-1",
+            "requestId": "request-llm-error",
+            "message": "add B",
+        },
     )
 
     assert response.status_code == 500

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { sendChatMessage } from "../../src/api/client.ts";
 
 
-test("sendChatMessage always sends the explicit sessionId", async () => {
+test("sendChatMessage sends sessionId without replacing requestId", async () => {
   const originalFetch = globalThis.fetch;
   let receivedForm: FormData | undefined;
 
@@ -27,10 +27,12 @@ test("sendChatMessage always sends the explicit sessionId", async () => {
   try {
     const form = new FormData();
     form.set("message", "change diagram");
+    form.set("requestId", "user-message-id");
 
     const result = await sendChatMessage("server-session", form);
 
     assert.equal(receivedForm?.get("sessionId"), "server-session");
+    assert.equal(receivedForm?.get("requestId"), "user-message-id");
     assert.equal(receivedForm?.get("message"), "change diagram");
     assert.equal(result.sessionId, "server-session");
     assert.equal(result.mermaidCode, "flowchart LR\nA-->B");

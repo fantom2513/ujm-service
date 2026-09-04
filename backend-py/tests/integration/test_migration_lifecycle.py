@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 BACKEND_PY_ROOT = Path(__file__).resolve().parents[2]
 EXPECTED_TABLES = {"sessions", "diagram_versions", "messages", "turns"}
+HEAD_REVISION = "0002"
 
 
 async def _table_names(database_url: str) -> set[str]:
@@ -34,6 +35,27 @@ async def _sessions_columns(database_url: str) -> set[str]:
                 sa.text("SELECT column_name FROM information_schema.columns WHERE table_name = 'sessions'")
             )
             return {row[0] for row in result.fetchall()}
+    finally:
+        await engine.dispose()
+
+
+async def _turns_request_hash_metadata(database_url: str) -> tuple[str, str, None]:
+    engine = create_async_engine(database_url)
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(
+                sa.text(
+                    """
+                    SELECT data_type, is_nullable, column_default
+                    FROM information_schema.columns
+                    WHERE table_schema = 'public'
+                      AND table_name = 'turns'
+                      AND column_name = 'request_hash'
+                    """
+                )
+            )
+            row = result.one()
+            return row[0], row[1], row[2]
     finally:
         await engine.dispose()
 
@@ -66,6 +88,11 @@ async def test_upgrade_downgrade_upgrade_cycle(real_database_url):
 
     await _upgrade(alembic_cfg, "head")
     assert EXPECTED_TABLES <= await _table_names(real_database_url)
+    assert await _turns_request_hash_metadata(real_database_url) == (
+        "text",
+        "NO",
+        None,
+    )
 
     await _downgrade(alembic_cfg, "base")
     assert not (EXPECTED_TABLES & await _table_names(real_database_url))
@@ -88,7 +115,7 @@ async def test_broken_migration_rolls_back_and_leaves_schema_consistent(real_dat
         textwrap.dedent(
             f'''
             revision = "{broken_revision_id}"
-            down_revision = "0001"
+            down_revision = "{HEAD_REVISION}"
             branch_labels = None
             depends_on = None
 
@@ -109,7 +136,10 @@ async def test_broken_migration_rolls_back_and_leaves_schema_consistent(real_dat
     )
 
     script_dir = ScriptDirectory.from_config(alembic_cfg)
-    real_locations = list(script_dir.version_locations)
+    # With the default Alembic layout version_locations is empty and the
+    # implicit <script_location>/versions directory is exposed as .versions.
+    # Preserve that directory when adding the temporary test location.
+    real_locations = list(script_dir.version_locations) or [script_dir.versions]
     alembic_cfg.set_main_option("version_locations", os.pathsep.join([*real_locations, str(tmp_path)]))
 
     with pytest.raises(Exception):
@@ -119,9 +149,9 @@ async def test_broken_migration_rolls_back_and_leaves_schema_consistent(real_dat
     # ADD COLUMN must not have survived the later statement's failure.
     assert "oops_this_breaks" not in await _sessions_columns(real_database_url)
 
-    # alembic_version must still say "0001" (the last migration that
+    # alembic_version must still name the last migration that
     # actually succeeded) — not the broken one, and not "nothing".
-    assert await _alembic_current_version(real_database_url) == "0001"
+    assert await _alembic_current_version(real_database_url) == HEAD_REVISION
 
     # Deploy behaves as designed: a broken migration blocks progress but
     # doesn't corrupt what's there — the schema is still fully usable, and
@@ -130,5 +160,10 @@ async def test_broken_migration_rolls_back_and_leaves_schema_consistent(real_dat
     alembic_cfg.set_main_option("version_locations", os.pathsep.join(real_locations))
     await _upgrade(alembic_cfg, "head")
     assert EXPECTED_TABLES <= await _table_names(real_database_url)
+    assert await _turns_request_hash_metadata(real_database_url) == (
+        "text",
+        "NO",
+        None,
+    )
 
     await _downgrade(alembic_cfg, "base")  # leave a clean slate behind

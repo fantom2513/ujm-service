@@ -11,8 +11,10 @@ export type UserErrorCode =
   | "attachment-error"
   | "invalid-request"
   | "session-required"
+  | "request-id-required"
   | "session-not-found"
   | "request-in-progress"
+  | "request-id-conflict"
   | "version-conflict"
   | "chat-message-failed";
 

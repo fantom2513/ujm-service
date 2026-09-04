@@ -52,6 +52,7 @@ async def test_undo_without_previous_returns_current_and_writes_nothing(
         async with factory() as db:
             result = await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
+                request_id="request-noop-undo",
                 user_id=None,
                 message="верни предыдущую версию",
                 action_type="FREEFORM",
@@ -104,6 +105,7 @@ async def test_explicit_undo_appends_copy_and_moves_head(
         async with factory() as db:
             result = await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
+                request_id="request-explicit-undo",
                 user_id=None,
                 message="undo via explicit action",
                 action_type="RESTORE_PREVIOUS",
@@ -173,6 +175,7 @@ async def test_mutating_undo_fenced_cas_failure_rolls_back_new_version(
             with pytest.raises(VersionConflict):
                 await make_chat_service(db, factory).run_chat(
                     session_id=session_id,
+                    request_id="request-undo-cas-failure",
                     user_id=None,
                     message="верни предыдущую версию",
                     action_type="FREEFORM",
@@ -212,6 +215,7 @@ async def test_two_undos_toggle_between_last_two_states(real_database_url, monke
         async with factory() as db:
             await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
+                request_id="request-create-second-version",
                 user_id=None,
                 message="change A to C",
                 action_type="FREEFORM",
@@ -220,10 +224,11 @@ async def test_two_undos_toggle_between_last_two_states(real_database_url, monke
 
         forbid_llm(monkeypatch)
         restored_codes = []
-        for _ in range(2):
+        for attempt in range(2):
             async with factory() as db:
                 result = await make_chat_service(db, factory).run_chat(
                     session_id=session_id,
+                    request_id=f"request-toggle-undo-{attempt}",
                     user_id=None,
                     message="верни предыдущую версию",
                     action_type="FREEFORM",

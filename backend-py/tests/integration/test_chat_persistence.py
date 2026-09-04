@@ -7,6 +7,7 @@ from app.infrastructure.db.repositories import (
     DiagramVersionRepository,
     MessageRepository,
     SessionRepository,
+    TurnRepository,
 )
 from app.services.openai.chat import ChatEditResult
 from app.services.chat.service import VersionConflict
@@ -27,7 +28,12 @@ async def test_run_chat_persists_two_messages_new_version_and_head(
     session_id = await create_initial_session(factory)
     active_db = None
     llm_transaction_states: list[bool] = []
-    completed_deadline = object()
+
+    class CompletedDeadline:
+        def require_remaining(self) -> float:
+            return 120.0
+
+    completed_deadline = CompletedDeadline()
 
     class CompletedDeadlineFactory:
         @classmethod
@@ -61,6 +67,7 @@ async def test_run_chat_persists_two_messages_new_version_and_head(
             active_db = db
             result = await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
+                request_id="request-persist",
                 user_id=None,
                 message="add C",
                 action_type="FREEFORM",
@@ -132,6 +139,7 @@ async def test_run_chat_fenced_cas_failure_rolls_back_messages_version_and_head(
             with pytest.raises(VersionConflict):
                 await make_chat_service(db, factory).run_chat(
                     session_id=session_id,
+                    request_id="request-cas-failure",
                     user_id=None,
                     message="change",
                     action_type="FREEFORM",
@@ -143,6 +151,10 @@ async def test_run_chat_fenced_cas_failure_rolls_back_messages_version_and_head(
             assert stored is not None
             assert stored.head_version_id == original_head_id
             assert await MessageRepository(db).list_by_session(session_id) == []
+            assert await TurnRepository(db).get_fresh(
+                session_id,
+                "request-cas-failure",
+            ) is None
 
             version_count = await db.scalar(
                 sa.select(sa.func.count())

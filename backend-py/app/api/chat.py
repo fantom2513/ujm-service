@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from app.api.deps import ChatServiceDep
 from app.api.schemas import ApiError
 from app.services.chat.service import (
+    RequestIdConflict,
     RequestInProgress,
     SessionNotFound,
     VersionConflict,
@@ -16,11 +17,15 @@ from app.services.chat.service import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+MAX_REQUEST_ID_LENGTH = 128
 
 _USER_MESSAGES = {
+    "invalid-request": "Некорректный запрос",
     "session-required": "Необходимо указать идентификатор сессии",
+    "request-id-required": "Необходимо указать идентификатор запроса",
     "session-not-found": "Сессия не найдена",
     "request-in-progress": "Для этой сессии уже выполняется запрос",
+    "request-id-conflict": "Идентификатор запроса уже использован для других данных",
     "version-conflict": "Состояние сессии изменилось. Повторите запрос",
     "diagram-generation": "Схема не сформирована. Перезагрузите страницу или повторите попытку позже",
 }
@@ -46,6 +51,12 @@ async def chat(request: Request, chat_service: ChatServiceDep) -> JSONResponse:
     if not session_id:
         return _api_error(400, "session-required", session_id)
 
+    request_id = str(form.get("requestId", "") or "").strip()
+    if not request_id:
+        return _api_error(400, "request-id-required", session_id)
+    if len(request_id) > MAX_REQUEST_ID_LENGTH:
+        return _api_error(400, "invalid-request", session_id)
+
     message = str(form.get("message", "") or "")
     action_type = str(form.get("actionType", "") or "FREEFORM")
     client_mermaid = str(form.get("mermaidCode", "") or "")
@@ -54,6 +65,7 @@ async def chat(request: Request, chat_service: ChatServiceDep) -> JSONResponse:
     try:
         result = await chat_service.run_chat(
             session_id=session_id,
+            request_id=request_id,
             user_id=user_id,
             message=message,
             action_type=action_type,
@@ -63,6 +75,8 @@ async def chat(request: Request, chat_service: ChatServiceDep) -> JSONResponse:
         return _api_error(404, "session-not-found", session_id)
     except RequestInProgress:
         return _api_error(409, "request-in-progress", session_id)
+    except RequestIdConflict:
+        return _api_error(409, "request-id-conflict", session_id)
     except VersionConflict:
         return _api_error(409, "version-conflict", session_id)
     except Exception:

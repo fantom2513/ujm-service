@@ -9,12 +9,14 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.api.schemas import ChatResult
 from app.config import Settings
+from app.domain.chat_request import compute_chat_request_hash
 from app.domain.undo import is_undo_request
 from app.infrastructure.db.models import DiagramVersion, Message, Session
 from app.infrastructure.db.repositories import (
     DiagramVersionRepository,
     MessageRepository,
     SessionRepository,
+    TurnRepository,
 )
 from app.infrastructure.llm.deadline import LLMDeadline
 from app.services.openai.chat import ChatEditOptions, chat_edit
@@ -29,7 +31,11 @@ class SessionNotFound(Exception):
 
 
 class RequestInProgress(Exception):
-    """The authorized session already has a live chat lease."""
+    """The request or authorized session is already being processed."""
+
+
+class RequestIdConflict(Exception):
+    """The request ID was already used for a different chat payload."""
 
 
 class VersionConflict(Exception):
@@ -95,6 +101,7 @@ class ChatService:
         self,
         *,
         session_id: str,
+        request_id: str,
         user_id: str | None,
         message: str,
         action_type: str,
@@ -130,6 +137,42 @@ class ChatService:
                         raise SessionNotFound
 
         deadline = LLMDeadline.from_timeout_ms(self._settings.llm_deadline_ms)
+        # Exact undo phrases take precedence over the frontend action. Resolve
+        # this before hashing so request identity matches the action we execute.
+        resolved_action = (
+            "RESTORE_PREVIOUS" if is_undo_request(message) else action_type
+        )
+        request_hash = compute_chat_request_hash(
+            message=message,
+            effective_action_type=resolved_action,
+        )
+        claim_token = secrets.token_urlsafe(32)
+        remaining_seconds = deadline.require_remaining()
+        claim_acquired = False
+        claim_completed = False
+
+        async with self._db.begin():
+            turns = TurnRepository(self._db)
+            claimed_turn = await turns.claim_or_take_over(
+                session_id=session_id,
+                request_id=request_id,
+                request_hash=request_hash,
+                claim_token=claim_token,
+                remaining_seconds=remaining_seconds,
+            )
+            if claimed_turn is None:
+                current_turn = await turns.get_fresh(session_id, request_id)
+                if current_turn is None:
+                    # The conflicting row may have been removed between the
+                    # upsert and classification. Let a retry claim it cleanly.
+                    raise RequestInProgress
+                if current_turn.request_hash != request_hash:
+                    raise RequestIdConflict
+                if current_turn.response_json is not None:
+                    return ChatResult.model_validate(current_turn.response_json)
+                raise RequestInProgress
+            claim_acquired = True
+
         lock_token = secrets.token_urlsafe(32)
         lease_claimed = False
         heartbeat_task: asyncio.Task[None] | None = None
@@ -175,19 +218,18 @@ class ChatService:
                 name=f"chat-lease-heartbeat:{session_id}",
             )
 
-            # Exact undo phrases take precedence over the frontend action. This
-            # keeps undo deterministic even when an older client sends FREEFORM.
-            resolved_action = (
-                "RESTORE_PREVIOUS" if is_undo_request(message) else action_type
-            )
             if resolved_action == "RESTORE_PREVIOUS":
-                return await self._apply_undo(
+                result = await self._apply_undo(
                     session_id=session_id,
+                    request_id=request_id,
+                    claim_token=claim_token,
                     head_id=head_id,
                     current_mermaid=current_mermaid,
                     previous_mermaid=previous_mermaid,
                     lock_token=lock_token,
                 )
+                claim_completed = True
+                return result
 
             edit_result = await chat_edit(
                 ChatEditOptions(
@@ -203,6 +245,11 @@ class ChatService:
                 deadline=deadline,
             )
 
+            result = ChatResult(
+                session_id=session_id,
+                mermaid_code=edit_result.mermaid_code,
+                message=edit_result.message,
+            )
             async with self._db.begin():
                 messages.add(Message(session_id=session_id, role="user", text=message))
                 messages.add(
@@ -227,12 +274,20 @@ class ChatService:
                 )
                 if head_updated != 1:
                     raise VersionConflict
+                completed = await TurnRepository(self._db).complete(
+                    session_id=session_id,
+                    request_id=request_id,
+                    claim_token=claim_token,
+                    response_json=result.model_dump(
+                        by_alias=True,
+                        exclude_none=True,
+                    ),
+                )
+                if completed != 1:
+                    raise RequestInProgress
 
-            return ChatResult(
-                session_id=session_id,
-                mermaid_code=edit_result.mermaid_code,
-                message=edit_result.message,
-            )
+            claim_completed = True
+            return result
         finally:
             if heartbeat_task is not None:
                 heartbeat_task.cancel()
@@ -246,6 +301,8 @@ class ChatService:
                         session_id,
                         exc_info=True,
                     )
+            if claim_acquired and not claim_completed:
+                await self._cleanup_claim(session_id, request_id, claim_token)
             if lease_claimed:
                 await self._release_lease(session_id, lock_token)
 
@@ -294,27 +351,69 @@ class ChatService:
                 session_id,
             )
 
+    async def _cleanup_claim(
+        self,
+        session_id: str,
+        request_id: str,
+        claim_token: str,
+    ) -> None:
+        try:
+            async with self._db_sessionmaker() as db:
+                async with db.begin():
+                    await TurnRepository(db).delete_incomplete_owned(
+                        session_id=session_id,
+                        request_id=request_id,
+                        claim_token=claim_token,
+                    )
+        except Exception:
+            logger.warning(
+                "Chat request claim cleanup failed for session %s request %s",
+                session_id,
+                request_id,
+                exc_info=True,
+            )
+
     async def _apply_undo(
         self,
         *,
         session_id: str,
+        request_id: str,
+        claim_token: str,
         head_id: int,
         current_mermaid: str,
         previous_mermaid: str | None,
         lock_token: str,
     ) -> ChatResult:
         if previous_mermaid is None:
-            return ChatResult(
+            result = ChatResult(
                 session_id=session_id,
                 mermaid_code=current_mermaid,
                 message="Предыдущая версия схемы недоступна.",
             )
+            async with self._db.begin():
+                completed = await TurnRepository(self._db).complete(
+                    session_id=session_id,
+                    request_id=request_id,
+                    claim_token=claim_token,
+                    response_json=result.model_dump(
+                        by_alias=True,
+                        exclude_none=True,
+                    ),
+                )
+                if completed != 1:
+                    raise RequestInProgress
+            return result
 
         sessions = SessionRepository(self._db)
         versions = DiagramVersionRepository(self._db)
 
         # Undo is append-only: preserve every old row, copy the previous
         # Mermaid into a new child of the current head, then move the head.
+        result = ChatResult(
+            session_id=session_id,
+            mermaid_code=previous_mermaid,
+            message="Предыдущая версия схемы восстановлена.",
+        )
         async with self._db.begin():
             restored = DiagramVersion(
                 session_id=session_id,
@@ -331,9 +430,16 @@ class ChatService:
             )
             if head_updated != 1:
                 raise VersionConflict
+            completed = await TurnRepository(self._db).complete(
+                session_id=session_id,
+                request_id=request_id,
+                claim_token=claim_token,
+                response_json=result.model_dump(
+                    by_alias=True,
+                    exclude_none=True,
+                ),
+            )
+            if completed != 1:
+                raise RequestInProgress
 
-        return ChatResult(
-            session_id=session_id,
-            mermaid_code=previous_mermaid,
-            message="Предыдущая версия схемы восстановлена.",
-        )
+        return result

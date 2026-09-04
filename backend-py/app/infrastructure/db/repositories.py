@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from sqlalchemy import func, or_, select, update
+from sqlalchemy import delete, func, or_, select, update
+from sqlalchemy.dialects.postgresql import insert as postgresql_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.infrastructure.db.models import DiagramVersion, Message, Session
+from app.infrastructure.db.models import DiagramVersion, Message, Session, Turn
 
 CHAT_LEASE_TTL = timedelta(seconds=30)
+REQUEST_CLAIM_SAFETY_MARGIN = timedelta(seconds=30)
 
 # Repositories own concrete DB operations for one table each. They never
 # call commit()/begin() and never open their own transaction — the
@@ -184,3 +186,109 @@ class MessageRepository:
             .order_by(Message.seq)
         )
         return list(result.scalars().all())
+
+
+class TurnRepository:
+    def __init__(self, db: AsyncSession) -> None:
+        self._db = db
+
+    async def claim_or_take_over(
+        self,
+        *,
+        session_id: str,
+        request_id: str,
+        request_hash: str,
+        claim_token: str,
+        remaining_seconds: float,
+    ) -> Turn | None:
+        """Create a claim or atomically take over an expired matching claim."""
+        if remaining_seconds <= 0:
+            raise ValueError("remaining_seconds must be positive before claiming")
+
+        database_now = func.clock_timestamp()
+        claim_lifetime = timedelta(seconds=remaining_seconds)
+        claim_lifetime += REQUEST_CLAIM_SAFETY_MARGIN
+        statement = (
+            postgresql_insert(Turn)
+            .values(
+                session_id=session_id,
+                request_id=request_id,
+                request_hash=request_hash,
+                response_json=None,
+                claim_token=claim_token,
+                claimed_until=database_now + claim_lifetime,
+            )
+            .on_conflict_do_update(
+                index_elements=[Turn.session_id, Turn.request_id],
+                set_={
+                    "claim_token": claim_token,
+                    "claimed_until": database_now + claim_lifetime,
+                },
+                where=(
+                    (Turn.request_hash == request_hash)
+                    & Turn.response_json.is_(None)
+                    & (Turn.claimed_until <= database_now)
+                ),
+            )
+            .returning(Turn)
+            .execution_options(populate_existing=True)
+        )
+        result = await self._db.execute(statement)
+        return result.scalar_one_or_none()
+
+    async def get_fresh(self, session_id: str, request_id: str) -> Turn | None:
+        """Read the current request row, refreshing any cached ORM instance."""
+        result = await self._db.execute(
+            select(Turn)
+            .where(
+                Turn.session_id == session_id,
+                Turn.request_id == request_id,
+            )
+            .execution_options(populate_existing=True)
+        )
+        return result.scalar_one_or_none()
+
+    async def complete(
+        self,
+        *,
+        session_id: str,
+        request_id: str,
+        claim_token: str,
+        response_json: dict[str, object],
+    ) -> int:
+        """Store a response only while this token owns a live incomplete claim."""
+        database_now = func.clock_timestamp()
+        result = await self._db.execute(
+            update(Turn)
+            .where(
+                Turn.session_id == session_id,
+                Turn.request_id == request_id,
+                Turn.claim_token == claim_token,
+                Turn.response_json.is_(None),
+                Turn.claimed_until > database_now,
+            )
+            .values(
+                response_json=response_json,
+                claim_token=None,
+                claimed_until=None,
+            )
+        )
+        return result.rowcount
+
+    async def delete_incomplete_owned(
+        self,
+        *,
+        session_id: str,
+        request_id: str,
+        claim_token: str,
+    ) -> int:
+        """Delete only this token's incomplete claim during failure cleanup."""
+        result = await self._db.execute(
+            delete(Turn).where(
+                Turn.session_id == session_id,
+                Turn.request_id == request_id,
+                Turn.claim_token == claim_token,
+                Turn.response_json.is_(None),
+            )
+        )
+        return result.rowcount

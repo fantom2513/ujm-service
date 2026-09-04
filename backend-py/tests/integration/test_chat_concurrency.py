@@ -6,7 +6,11 @@ import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.infrastructure.db.models import DiagramVersion, Session
-from app.infrastructure.db.repositories import MessageRepository, SessionRepository
+from app.infrastructure.db.repositories import (
+    MessageRepository,
+    SessionRepository,
+    TurnRepository,
+)
 from app.infrastructure.llm.errors import LLMError
 from app.services.chat.service import VersionConflict
 from app.services.openai.chat import ChatEditResult
@@ -22,6 +26,7 @@ async def run_chat(factory, session_id: str, message: str = "change"):
     async with factory() as db:
         return await make_chat_service(db, factory).run_chat(
             session_id=session_id,
+            request_id=f"request-{message}",
             user_id=None,
             message=message,
             action_type="FREEFORM",
@@ -98,6 +103,11 @@ async def test_llm_error_still_releases_lease(real_database_url, monkeypatch):
         with pytest.raises(RuntimeError, match="injected LLM failure"):
             await run_chat(factory, session_id)
         await assert_lease_released(factory, session_id)
+        async with factory() as db:
+            assert await TurnRepository(db).get_fresh(
+                session_id,
+                "request-change",
+            ) is None
     finally:
         await delete_session(engine, session_id)
         await engine.dispose()
@@ -113,7 +123,12 @@ async def test_llm_timeout_uses_boundary_deadline_and_rolls_back_chat_writes(
     session_id = await create_initial_session(factory)
     deadline_created = False
     deadline_budget_ms: int | None = None
-    deadline_sentinel = object()
+
+    class DeadlineSentinel:
+        def require_remaining(self) -> float:
+            return 120.0
+
+    deadline_sentinel = DeadlineSentinel()
     heartbeat_started = asyncio.Event()
     heartbeat_stopped = asyncio.Event()
     hold_heartbeat = asyncio.Event()
@@ -171,6 +186,7 @@ async def test_llm_timeout_uses_boundary_deadline_and_rolls_back_chat_writes(
             with pytest.raises(LLMError) as exc_info:
                 await service.run_chat(
                     session_id=session_id,
+                    request_id="request-timeout",
                     user_id="owner",
                     message="change",
                     action_type="FREEFORM",
@@ -189,6 +205,10 @@ async def test_llm_timeout_uses_boundary_deadline_and_rolls_back_chat_writes(
             assert stored.lock_token is None
             assert stored.locked_until is None
             assert await MessageRepository(db).list_by_session(session_id) == []
+            assert await TurnRepository(db).get_fresh(
+                session_id,
+                "request-timeout",
+            ) is None
             version_count = await db.scalar(
                 sa.select(sa.func.count())
                 .select_from(DiagramVersion)
@@ -225,6 +245,11 @@ async def test_cancellation_stops_heartbeat_and_releases_lease(
         with pytest.raises(asyncio.CancelledError):
             await task
         await assert_lease_released(factory, session_id)
+        async with factory() as db:
+            assert await TurnRepository(db).get_fresh(
+                session_id,
+                "request-change",
+            ) is None
     finally:
         hold_llm.set()
         await delete_session(engine, session_id)
@@ -271,6 +296,7 @@ async def test_heartbeat_uses_another_session_and_main_db_is_idle_during_llm(
             task = asyncio.create_task(
                 service.run_chat(
                     session_id=session_id,
+                    request_id="request-heartbeat",
                     user_id=None,
                     message="change",
                     action_type="FREEFORM",

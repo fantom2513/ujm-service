@@ -34,6 +34,7 @@ async def test_anonymous_session_is_bound_to_supplied_user(
         async with factory() as db:
             await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
+                request_id="request-bind-owner",
                 user_id="alice",
                 message="change",
                 action_type="FREEFORM",
@@ -67,6 +68,7 @@ async def test_anonymous_bind_survives_later_llm_failure(
             try:
                 await make_chat_service(db, factory).run_chat(
                     session_id=session_id,
+                    request_id="request-bind-before-error",
                     user_id="alice",
                     message="change",
                     action_type="FREEFORM",
@@ -107,6 +109,7 @@ async def test_concurrent_bind_by_different_users_chooses_exactly_one_owner(
         async with factory() as db:
             return await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
+                request_id=f"request-competing-owner-{user_id}",
                 user_id=user_id,
                 message="change",
                 action_type="FREEFORM",
@@ -166,10 +169,11 @@ async def test_concurrent_bind_by_same_user_allows_both_requests(
     monkeypatch.setattr(SessionRepository, "acquire_lease", observed_acquire)
     monkeypatch.setattr("app.services.chat.service.chat_edit", stop_at_llm)
 
-    async def run_as_alice():
+    async def run_as_alice(request_id: str):
         async with factory() as db:
             return await make_chat_service(db, factory).run_chat(
                 session_id=session_id,
+                request_id=request_id,
                 user_id="alice",
                 message="change",
                 action_type="FREEFORM",
@@ -177,8 +181,8 @@ async def test_concurrent_bind_by_same_user_allows_both_requests(
             )
 
     try:
-        first = asyncio.create_task(run_as_alice())
-        second = asyncio.create_task(run_as_alice())
+        first = asyncio.create_task(run_as_alice("request-alice-1"))
+        second = asyncio.create_task(run_as_alice("request-alice-2"))
         await asyncio.wait_for(llm_entered.wait(), timeout=1)
         await asyncio.wait_for(both_reached_acquire.wait(), timeout=1)
         done, _ = await asyncio.wait_for(
@@ -228,6 +232,7 @@ async def test_owned_session_is_hidden_from_different_user(
             try:
                 await make_chat_service(db, factory).run_chat(
                     session_id=session_id,
+                    request_id="request-wrong-owner",
                     user_id="mallory",
                     message="steal it",
                     action_type="FREEFORM",
@@ -264,6 +269,7 @@ async def test_unknown_session_raises_same_not_found_error(
             try:
                 await make_chat_service(db, factory).run_chat(
                     session_id=unknown_id,
+                    request_id="request-missing-session",
                     user_id=None,
                     message="change",
                     action_type="FREEFORM",

@@ -921,6 +921,7 @@ async function sendChat(): Promise<void> {
     form.set("mermaidCode", state.result.mermaidCode);
     form.set("message", text);
     form.set("actionType", actionType);
+    form.set("requestId", userMessage.id);
     if (attachmentFile) form.set("file", attachmentFile);
 
     const result = await sendChatMessage(state.result.sessionId, form);
