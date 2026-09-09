@@ -8,6 +8,8 @@ stages:
   - Dockerfile
   - frontend/**/*
   - backend/**/*
+  - backend-py/**/*
+  - scripts/**/*
   - shared/**/*
   - docker-compose*.yaml
   - package.json
@@ -16,22 +18,59 @@ stages:
 
 test-py:
   stage: test
-  image: nexus.sogaz.ru/python:3.12-bookworm-slim
+  image: nexus.sogaz.ru/python:3.12-bookworm
+  services:
+    - name: nexus.sogaz.ru/library/postgres:15-alpine
+      alias: postgres
+  variables:
+    PIP_INDEX_URL: https://nexus.sogaz.ru/repository/pypi-group/simple
+    PIP_TRUSTED_HOST: nexus.sogaz.ru
+    UV_INDEX_URL: https://nexus.sogaz.ru/repository/pypi-group/simple
+    UV_SYSTEM_CERTS: "true"
+    UV_INSECURE_HOST: nexus.sogaz.ru
+    POSTGRES_DB: uxarch_test
+    POSTGRES_USER: uxarch_test
+    POSTGRES_PASSWORD: ci-test-only
+    DATABASE_URL: postgresql+asyncpg://uxarch_test:ci-test-only@postgres:5432/uxarch_test
+  tags:
+    - ux02-copilot_docker
   script:
     - pip install --no-cache-dir uv
     - cd backend-py
     - uv sync
-    - uv run pytest -v
+    - |
+      for i in $(seq 1 30); do
+        if uv run alembic current >/dev/null 2>&1; then
+          echo "PostgreSQL ready"
+          break
+        fi
+        if [ "$i" = "30" ]; then
+          echo "PostgreSQL did not become ready" && exit 1
+        fi
+        sleep 1
+      done
+    - uv run pytest -q -ra
   rules:
-    # A bare `changes:` (no `if:`) evaluates to true unconditionally on
-    # pipeline sources with no prior-commit diff to compare against
-    # (scheduled/tag pipelines) — guard it to ordinary push/MR pipelines,
-    # matching how every other job in this file pairs `changes:` with an
-    # explicit `if:`.
     - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - backend-py/**/*
-        - .gitlab-ci.yml
+      changes: *changes
+    - if: $CI_COMMIT_BRANCH == "test" || $CI_COMMIT_BRANCH == "master"
+
+test-node:
+  stage: test
+  image: nexus.sogaz.ru/node:24-bookworm-slim
+  variables:
+    NPM_CONFIG_REGISTRY: https://nexus.sogaz.ru/npm/
+    NPM_CONFIG_STRICT_SSL: "false"
+  tags:
+    - ux02-copilot_docker
+  script:
+    - npm install --no-audit --no-fund
+    - npm test
+    - npm run build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: *changes
+    - if: $CI_COMMIT_BRANCH == "test" || $CI_COMMIT_BRANCH == "master"
 
 build-test:
   stage: build
@@ -96,7 +135,7 @@ deploy-test:
   rules:
     - if: $CI_COMMIT_BRANCH == "test"
       changes: *changes
-      when: always
+      when: on_success
     - if: $CI_COMMIT_BRANCH == "test"
       when: manual
 

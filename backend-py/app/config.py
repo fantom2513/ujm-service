@@ -7,6 +7,7 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ResponseFormatMode = Literal["json_schema", "json_object", "none"]
+IdentityMode = Literal["anonymous", "trusted_header"]
 
 
 def _megabytes_env_to_bytes(raw: str | None, fallback_mb: int) -> int:
@@ -27,6 +28,7 @@ class Settings(BaseSettings):
     app_host: str = "127.0.0.1"
     app_port: int = 4173
     product_home_url: str = "http://localhost:3000/"
+    identity_mode: IdentityMode = "anonymous"
 
     max_text_file_mb: str | None = None
     max_recording_file_mb: str | None = None
@@ -36,7 +38,7 @@ class Settings(BaseSettings):
     llm_url: str = "http://localhost:8000"
     llm_model: str = "google/gemma-4"
     llm_api_key: str | None = None
-    llm_timeout_ms: int = 120_000
+    llm_deadline_ms: int = 120_000
     llm_connect_timeout_ms: int = 5_000
     llm_pool_timeout_ms: int = 5_000
     llm_temperature: float = 0.1
@@ -51,6 +53,11 @@ class Settings(BaseSettings):
     jira_insecure_tls: bool = Field(default=False, validation_alias="JIRA_TLS_INSECURE")
 
     database_url: str = "postgresql+asyncpg://uxarch:uxarch@localhost:5432/uxarch"
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
+    db_pool_timeout: int = 5
+    db_statement_timeout_ms: int = 30_000
+    db_idle_in_transaction_timeout_ms: int = 30_000
     redis_url: str = "redis://localhost:6379/2"
     redis_key_prefix: str = "uxarch:"
 

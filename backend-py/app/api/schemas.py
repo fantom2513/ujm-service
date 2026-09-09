@@ -24,6 +24,7 @@ class SourceContext(CamelModel):
 
 
 class DiagramResult(CamelModel):
+    session_id: str | None = None
     title: str
     mermaid_code: str
     source_text: str
@@ -31,6 +32,12 @@ class DiagramResult(CamelModel):
     details: str
     chat: list = []
     warnings: list[str] = []
+
+
+class ChatResult(CamelModel):
+    session_id: str
+    mermaid_code: str
+    message: str
 
 
 class ApiError(CamelModel):

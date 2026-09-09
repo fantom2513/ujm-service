@@ -9,7 +9,14 @@ export type UserErrorCode =
   | "source-unavailable"
   | "diagram-generation"
   | "attachment-error"
-  | "invalid-request";
+  | "invalid-request"
+  | "session-required"
+  | "request-id-required"
+  | "session-not-found"
+  | "request-in-progress"
+  | "request-id-conflict"
+  | "version-conflict"
+  | "chat-message-failed";
 
 export interface FileMeta {
   name: string;
@@ -38,6 +45,7 @@ export interface ChatMessage {
 }
 
 export interface DiagramResult {
+  sessionId: string;
   title: string;
   mermaidCode: string;
   sourceText: string;
@@ -45,4 +53,10 @@ export interface DiagramResult {
   details?: string;
   chat: ChatMessage[];
   warnings: string[];
+}
+
+export interface ChatResult {
+  sessionId: string;
+  mermaidCode: string;
+  message: string;
 }

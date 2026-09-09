@@ -1,4 +1,5 @@
 import type { ApiError } from "../types/index.ts";
+import type { ChatResult, DiagramResult } from "../../../shared/types/index.ts";
 
 export async function getConfig(): Promise<{ productHomeUrl: string }> {
   const response = await fetch("api/config");
@@ -6,22 +7,23 @@ export async function getConfig(): Promise<{ productHomeUrl: string }> {
   return { productHomeUrl: payload.productHomeUrl || "http://localhost:3000/" };
 }
 
-export async function generateDiagram(form: FormData): Promise<unknown> {
-  return requestJson("api/generate", form);
+export async function generateDiagram(form: FormData): Promise<DiagramResult> {
+  return requestJson<DiagramResult>("api/generate", form);
 }
 
-export async function sendChatMessage(form: FormData): Promise<unknown> {
-  return requestJson("api/chat", form);
+export async function sendChatMessage(sessionId: string, form: FormData): Promise<ChatResult> {
+  form.set("sessionId", sessionId);
+  return requestJson<ChatResult>("api/chat", form);
 }
 
-async function requestJson(url: string, body: FormData): Promise<unknown> {
+async function requestJson<T>(url: string, body: FormData): Promise<T> {
   const response = await fetch(url, { method: "POST", body });
   const payload = await response.json();
   if (!response.ok || !payload.ok) {
     const error = payload.error as ApiError;
     throw error;
   }
-  return payload.result;
+  return payload.result as T;
 }
 
 export async function sendFeedback(payload: { messageId: string; kind: "rating" | "copy"; value?: "up" | "down" }): Promise<void> {

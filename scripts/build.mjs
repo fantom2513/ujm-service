@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, extname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { stripTypeScriptTypes } from "node:module";
@@ -10,7 +10,7 @@ const distRoot = join(frontendRoot, "dist");
 const assetsRoot = join(distRoot, "assets");
 const referenceIconsRoot = join(root, "Референсы", "Иконки");
 const chatIconsRoot = join(root, "Референсы", "Result", "Chat", "icons");
-const assetVersion = "chat-details-files-1";
+const assetVersion = "local-mermaid-uuid-fallback-1";
 
 async function walk(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -33,6 +33,7 @@ async function build() {
   await copyTextFile(join(srcRoot, "styles.css"), join(assetsRoot, "styles.css"));
   await copyReferenceIcons();
   await copySampleDocument();
+  await copyMermaidRuntime();
 
   const files = await walk(srcRoot);
   for (const file of files) {
@@ -70,6 +71,26 @@ async function copyReferenceIcons() {
 
 async function copySampleDocument() {
   await copyFile(join(root, "Пример ТЗ.docx"), join(distRoot, "Пример ТЗ.docx"));
+}
+
+async function copyMermaidRuntime() {
+  const source = join(root, "node_modules", "mermaid", "dist");
+  const destination = join(distRoot, "vendor", "mermaid");
+  await mkdir(destination, { recursive: true });
+  await copyFile(
+    join(source, "mermaid.esm.min.mjs"),
+    join(destination, "mermaid.esm.min.mjs"),
+  );
+  await cp(
+    join(source, "chunks", "mermaid.esm.min"),
+    join(destination, "chunks", "mermaid.esm.min"),
+    {
+      recursive: true,
+      // Source maps are useful for library development but add about 12 MB to
+      // the deployed image and are not needed to render diagrams.
+      filter: (path) => !path.endsWith(".map"),
+    },
+  );
 }
 
 build().then(() => {

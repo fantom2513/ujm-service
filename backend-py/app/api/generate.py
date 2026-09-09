@@ -5,6 +5,7 @@ import logging
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
+from app.api.deps import ChatServiceDep, CurrentIdentity
 from app.api.schemas import ApiError, DiagramResult, FileMeta, SourceContext
 from app.config import get_settings
 from app.domain.generate_guard import required_source_error
@@ -52,7 +53,11 @@ def _api_error(
 
 
 @router.post("/api/generate")
-async def generate(request: Request):
+async def generate(
+    request: Request,
+    identity: CurrentIdentity,
+    chat_service: ChatServiceDep,
+):
     form = await request.form()
     source_type = form.get("sourceType")
     details = form.get("details", "") or ""
@@ -116,7 +121,21 @@ async def generate(request: Request):
         )
         return _api_error(500, "diagram-generation")
 
+    try:
+        session_id = await chat_service.create_session_with_version(
+            source_text=source.text,
+            additional_details=details,
+            principal=identity,
+            mermaid_code=mermaid_code,
+        )
+    except Exception:
+        # The service owns the transaction boundary, so an exception here
+        # has already rolled back session + V1 + head as one operation.
+        logger.exception("Failed to persist generated diagram")
+        return _api_error(500, "diagram-generation")
+
     result = DiagramResult(
+        session_id=session_id,
         title="Тестовая User Flow-схема",
         mermaid_code=mermaid_code,
         source_text=source.text,

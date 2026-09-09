@@ -1,9 +1,11 @@
-import type { ApiError, AppState } from "./types/index.ts";
+import type { AppState } from "./types/index.ts";
 import type { ChatMessage, DiagramResult, FileMeta, SourceType } from "../../shared/types/index.ts";
 import { generateDiagram, getConfig, sendChatMessage, sendFeedback } from "./api/client.ts";
+import { normalizeApiError } from "./api/errors.ts";
 import { inlineIcons } from "./generated/inline-icons.ts";
 import { clearState, defaultState, loadState, saveState } from "./state/session.ts";
 import { diagramSize, downloadPdf, downloadPng, downloadSvg, getCachedSvg, renderMermaid } from "./utils/export.ts";
+import { createId } from "./utils/id.ts";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 const iconUrl = (name: string): string => `assets/icons/${encodeURIComponent(name)}`;
@@ -47,8 +49,6 @@ let pendingChatScroll = false;
 let chatInputError = "";
 let pendingActionType: "FREEFORM" | "GROUP_SEMANTIC_BLOCKS" | "SIMPLIFY" | "HIGHLIGHT_MAIN_PATH" | "RESTORE_PREVIOUS" = "FREEFORM";
 const expandedUserMessages = new Set<string>();
-// Simple fixed window; token-aware trimming is future work (post Python migration).
-const CHAT_HISTORY_WINDOW = 10;
 
 void getConfig().then((config) => {
   state.config = config;
@@ -766,8 +766,6 @@ function bindResultEvents(): void {
     resizeChatTextarea();
   };
   chatTextarea?.addEventListener("input", syncChatTextarea);
-  chatTextarea?.addEventListener("change", syncChatTextarea);
-  chatTextarea?.addEventListener("keyup", syncChatTextarea);
   chatTextarea?.addEventListener("compositionstart", () => {
     isChatComposing = true;
   });
@@ -869,7 +867,7 @@ async function buildDiagram(): Promise<void> {
     form.set("details", state.start.details);
     if (state.start.sourceType === "link") form.set("link", state.start.link);
     if (selectedFile) form.set("file", selectedFile);
-    const result = await generateDiagram(form) as DiagramResult;
+    const result = await generateDiagram(form);
     result.details = state.start.details;
     sourceFile = selectedFile;
     sourceDetailsOpen = false;
@@ -881,7 +879,7 @@ async function buildDiagram(): Promise<void> {
     persist();
     void renderMermaidAndUpdate(result.mermaidCode);
   } catch (error) {
-    state.start.error = normalizeApiError(error);
+    state.start.error = normalizeApiError(error, "generate");
   } finally {
     isLoading = false;
     render();
@@ -896,7 +894,7 @@ async function sendChat(): Promise<void> {
   const draftBeforeSend = state.chatDraft;
 
   const userMessage: ChatMessage = {
-    id: crypto.randomUUID(),
+    id: createId(),
     role: "user",
     text: text || (attachments.length === 1 ? "Прикреплён файл" : `Прикреплено файлов: ${attachments.length}`),
     createdAt: new Date().toISOString(),
@@ -905,16 +903,14 @@ async function sendChat(): Promise<void> {
   };
   if (chatFiles.length) messageFiles.set(userMessage.id, [...chatFiles]);
 
-  const historyWindow = state.result.chat
-    .slice(-CHAT_HISTORY_WINDOW)
-    .map((entry) => ({ role: entry.role, text: entry.text }));
-
   const shouldScroll = isMessagesNearBottom();
   const actionType = pendingActionType;
   pendingActionType = "FREEFORM";
   const attachmentFile = chatFiles[0];
   state.result.chat.push(userMessage);
   state.chatDraft = "";
+  const chatTextarea = document.querySelector<HTMLTextAreaElement>("#chat-message");
+  if (chatTextarea) chatTextarea.value = "";
   chatInputError = "";
   isChatLoading = true;
   if (shouldScroll) queueChatScroll(true);
@@ -924,21 +920,18 @@ async function sendChat(): Promise<void> {
   try {
     const form = new FormData();
     form.set("mermaidCode", state.result.mermaidCode);
-    form.set("previousMermaidCode", state.previousMermaidCode ?? "");
     form.set("message", text);
     form.set("actionType", actionType);
-    form.set("sourceText", state.result.sourceText ?? "");
-    form.set("additionalDetails", state.result.details ?? "");
-    form.set("history", JSON.stringify(historyWindow));
+    form.set("requestId", userMessage.id);
     if (attachmentFile) form.set("file", attachmentFile);
 
-    const result = await sendChatMessage(form) as { mermaidCode: string; previousMermaidCode: string; message: string };
+    const result = await sendChatMessage(state.result.sessionId, form);
     if (!state.result) return;
 
-    state.previousMermaidCode = result.previousMermaidCode;
+    state.result.sessionId = result.sessionId;
     state.result.mermaidCode = result.mermaidCode;
     state.result.chat.push({
-      id: crypto.randomUUID(),
+      id: createId(),
       role: "assistant",
       text: result.message,
       createdAt: new Date().toISOString()
@@ -951,9 +944,9 @@ async function sendChat(): Promise<void> {
   } catch (error) {
     state.chatDraft = draftBeforeSend;
     if (state.result) {
-      const apiError = normalizeApiError(error);
+      const apiError = normalizeApiError(error, "chat");
       state.result.chat.push({
-        id: crypto.randomUUID(),
+        id: createId(),
         role: "assistant",
         text: apiError.message,
         createdAt: new Date().toISOString(),
@@ -1196,11 +1189,6 @@ function fileMeta(file: File): FileMeta {
 
 function extensionOf(name: string): string {
   return name.toLowerCase().split(".").pop() || "";
-}
-
-function normalizeApiError(error: unknown): ApiError {
-  if (error && typeof error === "object" && "message" in error) return error as ApiError;
-  return { code: "diagram-generation", message: "Схема не сформирована. Перезагрузите страницу или повторите попытку позже" };
 }
 
 function closeDownloadOnOutside(event: Event): void {

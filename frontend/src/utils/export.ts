@@ -15,7 +15,10 @@ let mermaidApi: MermaidApi | null = null;
 
 async function getMermaid(): Promise<MermaidApi> {
   if (mermaidApi) return mermaidApi;
-  const mod = await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs") as {
+  // Mermaid is copied into the frontend image during the build. Test and
+  // production browsers must not depend on access to a public CDN.
+  const moduleUrl = new URL("../../vendor/mermaid/mermaid.esm.min.mjs", import.meta.url).href;
+  const mod = await import(moduleUrl) as {
     default: MermaidApi;
   };
   mod.default.initialize({ startOnLoad: false, securityLevel: "strict" });
