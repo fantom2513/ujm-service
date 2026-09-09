@@ -4,9 +4,13 @@
 
 FROM nexus.sogaz.ru/node:24-bookworm-slim AS build
 WORKDIR /app
-RUN npm config set registry https://nexus.sogaz.ru/npm/
+
+RUN npm config set registry https://nexus.sogaz.ru/npm/ \
+    && npm config set strict-ssl false
+
 COPY package.json ./
 RUN npm install
+
 COPY . .
 RUN npm run build
 

@@ -5,6 +5,7 @@ import { normalizeApiError } from "./api/errors.ts";
 import { inlineIcons } from "./generated/inline-icons.ts";
 import { clearState, defaultState, loadState, saveState } from "./state/session.ts";
 import { diagramSize, downloadPdf, downloadPng, downloadSvg, getCachedSvg, renderMermaid } from "./utils/export.ts";
+import { createId } from "./utils/id.ts";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 const iconUrl = (name: string): string => `assets/icons/${encodeURIComponent(name)}`;
@@ -893,7 +894,7 @@ async function sendChat(): Promise<void> {
   const draftBeforeSend = state.chatDraft;
 
   const userMessage: ChatMessage = {
-    id: crypto.randomUUID(),
+    id: createId(),
     role: "user",
     text: text || (attachments.length === 1 ? "Прикреплён файл" : `Прикреплено файлов: ${attachments.length}`),
     createdAt: new Date().toISOString(),
@@ -930,7 +931,7 @@ async function sendChat(): Promise<void> {
     state.result.sessionId = result.sessionId;
     state.result.mermaidCode = result.mermaidCode;
     state.result.chat.push({
-      id: crypto.randomUUID(),
+      id: createId(),
       role: "assistant",
       text: result.message,
       createdAt: new Date().toISOString()
@@ -945,7 +946,7 @@ async function sendChat(): Promise<void> {
     if (state.result) {
       const apiError = normalizeApiError(error, "chat");
       state.result.chat.push({
-        id: crypto.randomUUID(),
+        id: createId(),
         role: "assistant",
         text: apiError.message,
         createdAt: new Date().toISOString(),
