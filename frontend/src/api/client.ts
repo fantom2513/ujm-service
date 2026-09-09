@@ -1,9 +1,23 @@
 import type { ApiError } from "../types/index.ts";
 import type { ChatResult, DiagramResult } from "../../../shared/types/index.ts";
 
+// A non-JSON response body (an HTML error page from a proxy/gateway on a
+// 502/504, an empty body, etc.) makes response.json() throw a raw
+// SyntaxError like `Unexpected token '<', "<!DOCTYPE "... is not valid
+// JSON`. Left uncaught, that message goes straight to the user instead of
+// something readable -- wrap it into a proper ApiError shape.
+async function parseJsonResponse(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    const error: ApiError = { code: "network-error", message: "Сервер вернул некорректный ответ" };
+    throw error;
+  }
+}
+
 export async function getConfig(): Promise<{ productHomeUrl: string }> {
   const response = await fetch("api/config");
-  const payload = await response.json();
+  const payload = await parseJsonResponse(response) as { productHomeUrl?: string };
   return { productHomeUrl: payload.productHomeUrl || "http://localhost:3000/" };
 }
 
@@ -18,7 +32,7 @@ export async function sendChatMessage(sessionId: string, form: FormData): Promis
 
 async function requestJson<T>(url: string, body: FormData): Promise<T> {
   const response = await fetch(url, { method: "POST", body });
-  const payload = await response.json();
+  const payload = await parseJsonResponse(response) as { ok: boolean; error?: ApiError; result?: unknown };
   if (!response.ok || !payload.ok) {
     const error = payload.error as ApiError;
     throw error;

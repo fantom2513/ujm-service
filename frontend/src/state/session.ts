@@ -24,10 +24,26 @@ export function loadState(): AppState {
   const raw = sessionStorage.getItem(storageKey);
   if (!raw) return structuredClone(defaultState);
   try {
-    return { ...structuredClone(defaultState), ...JSON.parse(raw) };
+    const restored = { ...structuredClone(defaultState), ...JSON.parse(raw) };
+    return clearUnrecoverableAttachment(restored);
   } catch {
     return structuredClone(defaultState);
   }
+}
+
+// File objects can't survive JSON.stringify, so a restored `start.file`/
+// `start.recording` is metadata for a File that no longer exists in memory
+// -- without this, the UI shows an attachment as if it's still attached
+// (no error, no remove/retry action) while every submit silently fails
+// "file-required". Clearing it here makes the UI honestly say "not
+// attached" instead of looking recovered but being non-functional.
+function clearUnrecoverableAttachment(state: AppState): AppState {
+  if (state.start.file || state.start.recording) {
+    state.start.file = undefined;
+    state.start.recording = undefined;
+    if (state.start.error?.field === "attachment") state.start.error = undefined;
+  }
+  return state;
 }
 
 export function saveState(state: AppState): void {

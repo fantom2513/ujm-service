@@ -16,7 +16,8 @@ export type UserErrorCode =
   | "request-in-progress"
   | "request-id-conflict"
   | "version-conflict"
-  | "chat-message-failed";
+  | "chat-message-failed"
+  | "network-error";
 
 export interface FileMeta {
   name: string;
