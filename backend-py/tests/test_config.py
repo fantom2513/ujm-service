@@ -14,7 +14,7 @@ def test_defaults_match_ts_backend():
     assert settings.identity_mode == "anonymous"
     assert settings.max_text_file_bytes == 10 * 1024 * 1024
     assert settings.max_recording_file_bytes == 100 * 1024 * 1024
-    assert settings.max_chat_attachment_bytes == 10 * 1024 * 1024
+    assert settings.max_chat_attachment_bytes == 20 * 1024 * 1024
     assert settings.request_timeout_ms == 120_000
     assert settings.llm_url == "http://localhost:8000"
     assert settings.llm_model == "google/gemma-4"

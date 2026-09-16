@@ -35,6 +35,7 @@ async def _run_chat(
     action_type: str = "FREEFORM",
     user_id: str | None = None,
     client_mermaid: str = "ignored",
+    attachment_context: str = "",
 ):
     async with factory() as db:
         return await make_chat_service(db, factory).run_chat(
@@ -44,6 +45,7 @@ async def _run_chat(
             message=message,
             action_type=action_type,
             client_mermaid=client_mermaid,
+            attachment_context=attachment_context,
         )
 
 
@@ -133,6 +135,128 @@ async def test_completed_request_replays_without_lease_context_llm_or_writes(
             "message": "Changed once",
         }
         assert "ok" not in turn.response_json
+    finally:
+        await delete_session(engine, session_id)
+        await engine.dispose()
+
+
+async def test_run_chat_passes_attachment_context_to_the_llm_prompt(
+    real_database_url,
+    monkeypatch,
+):
+    await upgrade_head()
+    engine = create_async_engine(real_database_url)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    session_id = await create_initial_session(factory)
+    captured_options = []
+
+    async def capturing_chat_edit(options, settings=None, *, deadline=None):
+        captured_options.append(options)
+        return ChatEditResult(
+            mermaid_code="flowchart LR\nA-->B",
+            message="Used the attachment",
+            usage=None,
+        )
+
+    monkeypatch.setattr("app.services.chat.service.chat_edit", capturing_chat_edit)
+
+    try:
+        await _run_chat(
+            factory,
+            session_id,
+            request_id="request-with-attachment",
+            message="what does the file say?",
+            attachment_context="Invoice total: 100 USD",
+        )
+
+        assert captured_options[0].attachment_context == "Invoice total: 100 USD"
+    finally:
+        await delete_session(engine, session_id)
+        await engine.dispose()
+
+
+async def test_same_request_id_with_different_attachment_content_conflicts(
+    real_database_url,
+    monkeypatch,
+):
+    # Requirement #7 in the tech-debt spec: reusing one requestId with
+    # different file content must not replay a result produced for another
+    # file -- it must be treated as a different (conflicting) request.
+    await upgrade_head()
+    engine = create_async_engine(real_database_url)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    session_id = await create_initial_session(factory)
+
+    async def successful_chat_edit(options, settings=None, *, deadline=None):
+        return ChatEditResult(
+            mermaid_code="flowchart LR\nA-->B",
+            message="Changed",
+            usage=None,
+        )
+
+    monkeypatch.setattr("app.services.chat.service.chat_edit", successful_chat_edit)
+
+    try:
+        await _run_chat(
+            factory,
+            session_id,
+            request_id="request-attachment-conflict",
+            message="explain the attachment",
+            attachment_context="Invoice total: 100 USD",
+        )
+
+        with pytest.raises(RequestIdConflict):
+            await _run_chat(
+                factory,
+                session_id,
+                request_id="request-attachment-conflict",
+                message="explain the attachment",
+                attachment_context="Invoice total: 200 USD",
+            )
+    finally:
+        await delete_session(engine, session_id)
+        await engine.dispose()
+
+
+async def test_same_request_id_with_same_attachment_content_replays(
+    real_database_url,
+    monkeypatch,
+):
+    await upgrade_head()
+    engine = create_async_engine(real_database_url)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    session_id = await create_initial_session(factory)
+    llm_calls = 0
+
+    async def successful_chat_edit(options, settings=None, *, deadline=None):
+        nonlocal llm_calls
+        llm_calls += 1
+        return ChatEditResult(
+            mermaid_code="flowchart LR\nA-->B",
+            message="Changed",
+            usage=None,
+        )
+
+    monkeypatch.setattr("app.services.chat.service.chat_edit", successful_chat_edit)
+
+    try:
+        first = await _run_chat(
+            factory,
+            session_id,
+            request_id="request-attachment-replay",
+            message="explain the attachment",
+            attachment_context="Invoice total: 100 USD",
+        )
+        replay = await _run_chat(
+            factory,
+            session_id,
+            request_id="request-attachment-replay",
+            message="explain the attachment",
+            attachment_context="Invoice total: 100 USD",
+        )
+
+        assert replay == first
+        assert llm_calls == 1
     finally:
         await delete_session(engine, session_id)
         await engine.dispose()

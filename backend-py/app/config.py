@@ -92,7 +92,7 @@ class Settings(BaseSettings):
 
     @property
     def max_chat_attachment_bytes(self) -> int:
-        return _megabytes_env_to_bytes(self.max_chat_attachment_mb, 10)
+        return _megabytes_env_to_bytes(self.max_chat_attachment_mb, 20)
 
 
 @lru_cache

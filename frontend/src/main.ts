@@ -3,7 +3,8 @@ import type { ChatMessage, DiagramResult, FileMeta, SourceType } from "../../sha
 import { generateDiagram, getConfig, sendChatMessage, sendFeedback } from "./api/client.ts";
 import { normalizeApiError } from "./api/errors.ts";
 import { inlineIcons } from "./generated/inline-icons.ts";
-import { clearState, defaultState, loadState, saveState } from "./state/session.ts";
+import { clearState, isCurrentChatSession, loadState, resetState, saveState } from "./state/session.ts";
+import { CHAT_ATTACHMENT_ACCEPT, extensionOf, validateChatFile } from "./utils/chatAttachments.ts";
 import { diagramSize, downloadPdf, downloadPng, downloadSvg, getCachedSvg, renderMermaid } from "./utils/export.ts";
 import { createId } from "./utils/id.ts";
 
@@ -15,19 +16,6 @@ const MAX_ZOOM = 2;
 const ZOOM_STEP = 0.25;
 const RESULT_CHAT_WIDTH = 440;
 const RESULT_TOOLBAR_HEIGHT = 72;
-const CHAT_ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
-const CHAT_ATTACHMENT_FORMATS = ["txt", "docx", "pdf", "xls", "xlsx", "csv"] as const;
-const CHAT_ATTACHMENT_MIME_TYPES = new Set([
-  "text/plain",
-  "text/csv",
-  "application/csv",
-  "application/pdf",
-  "application/msword",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-]);
-const CHAT_ATTACHMENT_ACCEPT = CHAT_ATTACHMENT_FORMATS.map((format) => `.${format}`).join(",");
 let state: AppState = loadState();
 let selectedFile: File | undefined;
 let sourceFile: File | undefined;
@@ -716,12 +704,12 @@ function bindResultEvents(): void {
   document.querySelector<HTMLButtonElement>("#modal-confirm")?.addEventListener("click", () => {
     const target = activeModal;
     clearState();
-    state = structuredClone(defaultState);
+    state = resetState(state);
     activeModal = null;
     // These live outside AppState (File objects aren't serializable), so
-    // clearState()/defaultState above never touches them -- without this,
-    // a "new diagram" reset leaves selectedFile pointing at the previous
-    // session's file, and buildDiagram() silently sends it again.
+    // resetState() above never touches them -- without this, a "new diagram"
+    // reset leaves selectedFile pointing at the previous session's file, and
+    // buildDiagram() silently sends it again.
     selectedFile = undefined;
     sourceFile = undefined;
     chatFiles = [];
@@ -948,6 +936,7 @@ async function sendChat(): Promise<void> {
   const actionType = pendingActionType;
   pendingActionType = "FREEFORM";
   const attachmentFile = chatFiles[0];
+  const requestedSessionId = state.result.sessionId;
   state.result.chat.push(userMessage);
   state.chatDraft = "";
   const chatTextarea = document.querySelector<HTMLTextAreaElement>("#chat-message");
@@ -968,7 +957,7 @@ async function sendChat(): Promise<void> {
     if (attachmentFile) form.set("file", attachmentFile);
 
     const result = await sendChatMessage(state.result.sessionId, form);
-    if (!state.result) return;
+    if (!isCurrentChatSession(state, requestedSessionId)) return;
 
     state.result.sessionId = result.sessionId;
     state.result.mermaidCode = result.mermaidCode;
@@ -984,8 +973,8 @@ async function sendChat(): Promise<void> {
     if (shouldScroll) queueChatScroll(true);
     void renderMermaidAndUpdate(result.mermaidCode);
   } catch (error) {
-    state.chatDraft = draftBeforeSend;
-    if (state.result) {
+    if (isCurrentChatSession(state, requestedSessionId)) {
+      state.chatDraft = draftBeforeSend;
       const apiError = normalizeApiError(error, "chat");
       state.result.chat.push({
         id: createId(),
@@ -1124,7 +1113,7 @@ function getChatAttachments(): FileMeta[] {
 function addChatFiles(files: File[]): void {
   chatInputError = "";
   for (const file of files) {
-    const validationError = validateChatFile(file);
+    const validationError = validateChatFile(file, chatFiles);
     if (validationError) {
       chatInputError = validationError;
       continue;
@@ -1142,24 +1131,6 @@ function removeChatFile(index: number): void {
   const next = chatFiles.map(fileMeta);
   state.chatAttachments = next.length ? next : undefined;
   state.chatAttachment = next[0];
-}
-
-function validateChatFile(file: File): string {
-  if (file.size > CHAT_ATTACHMENT_MAX_BYTES) return "Размер файла не должен превышать 10 МБ";
-
-  const extension = extensionOf(file.name);
-  if (!isAllowedChatAttachmentExtension(extension)) return "Этот формат файла не поддерживается";
-  if (file.type && !CHAT_ATTACHMENT_MIME_TYPES.has(file.type)) return "Этот формат файла не поддерживается";
-  if (chatFiles.some((item) => isSameFile(item, file))) return "Файл уже добавлен";
-  return "";
-}
-
-function isAllowedChatAttachmentExtension(extension: string): boolean {
-  return CHAT_ATTACHMENT_FORMATS.includes(extension as typeof CHAT_ATTACHMENT_FORMATS[number]);
-}
-
-function isSameFile(left: File, right: File): boolean {
-  return left.name === right.name && left.size === right.size && left.lastModified === right.lastModified;
 }
 
 function updateSourceDetailsOverflow(): void {
@@ -1228,10 +1199,6 @@ function fileMeta(file: File): FileMeta {
     format: extensionOf(file.name).toUpperCase(),
     size: file.size
   };
-}
-
-function extensionOf(name: string): string {
-  return name.toLowerCase().split(".").pop() || "";
 }
 
 function closeDownloadOnOutside(event: Event): void {

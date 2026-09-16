@@ -8,7 +8,10 @@ from app.services.files.pdf import parse_pdf
 from app.services.files.xlsx import parse_xlsx
 
 _TEXT_FORMATS = {"txt", "docx", "pdf"}
-_TABLE_FORMATS = {"xls", "xlsx", "csv"}
+# .xls (legacy OLE2/BIFF) is deliberately excluded: openpyxl (parse_xlsx) can
+# only read OOXML .xlsx. Kept in sync by hand with the frontend's format list
+# (frontend/src/utils/chatAttachments.ts).
+_TABLE_FORMATS = {"xlsx", "csv"}
 _UNSAFE_FILENAME_CHARS = re.compile(r'[\\/:*?"<>|]')
 
 
@@ -69,12 +72,6 @@ async def normalize_text_file(filename: str, buffer: bytes, size: int) -> Normal
         extracted = await parse_xlsx(buffer)
         stub = not extracted
         text = extracted or f"Файл {safe_name}: содержимое не удалось извлечь."
-    elif fmt == "xls":
-        # Старый бинарный формат (OLE2/BIFF), а не OOXML — openpyxl умеет
-        # читать только .xlsx и его читать не может. Поддержка .xls
-        # сознательно не реализована в рамках этой задачи.
-        text = f"Извлечение содержимого {fmt.upper()} будет подключено в сервисе files. Сейчас используется тестовый контекст каркаса."
-        stub = True
 
     return NormalizedSource(
         type="text-file",

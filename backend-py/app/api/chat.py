@@ -7,11 +7,17 @@ from fastapi.responses import JSONResponse
 
 from app.api.deps import ChatServiceDep, CurrentIdentity
 from app.api.schemas import ApiError
+from app.config import get_settings
 from app.services.chat.service import (
     RequestIdConflict,
     RequestInProgress,
     SessionNotFound,
     VersionConflict,
+)
+from app.services.files.extract import (
+    get_extension,
+    is_chat_document_format,
+    normalize_text_file,
 )
 
 logger = logging.getLogger(__name__)
@@ -28,7 +34,38 @@ _USER_MESSAGES = {
     "request-id-conflict": "Идентификатор запроса уже использован для других данных",
     "version-conflict": "Состояние сессии изменилось. Повторите запрос",
     "diagram-generation": "Схема не сформирована. Перезагрузите страницу или повторите попытку позже",
+    "file-format": "Этот формат файла не поддерживается",
+    "file-size": "Размер файла не должен превышать 20 МБ",
+    "attachment-error": "Не удалось прочитать содержимое файла",
 }
+
+
+async def _read_attachment_context(form, session_id: str) -> str | JSONResponse:
+    """Returns the extracted text for an optional `file` attachment, "" when
+    none was sent, or a 4xx JSONResponse the caller must return as-is.
+
+    A stub/unreadable-content attachment is rejected as `attachment-error`,
+    same as /api/generate -- so a chat attachment can never silently reach
+    the model as a placeholder string instead of its real content.
+    """
+    upload = form.get("file")
+    if upload is None or not getattr(upload, "filename", None):
+        return ""
+
+    settings = get_settings()
+    content = await upload.read()
+    if len(content) > settings.max_chat_attachment_bytes:
+        return _api_error(400, "file-size", session_id)
+
+    fmt = get_extension(upload.filename)
+    if not is_chat_document_format(fmt):
+        return _api_error(400, "file-format", session_id)
+
+    normalized = await normalize_text_file(upload.filename, content, len(content))
+    if normalized.stub:
+        return _api_error(400, "attachment-error", session_id)
+
+    return normalized.text
 
 
 def _api_error(status_code: int, code: str, session_id: str) -> JSONResponse:
@@ -65,6 +102,10 @@ async def chat(
     action_type = str(form.get("actionType", "") or "FREEFORM")
     client_mermaid = str(form.get("mermaidCode", "") or "")
 
+    attachment_context = await _read_attachment_context(form, session_id)
+    if isinstance(attachment_context, JSONResponse):
+        return attachment_context
+
     try:
         result = await chat_service.run_chat(
             session_id=session_id,
@@ -73,6 +114,7 @@ async def chat(
             message=message,
             action_type=action_type,
             client_mermaid=client_mermaid,
+            attachment_context=attachment_context,
         )
     except SessionNotFound:
         return _api_error(404, "session-not-found", session_id)

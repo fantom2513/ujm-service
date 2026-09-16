@@ -53,3 +53,25 @@ export function saveState(state: AppState): void {
 export function clearState(): void {
   sessionStorage.removeItem(storageKey);
 }
+
+// getConfig() fetches productHomeUrl from the backend once, at startup, and
+// state is never re-fetched after that. A plain structuredClone(defaultState)
+// (used to reset the app for "new diagram" / "go home") would silently revert
+// productHomeUrl to the hardcoded localhost fallback for the rest of the
+// session -- carry the already-fetched config forward across every reset.
+export function resetState(current: AppState): AppState {
+  const next = structuredClone(defaultState);
+  next.config = current.config;
+  return next;
+}
+
+// A chat request is asynchronous; the user can start a new diagram before it
+// resolves. state.result by then points at the new diagram, so a plain
+// `!!state.result` check no longer catches a response that belongs to the
+// diagram the user has already left -- compare sessionId instead.
+export function isCurrentChatSession(
+  state: AppState,
+  sessionId: string
+): state is AppState & { result: NonNullable<AppState["result"]> } {
+  return state.result?.sessionId === sessionId;
+}

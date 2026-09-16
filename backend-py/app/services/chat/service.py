@@ -108,6 +108,7 @@ class ChatService:
         message: str,
         action_type: str,
         client_mermaid: str,
+        attachment_context: str = "",
     ) -> ChatResult:
         owner_id = principal.subject
         sessions = SessionRepository(self._db)
@@ -151,6 +152,7 @@ class ChatService:
         request_hash = compute_chat_request_hash(
             message=message,
             effective_action_type=resolved_action,
+            attachment_context=attachment_context,
         )
         claim_token = secrets.token_urlsafe(32)
         remaining_seconds = deadline.require_remaining()
@@ -246,6 +248,7 @@ class ChatService:
                     history=history,
                     action_type=resolved_action,
                     user_message=message,
+                    attachment_context=attachment_context,
                 ),
                 self._settings,
                 deadline=deadline,

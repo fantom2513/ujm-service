@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { defaultState, loadState, saveState } from "../../src/state/session.ts";
+import { defaultState, isCurrentChatSession, loadState, resetState, saveState } from "../../src/state/session.ts";
 
 
 test("session storage keeps sessionId together with the diagram", () => {
@@ -37,4 +37,63 @@ test("session storage keeps sessionId together with the diagram", () => {
   } finally {
     globalThis.sessionStorage = originalStorage;
   }
+});
+
+test("resetState keeps the config fetched from the backend instead of the hardcoded default", () => {
+  const current = structuredClone(defaultState);
+  current.config.productHomeUrl = "https://real-product.example/";
+
+  const next = resetState(current);
+
+  assert.equal(next.config.productHomeUrl, "https://real-product.example/");
+});
+
+test("resetState still clears everything else back to defaultState", () => {
+  const current = structuredClone(defaultState);
+  current.config.productHomeUrl = "https://real-product.example/";
+  current.page = "result";
+  current.chatDraft = "unsent draft";
+
+  const next = resetState(current);
+
+  assert.equal(next.page, "start");
+  assert.equal(next.chatDraft, "");
+  assert.equal(next.result, undefined);
+});
+
+test("isCurrentChatSession is true when the result still matches the request's sessionId", () => {
+  const state = structuredClone(defaultState);
+  state.result = {
+    sessionId: "session-a",
+    title: "Diagram",
+    mermaidCode: "flowchart LR\nA-->B",
+    sourceText: "spec",
+    sourceContext: { type: "text-file", title: "spec", description: "text" },
+    chat: [],
+    warnings: []
+  };
+
+  assert.equal(isCurrentChatSession(state, "session-a"), true);
+});
+
+test("isCurrentChatSession is false once the user has moved on to a different diagram", () => {
+  const state = structuredClone(defaultState);
+  state.result = {
+    sessionId: "session-b",
+    title: "Diagram B",
+    mermaidCode: "flowchart LR\nC-->D",
+    sourceText: "spec b",
+    sourceContext: { type: "text-file", title: "spec b", description: "text" },
+    chat: [],
+    warnings: []
+  };
+
+  assert.equal(isCurrentChatSession(state, "session-a"), false);
+});
+
+test("isCurrentChatSession is false once the result has been cleared entirely", () => {
+  const state = structuredClone(defaultState);
+  state.result = undefined;
+
+  assert.equal(isCurrentChatSession(state, "session-a"), false);
 });

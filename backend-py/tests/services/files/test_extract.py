@@ -5,6 +5,7 @@ from openpyxl import Workbook
 from app.services.files.extract import (
     get_extension,
     has_pdf_text_layer,
+    is_chat_document_format,
     is_text_source_format,
     normalize_text_file,
     sanitize_filename,
@@ -75,6 +76,16 @@ async def test_normalize_text_file_xlsx_extracts_real_content():
     assert result.file["format"] == "XLSX"
 
 
-async def test_normalize_text_file_xls_is_stub():
-    result = await normalize_text_file("legacy.xls", b"binary", size=6)
-    assert result.stub is True
+def test_is_chat_document_format_excludes_legacy_xls():
+    # .xls is the legacy OLE2/BIFF format; openpyxl (used by parse_xlsx) can
+    # only read OOXML .xlsx, so accepting .xls would silently lose the
+    # attachment's content instead of extracting it. Reject it outright
+    # instead of a NormalizedSource stub, matching the frontend's format list
+    # (frontend/src/utils/chatAttachments.ts).
+    assert is_chat_document_format("xls") is False
+
+
+def test_is_chat_document_format_accepts_text_and_table_formats():
+    for fmt in ("txt", "docx", "pdf", "xlsx", "csv"):
+        assert is_chat_document_format(fmt) is True
+    assert is_chat_document_format("mp3") is False

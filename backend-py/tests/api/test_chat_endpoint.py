@@ -222,6 +222,7 @@ def test_chat_success_returns_standard_result_and_passes_parsed_fields(
             "message": "add B",
             "action_type": "SIMPLIFY",
             "client_mermaid": "client copy",
+            "attachment_context": "",
         }
     ]
 
@@ -238,6 +239,85 @@ def test_chat_defaults_action_type_to_freeform(client, chat_service):
 
     assert response.status_code == 200
     assert chat_service.calls[0]["action_type"] == "FREEFORM"
+
+
+def test_chat_with_txt_attachment_passes_extracted_text_as_attachment_context(
+    client, chat_service
+):
+    response = client.post(
+        "/api/chat",
+        data={
+            "sessionId": "session-1",
+            "requestId": "request-with-file",
+            "message": "what does the attachment say?",
+        },
+        files={"file": ("notes.txt", b"Invoice total: 100 USD", "text/plain")},
+    )
+
+    assert response.status_code == 200
+    assert chat_service.calls[0]["attachment_context"] == "Invoice total: 100 USD"
+
+
+def test_chat_without_attachment_passes_empty_attachment_context(client, chat_service):
+    response = client.post(
+        "/api/chat",
+        data={"sessionId": "session-1", "requestId": "request-no-file", "message": "hi"},
+    )
+
+    assert response.status_code == 200
+    assert chat_service.calls[0]["attachment_context"] == ""
+
+
+def test_chat_rejects_unsupported_attachment_format(client, chat_service):
+    response = client.post(
+        "/api/chat",
+        data={"sessionId": "session-1", "requestId": "request-bad-format", "message": "hi"},
+        files={"file": ("legacy.xls", b"binary", "application/vnd.ms-excel")},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "file-format"
+    assert chat_service.calls == []
+
+
+def test_chat_rejects_oversized_attachment(client, chat_service, monkeypatch):
+    from app.api import chat as chat_module
+
+    monkeypatch.setattr(chat_module, "get_settings", lambda: _TinySettings())
+
+    response = client.post(
+        "/api/chat",
+        data={"sessionId": "session-1", "requestId": "request-too-big", "message": "hi"},
+        files={"file": ("notes.txt", b"0123456789", "text/plain")},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "file-size"
+    assert chat_service.calls == []
+
+
+def test_chat_rejects_attachment_whose_content_cannot_be_extracted(client, chat_service):
+    # An empty .docx (not a real zip/OOXML body) fails parsing -> normalize_text_file
+    # falls back to its generic stub, which must not be treated as valid text.
+    response = client.post(
+        "/api/chat",
+        data={"sessionId": "session-1", "requestId": "request-empty-doc", "message": "hi"},
+        files={
+            "file": (
+                "empty.docx",
+                b"not a real docx",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "attachment-error"
+    assert chat_service.calls == []
+
+
+class _TinySettings:
+    max_chat_attachment_bytes = 5
 
 
 def test_chat_llm_error_returns_diagram_generation_with_session_id(
