@@ -39,6 +39,45 @@ test("session storage keeps sessionId together with the diagram", () => {
   }
 });
 
+test("loadState clears a restored chat attachment because its File object cannot survive sessionStorage", () => {
+  const originalStorage = globalThis.sessionStorage;
+  const values = new Map<string, string>();
+  globalThis.sessionStorage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => void values.set(key, value),
+    removeItem: (key: string) => void values.delete(key),
+    clear: () => values.clear(),
+    key: (index: number) => [...values.keys()][index] ?? null,
+    get length() {
+      return values.size;
+    }
+  };
+
+  try {
+    const state = structuredClone(defaultState);
+    state.page = "result";
+    state.result = {
+      sessionId: "session-a",
+      title: "Diagram",
+      mermaidCode: "flowchart LR\nA-->B",
+      sourceText: "spec",
+      sourceContext: { type: "text-file", title: "spec", description: "text" },
+      chat: [],
+      warnings: []
+    };
+    state.chatAttachment = { name: "notes.txt", format: "txt", size: 10 };
+    state.chatAttachments = [state.chatAttachment];
+
+    saveState(state);
+    const restored = loadState();
+
+    assert.equal(restored.chatAttachment, undefined);
+    assert.equal(restored.chatAttachments, undefined);
+  } finally {
+    globalThis.sessionStorage = originalStorage;
+  }
+});
+
 test("resetState keeps the config fetched from the backend instead of the hardcoded default", () => {
   const current = structuredClone(defaultState);
   current.config.productHomeUrl = "https://real-product.example/";

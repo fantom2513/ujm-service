@@ -43,6 +43,13 @@ function clearUnrecoverableAttachment(state: AppState): AppState {
     state.start.recording = undefined;
     if (state.start.error?.field === "attachment") state.start.error = undefined;
   }
+  // Same reasoning for the chat-panel attachment: chatFiles (the module-level
+  // File array in main.ts) is always empty after a reload, so a restored
+  // chatAttachment renders a card the user can see but can never send.
+  if (state.chatAttachment || state.chatAttachments) {
+    state.chatAttachment = undefined;
+    state.chatAttachments = undefined;
+  }
   return state;
 }
 
