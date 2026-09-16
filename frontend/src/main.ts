@@ -713,6 +713,7 @@ function bindResultEvents(): void {
     selectedFile = undefined;
     sourceFile = undefined;
     chatFiles = [];
+    chatInputError = "";
     messageFiles.clear();
     if (target === "home") {
       window.location.href = state.config.productHomeUrl;
