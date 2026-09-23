@@ -4,7 +4,6 @@ from openpyxl import Workbook
 
 from app.services.files.extract import (
     get_extension,
-    has_pdf_text_layer,
     is_chat_document_format,
     is_text_source_format,
     normalize_text_file,
@@ -43,20 +42,6 @@ def test_is_text_source_format():
     assert is_text_source_format("pdf") is True
     assert is_text_source_format("docx") is True
     assert is_text_source_format("mp3") is False
-
-
-def test_has_pdf_text_layer_detects_bt_tj_operators():
-    content = b"%PDF-1.4\nBT /F1 12 Tf 50 150 Td (Hello) Tj ET"
-    assert has_pdf_text_layer("report.pdf", content) is True
-
-
-def test_has_pdf_text_layer_false_without_operators():
-    content = b"%PDF-1.4\n<< /Type /Catalog >>"
-    assert has_pdf_text_layer("report.pdf", content) is False
-
-
-def test_has_pdf_text_layer_non_pdf_always_true():
-    assert has_pdf_text_layer("notes.txt", b"anything") is True
 
 
 async def test_normalize_text_file_txt_uses_raw_content():

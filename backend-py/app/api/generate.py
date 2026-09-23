@@ -10,12 +10,7 @@ from app.api.schemas import ApiError, DiagramResult, FileMeta, SourceContext
 from app.config import get_settings
 from app.domain.generate_guard import required_source_error
 from app.domain.mermaid import validate_mermaid
-from app.services.files.extract import (
-    get_extension,
-    has_pdf_text_layer,
-    is_text_source_format,
-    normalize_text_file,
-)
+from app.services.files.extract import get_extension, is_text_source_format, normalize_text_file
 from app.services.links.classify import classify_work_link, normalize_link
 from app.services.openai.generate import generate_diagram
 from app.services.recordings.normalize import is_recording_format, normalize_recording
@@ -81,9 +76,13 @@ async def generate(
             return _api_error(400, "file-size", message_key="file-size-text")
         if not is_text_source_format(fmt):
             return _api_error(400, "file-format")
-        if not has_pdf_text_layer(upload.filename, content):
-            return _api_error(400, "attachment-error", field="attachment")
         source = await normalize_text_file(upload.filename, content, len(content))
+        # Same rule as /api/chat's _read_attachment_context: a stub result
+        # means normalize_text_file (via parse_pdf/parse_docx) genuinely
+        # found no extractable content, so surface that instead of silently
+        # generating a diagram from a placeholder string.
+        if source.stub:
+            return _api_error(400, "attachment-error", field="attachment")
     elif source_type == "recording":
         content = await upload.read()
         fmt = get_extension(upload.filename)

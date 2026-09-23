@@ -59,3 +59,30 @@ async def test_generate_diagram_creates_one_deadline_for_client_and_retry():
     assert result == "flowchart LR\nA --> B"
     assert len(captured_deadlines) == 2
     assert captured_deadlines[0] is captured_deadlines[1]
+
+
+async def test_generate_diagram_repairs_invalid_mermaid_before_returning_it():
+    class FakeClient:
+        def __init__(self, result: str) -> None:
+            self.deadline = LLMDeadline.from_timeout_ms(120_000)
+            self.result = result
+            self.prompts: list[str] = []
+
+        async def complete_text(self, prompt: str) -> str:
+            self.prompts.append(prompt)
+            return self.result
+
+    primary = FakeClient("not a flowchart")
+    repair = FakeClient("flowchart LR\nA --> B")
+
+    result = await generate_diagram(
+        "spec",
+        "details",
+        primary,
+        client_factory=lambda _deadline: repair,
+    )
+
+    assert result == "flowchart LR\nA --> B"
+    assert len(primary.prompts) == 1
+    assert len(repair.prompts) == 1
+    assert "<CANDIDATE_MERMAID>\nnot a flowchart\n</CANDIDATE_MERMAID>" in repair.prompts[0]

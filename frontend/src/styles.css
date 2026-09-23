@@ -163,6 +163,9 @@ p {
 }
 
 .breadcrumb-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
   color: var(--muted-soft);
   transition: color 0.15s ease;
 }

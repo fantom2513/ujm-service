@@ -33,13 +33,6 @@ def is_chat_document_format(fmt: str) -> bool:
     return fmt in _TEXT_FORMATS or fmt in _TABLE_FORMATS
 
 
-def has_pdf_text_layer(filename: str, content: bytes) -> bool:
-    if get_extension(filename) != "pdf":
-        return True
-    text = content.decode("latin1")
-    return bool(re.search(r"\bBT\b", text)) and bool(re.search(r"(Tj|TJ)\b", text))
-
-
 @dataclass
 class NormalizedSource:
     type: str

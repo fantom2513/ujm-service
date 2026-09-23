@@ -5,8 +5,9 @@ import { normalizeApiError } from "./api/errors.ts";
 import { inlineIcons } from "./generated/inline-icons.ts";
 import { clearState, isCurrentChatSession, loadState, resetState, saveState } from "./state/session.ts";
 import { CHAT_ATTACHMENT_ACCEPT, extensionOf, validateChatFile } from "./utils/chatAttachments.ts";
-import { diagramSize, downloadPdf, downloadPng, downloadSvg, getCachedSvg, renderMermaid } from "./utils/export.ts";
+import { diagramSize, downloadPdf, downloadPng, downloadSvg, getCachedSvg, renderMermaid, setCachedSvg } from "./utils/export.ts";
 import { createId } from "./utils/id.ts";
+import { RenderSequence } from "./utils/renderSequence.ts";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 const iconUrl = (name: string): string => `assets/icons/${encodeURIComponent(name)}`;
@@ -33,6 +34,11 @@ let isDragging = false;
 let dragStart = { x: 0, y: 0 };
 let dragOrigin = { x: 0, y: 0 };
 let downloadOpen = false;
+// Separate from downloadOpen: the header's download button stays in the DOM
+// (behind the modal backdrop) while a modal is open, so sharing one flag
+// made clicking the modal's download button pop open both menus at once --
+// visually only the header's one (it renders first, higher in the DOM).
+let modalDownloadOpen = false;
 let activeModal: "new" | "home" | null = null;
 let exportState: "idle" | "exporting" | "error" = "idle";
 let sourceDetailsOpen = false;
@@ -40,6 +46,7 @@ let pendingChatScroll = false;
 let chatInputError = "";
 let pendingActionType: "FREEFORM" | "GROUP_SEMANTIC_BLOCKS" | "SIMPLIFY" | "HIGHLIGHT_MAIN_PATH" | "RESTORE_PREVIOUS" = "FREEFORM";
 const expandedUserMessages = new Set<string>();
+const renderSequence = new RenderSequence();
 
 void getConfig().then((config) => {
   state.config = config;
@@ -67,14 +74,13 @@ function render(): void {
 function startPage(): string {
   const start = state.start;
   const isText = start.sourceType === "text-file";
-  const isRecording = start.sourceType === "recording";
   const isLink = start.sourceType === "link";
   return `
     <main class="app-canvas">
       ${productNav()}
       ${start.error && !start.error.field ? generationToast() : ""}
       <section class="start-page">
-        <div class="breadcrumbs"><span class="breadcrumb-link">Главная</span><span class="breadcrumb-separator" aria-hidden="true"></span><b class="breadcrumb-current">UX-архитектура</b></div>
+        <div class="breadcrumbs"><button type="button" id="breadcrumb-home" class="breadcrumb-link">Главная</button><span class="breadcrumb-separator" aria-hidden="true"></span><b class="breadcrumb-current">UX-архитектура</b></div>
         <h1>Превратите ТЗ в UX-архитектуру</h1>
         <p class="lead">Сервис соберет требования в понятную карту экранов и действий пользователя</p>
 
@@ -86,8 +92,7 @@ function startPage(): string {
             </div>
             <div class="source-stack" role="radiogroup" aria-label="Источник технического задания">
               ${sourceOption("text-file", "Текстовый файл", isText, uploadSource(start.file))}
-              ${sourceOption("recording", "Запись встречи", isRecording, uploadSource(start.recording))}
-              ${sourceOption("link", "Ссылка на Jira/Confluence", isLink, linkSource())}
+              ${sourceOption("link", "Ссылка на Jira", isLink, linkSource())}
             </div>
             <div class="details-field">
               <span class="details-title">
@@ -125,12 +130,11 @@ interface ProductNavLink {
   url: string;
 }
 
-// TODO(product): fill in the remaining URLs once those services are ready to link to.
 const PRODUCT_NAV_LINKS: ProductNavLink[] = [
   { label: "UMUX-Оценка", url: "https://cxcop.sogaz.ru/umux" },
-  { label: "UX Debt", url: "" },
-  { label: "Тепловая карта", url: "" },
-  { label: "CJM", url: "" }
+  { label: "UX Debt", url: "https://cxcop.sogaz.ru/jira-ux-debt" },
+  { label: "Тепловая карта", url: "https://cxcop.sogaz.ru/heatmap" },
+  { label: "CJM", url: "https://cxcop.sogaz.ru/cjm" }
 ];
 
 function productNav(): string {
@@ -143,7 +147,6 @@ function productNav(): string {
     <nav class="product-nav" aria-label="Сервисы">
       ${links}
       <a class="active" aria-current="page">UX-архитектура</a>
-      <button class="gear-button" type="button" aria-label="Настройки">${svgIcon("sun.svg", "nav-icon")}</button>
     </nav>
   `;
 }
@@ -171,7 +174,7 @@ function sourceOption(type: SourceType, title: string, selected: boolean, body: 
 
 function uploadSource(file?: FileMeta): string {
   const isRecording = state.start.sourceType === "recording";
-  const accept = isRecording ? ".mp3,.m4a,.mp4,.webm" : ".txt,.docx,.pdf";
+  const accept = isRecording ? ".mp3,.m4a" : ".txt,.docx,.pdf";
   const error = state.start.error?.field === "attachment" ? state.start.error.message : "";
   const attachmentState = file ? attachmentStatus(error) : "static";
   const uploadState = isFileChecking ? "checking" : error ? "error" : file ? "uploaded" : "default";
@@ -187,7 +190,7 @@ function uploadSource(file?: FileMeta): string {
       ${icon("cloud-upload.svg", "upload-icon")}
       <span class="upload-copy">
         <b>Перетащите файл сюда</b>
-        <small>${isRecording ? "MP3, M4A, MP4, WebM, файл не должен превышать 100MB" : "PDF, DOCX, TXT, файл не должен превышать 10MB"}</small>
+        <small>${isRecording ? "MP3, M4A, файл не должен превышать 100MB" : "PDF, DOCX, TXT, файл не должен превышать 10MB"}</small>
       </span>
       <span class="upload-button">Загрузить файл</span>
     `;
@@ -257,7 +260,7 @@ function resultPage(): string {
   return `
     <main class="result-canvas">
       <header class="result-toolbar">
-        <button id="go-home" class="secondary-action back-action">${svgIcon("arrow-left.svg", "button-icon")}<span>На главную</span></button>
+        <button id="go-home" class="secondary-action back-action">${svgIcon("arrow-left.svg", "button-icon")}<span>Назад</span></button>
         <div class="toolbar-actions">
           <button id="new-diagram" class="secondary-action">${svgIcon("plus.svg", "button-icon")}<span>Новая схема</span></button>
           <div class="download-wrap">
@@ -287,7 +290,7 @@ function resultPage(): string {
   `;
 }
 
-function downloadMenu(): string {
+function downloadMenu(id = "download-menu"): string {
   const content = exportState === "exporting"
     ? `<button disabled>Подготовка файла</button>`
     : exportState === "error"
@@ -297,7 +300,7 @@ function downloadMenu(): string {
         <button data-download="png" role="menuitem">${svgIcon("photo.svg", "menu-icon")}<span>PNG</span></button>
         <button data-download="svg" role="menuitem">${svgIcon("vector.svg", "menu-icon")}<span>SVG</span></button>
       `;
-  return `<div id="download-menu" class="download-menu" role="menu">${content}</div>`;
+  return `<div id="${id}" class="download-menu" role="menu">${content}</div>`;
 }
 
 function contextBlock(result: DiagramResult): string {
@@ -328,7 +331,8 @@ function chatBlock(result: DiagramResult): string {
     assistantIntro(),
     ...result.chat.map(chatMessage),
     isChatLoading ? generatingMessage() : "",
-    result.chat.length || isChatLoading ? "" : quickActions()
+    result.chat.length || isChatLoading ? "" : quickActions(),
+    isChatLoading ? "" : undoQuickAction()
   ].filter(Boolean).join("");
   const attachmentList = hasFiles ? `
     <div class="chat-file-strip" aria-label="Прикреплённые файлы">
@@ -413,10 +417,23 @@ function quickActions(): string {
   `;
 }
 
-function quickActionType(label: string): "GROUP_SEMANTIC_BLOCKS" | "SIMPLIFY" | "HIGHLIGHT_MAIN_PATH" | "FREEFORM" {
+// Unlike quickActions() above (shown only before the first chat message),
+// undo stays useful for as long as there's history to undo -- and gets more
+// relevant, not less, once the user has made edits via chat. So it's kept
+// out of that one-time block and rendered on every turn instead.
+function undoQuickAction(): string {
+  return `
+    <div class="quick-actions">
+      <button data-quick="Откатить на шаг назад">${svgIcon("reload.svg", "quick-icon")}<span>Откатить на шаг назад</span></button>
+    </div>
+  `;
+}
+
+function quickActionType(label: string): "GROUP_SEMANTIC_BLOCKS" | "SIMPLIFY" | "HIGHLIGHT_MAIN_PATH" | "RESTORE_PREVIOUS" | "FREEFORM" {
   if (label === "Разбить схему на смысловые блоки") return "GROUP_SEMANTIC_BLOCKS";
   if (label === "Упростить схему") return "SIMPLIFY";
   if (label === "Выделить основной путь") return "HIGHLIGHT_MAIN_PATH";
+  if (label === "Откатить на шаг назад") return "RESTORE_PREVIOUS";
   return "FREEFORM";
 }
 
@@ -494,9 +511,12 @@ function modal(type: "new" | "home"): string {
         <h2>${isNew ? "Создать новую схему?" : "Покинуть страницу?"}</h2>
         <p>${isNew ? "Текущие данные будут удалены. Схема не сохранится." : "Текущие данные будут удалены. Схема не сохранится."}</p>
         <div class="modal-actions">
-          <button class="secondary-action modal-download" type="button">${svgIcon("download.svg", "button-icon")}<span>Скачать текущую схему</span></button>
+          <div class="download-wrap">
+            <button id="modal-download-button" class="secondary-action" type="button" aria-expanded="${modalDownloadOpen}" aria-controls="modal-download-menu">${svgIcon("download.svg", "button-icon")}<span>Скачать текущую схему</span></button>
+            ${modalDownloadOpen ? downloadMenu("modal-download-menu") : ""}
+          </div>
           <div class="modal-actions-right">
-            ${isNew ? '<button data-modal-cancel="true" class="secondary-action">Отмена</button><button id="modal-confirm" class="primary-action">Создать</button>' : '<button id="modal-confirm" class="secondary-action">На главную</button><button data-modal-cancel="true" class="primary-action">Остаться</button>'}
+            ${isNew ? '<button data-modal-cancel="true" class="secondary-action">Отмена</button><button id="modal-confirm" class="primary-action">Создать</button>' : '<button id="modal-confirm" class="secondary-action">Назад</button><button data-modal-cancel="true" class="primary-action">Остаться</button>'}
           </div>
         </div>
       </section>
@@ -653,6 +673,13 @@ function bindEvents(): void {
     if (selectedFile) downloadLocalFile(selectedFile);
   });
   document.querySelector<HTMLButtonElement>(".sample-link")?.addEventListener("click", downloadSampleFile);
+  // breadcrumb-home renders on the start page (startPage(), not
+  // resultPage()), so same as generation-toast below: must bind here
+  // unconditionally, not inside bindResultEvents() (early-returns when
+  // state.page !== "result").
+  document.querySelector<HTMLButtonElement>("#breadcrumb-home")?.addEventListener("click", () => {
+    window.location.href = state.config.productHomeUrl;
+  });
 
   document.querySelector<HTMLButtonElement>("#build")?.addEventListener("click", () => void buildDiagram());
   // generationToast() renders on the start page (startPage(), not
@@ -698,11 +725,15 @@ function bindResultEvents(): void {
   });
   document.querySelectorAll<HTMLButtonElement>("[data-modal-cancel]").forEach((button) => button.addEventListener("click", () => {
     activeModal = null;
+    modalDownloadOpen = false;
     render();
   }));
-  document.querySelector<HTMLButtonElement>(".modal-download")?.addEventListener("click", () => downloadSvg());
+  document.querySelector<HTMLButtonElement>("#modal-download-button")?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    modalDownloadOpen = !modalDownloadOpen;
+    render();
+  });
   document.querySelector<HTMLButtonElement>("#modal-confirm")?.addEventListener("click", () => {
-    const target = activeModal;
     clearState();
     state = resetState(state);
     activeModal = null;
@@ -715,10 +746,9 @@ function bindResultEvents(): void {
     chatFiles = [];
     chatInputError = "";
     messageFiles.clear();
-    if (target === "home") {
-      window.location.href = state.config.productHomeUrl;
-      return;
-    }
+    // Both "new diagram" and "back" confirmations land on this service's own
+    // start page (the source-selection screen), not on the external product
+    // hub `state.config.productHomeUrl` used to redirect to.
     persist();
     render();
   });
@@ -864,10 +894,13 @@ function bindResultEvents(): void {
 }
 
 async function renderMermaidAndUpdate(code: string): Promise<void> {
-  await renderMermaid(code);
+  const token = renderSequence.start();
+  const svg = await renderMermaid(code);
+  if (!renderSequence.isCurrent(token)) return;
   const content = document.querySelector<HTMLDivElement>("#diagram-content");
   if (content) {
-    content.innerHTML = getCachedSvg();
+    setCachedSvg(svg);
+    content.innerHTML = svg;
     state.view = centeredView();
     applyTransform(content);
     persist();
@@ -998,8 +1031,9 @@ async function exportDiagram(type: "png" | "svg" | "pdf"): Promise<void> {
   try {
     if (type === "png") await downloadPng();
     if (type === "svg") downloadSvg();
-    if (type === "pdf") downloadPdf();
+    if (type === "pdf") await downloadPdf();
     downloadOpen = false;
+    modalDownloadOpen = false;
     exportState = "idle";
   } catch {
     exportState = "error";
@@ -1010,7 +1044,7 @@ async function exportDiagram(type: "png" | "svg" | "pdf"): Promise<void> {
 function validateBeforeSubmit(): AppState["start"]["error"] {
   if (state.start.sourceType === "link") {
     if (!state.start.link.trim()) return { code: "link-required", message: "Поле обязательно для заполнения", field: "link" };
-    if (!/https?:\/\/.+/i.test(state.start.link) || !/(jira|confluence|wiki)/i.test(state.start.link)) {
+    if (!/https?:\/\/.+/i.test(state.start.link) || !/jira/i.test(state.start.link)) {
       return { code: "invalid-link", message: "Неверный формат ссылки", field: "link" };
     }
     return undefined;
@@ -1024,7 +1058,7 @@ function validateSelectedFile(file: File): AppState["start"]["error"] {
   const extension = extensionOf(file.name);
   if (state.start.sourceType === "recording") {
     if (file.size > 100 * 1024 * 1024) return { code: "file-size", message: "Файл превышает 100 МБ", field: "attachment" };
-    if (!["mp3", "m4a", "mp4", "webm"].includes(extension)) return { code: "file-format", message: "Некорректный формат файла", field: "attachment" };
+    if (!["mp3", "m4a"].includes(extension)) return { code: "file-format", message: "Некорректный формат файла", field: "attachment" };
     return undefined;
   }
   if (file.size > 10 * 1024 * 1024) return { code: "file-size", message: "Файл превышает 10 МБ", field: "attachment" };
@@ -1203,16 +1237,18 @@ function fileMeta(file: File): FileMeta {
 }
 
 function closeDownloadOnOutside(event: Event): void {
-  if (!downloadOpen) return;
+  if (!downloadOpen && !modalDownloadOpen) return;
   const target = event.target as HTMLElement;
   if (target.closest(".download-wrap")) return;
   downloadOpen = false;
+  modalDownloadOpen = false;
   render();
 }
 
 function closeDownloadOnEscape(event: KeyboardEvent): void {
-  if (event.key !== "Escape" || !downloadOpen) return;
+  if (event.key !== "Escape" || (!downloadOpen && !modalDownloadOpen)) return;
   downloadOpen = false;
+  modalDownloadOpen = false;
   render();
 }
 
