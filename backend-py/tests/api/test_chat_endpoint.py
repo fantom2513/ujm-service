@@ -5,8 +5,10 @@ from app.api import deps
 from app.api.schemas import ChatResult
 from app.domain.identity import Principal
 from app.infrastructure.llm.errors import LLMError
+from app.infrastructure.llm.deadline import LLMDeadline
 from app.main import app
 from app.services.chat.service import (
+    ClaimedChatTurn,
     RequestIdConflict,
     RequestInProgress,
     SessionNotFound,
@@ -19,15 +21,16 @@ class FakeChatService:
         self.error: Exception | None = None
         self.calls: list[dict] = []
 
-    async def run_chat(self, **kwargs) -> ChatResult:
+    async def claim_or_replay(self, **kwargs) -> dict[str, object]:
         self.calls.append(kwargs)
         if self.error:
             raise self.error
-        return ChatResult(
+        result = ChatResult(
             session_id=kwargs["session_id"],
             mermaid_code="flowchart LR\nA-->B",
             message="Готово",
         )
+        return {"ok": True, "result": result.model_dump(by_alias=True)}
 
 
 @pytest.fixture
@@ -207,12 +210,9 @@ def test_chat_success_returns_standard_result_and_passes_parsed_fields(
 
     assert response.status_code == 200
     assert response.json() == {
-        "ok": True,
-        "result": {
-            "sessionId": "session-1",
-            "mermaidCode": "flowchart LR\nA-->B",
-            "message": "Готово",
-        },
+        "sessionId": "session-1",
+        "mermaidCode": "flowchart LR\nA-->B",
+        "message": "Готово",
     }
     assert chat_service.calls == [
         {
@@ -225,6 +225,48 @@ def test_chat_success_returns_standard_result_and_passes_parsed_fields(
             "attachment_context": "",
         }
     ]
+
+
+def test_chat_new_claim_returns_202_and_poll_exposes_states(client, chat_service, monkeypatch):
+    scheduled = []
+
+    async def claim(**_kwargs):
+        return ClaimedChatTurn(
+            session_id="session-1", request_id="r-1", owner_id=None,
+            message="change", resolved_action="FREEFORM", attachment_context="",
+            claim_token="token", deadline=LLMDeadline.from_timeout_ms(900_000),
+        )
+
+    def register(_app, work, name):
+        scheduled.append(name)
+        work.close()
+
+    monkeypatch.setattr(chat_service, "claim_or_replay", claim)
+    monkeypatch.setattr("app.api.chat.register_background_task", register)
+    chat_service._db_sessionmaker = None
+    chat_service._redis = None
+    chat_service._settings = None
+
+    response = client.post("/api/chat", data={"sessionId": "session-1", "requestId": "r-1", "message": "change"})
+    assert response.status_code == 202
+    assert response.json() == {"status": "processing", "sessionId": "session-1", "requestId": "r-1"}
+    assert scheduled == ["chat:session-1:r-1"]
+
+    for outcome, expected in [
+        ({"status": "processing"}, {"status": "processing"}),
+        ({"status": "failed", "retryable": True}, {"status": "failed", "retryable": True}),
+        ({"ok": True, "result": {"sessionId": "session-1", "mermaidCode": "flowchart LR\nA-->B", "message": "done"}}, {"sessionId": "session-1", "mermaidCode": "flowchart LR\nA-->B", "message": "done"}),
+        ({"ok": False, "error": {"code": "diagram-generation", "message": "failed"}}, {"ok": False, "error": {"code": "diagram-generation", "message": "failed"}}),
+        (None, None),
+    ]:
+        async def poll(*_args):
+            return outcome
+
+        monkeypatch.setattr(chat_service, "poll_turn", poll, raising=False)
+        polled = client.get("/api/chat/session-1/turns/r-1")
+        assert polled.status_code == (404 if expected is None else 200)
+        if expected is not None:
+            assert polled.json() == expected
 
 
 def test_chat_defaults_action_type_to_freeform(client, chat_service):

@@ -5,7 +5,7 @@ No database is needed; these tests only inspect SQLAlchemy metadata.
 
 from sqlalchemy.dialects.postgresql import JSONB
 
-from app.infrastructure.db.models import Base, DiagramVersion, Message, Session, Turn
+from app.infrastructure.db.models import Base, DiagramVersion, GenerateRequest, Message, Session, Turn
 
 
 def test_models_map_to_expected_tables():
@@ -13,11 +13,13 @@ def test_models_map_to_expected_tables():
     assert DiagramVersion.__tablename__ == "diagram_versions"
     assert Message.__tablename__ == "messages"
     assert Turn.__tablename__ == "turns"
+    assert GenerateRequest.__tablename__ == "generate_requests"
     assert set(Base.metadata.tables) == {
         "sessions",
         "diagram_versions",
         "messages",
         "turns",
+        "generate_requests",
     }
 
 

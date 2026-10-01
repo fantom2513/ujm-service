@@ -9,11 +9,14 @@ from app.api.deps import ChatServiceDep, CurrentIdentity
 from app.api.schemas import ApiError
 from app.config import get_settings
 from app.services.chat.service import (
+    ClaimedChatTurn,
     RequestIdConflict,
     RequestInProgress,
     SessionNotFound,
     VersionConflict,
+    run_claimed_chat,
 )
+from app.services.chat.background import register_background_task
 from app.services.files.extract import (
     get_extension,
     is_chat_document_format,
@@ -107,7 +110,7 @@ async def chat(
         return attachment_context
 
     try:
-        result = await chat_service.run_chat(
+        outcome = await chat_service.claim_or_replay(
             session_id=session_id,
             request_id=request_id,
             principal=identity,
@@ -128,11 +131,41 @@ async def chat(
         logger.exception("Chat request failed for session %s", session_id)
         return _api_error(500, "diagram-generation", session_id)
 
-    return JSONResponse(
-        status_code=200,
-        content={
-            "ok": True,
-            "result": result.model_dump(by_alias=True, exclude_none=True),
-        },
-        headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
-    )
+    if isinstance(outcome, ClaimedChatTurn):
+        register_background_task(
+            request.app,
+            run_claimed_chat(
+                outcome,
+                chat_service._db_sessionmaker,
+                chat_service._redis,
+                chat_service._settings,
+            ),
+            f"chat:{session_id}:{request_id}",
+        )
+        return JSONResponse(
+            status_code=202,
+            content={"status": "processing", "sessionId": session_id, "requestId": request_id},
+            headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
+        )
+    if outcome["ok"]:
+        return JSONResponse(status_code=200, content=outcome["result"], headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"})
+    code = outcome["error"]["code"]
+    status = 404 if code == "session-not-found" else 409 if code in {"request-in-progress", "version-conflict"} else 500
+    return JSONResponse(status_code=status, content=outcome, headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"})
+
+
+@router.get("/api/chat/{session_id}/turns/{request_id}")
+async def poll_chat_turn(
+    session_id: str,
+    request_id: str,
+    identity: CurrentIdentity,
+    chat_service: ChatServiceDep,
+) -> JSONResponse:
+    try:
+        outcome = await chat_service.poll_turn(session_id, request_id, identity)
+    except SessionNotFound:
+        return _api_error(404, "session-not-found", session_id)
+    if outcome is None:
+        return _api_error(404, "session-not-found", session_id)
+    content = outcome["result"] if outcome.get("ok") else outcome
+    return JSONResponse(status_code=200, content=content, headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"})

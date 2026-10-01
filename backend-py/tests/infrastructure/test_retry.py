@@ -160,7 +160,7 @@ async def test_retry_and_backoff_share_deadline_and_do_not_start_next_attempt():
     assert sleeps == [pytest.approx(0.5)]
 
 
-async def test_success_returned_after_deadline_is_normalized_to_timeout():
+async def test_success_returned_after_deadline_is_preserved():
     clock = FakeClock()
     deadline = LLMDeadline.from_timeout_ms(1_000, clock=clock)
 
@@ -168,10 +168,7 @@ async def test_success_returned_after_deadline_is_normalized_to_timeout():
         clock.advance(1.0)
         return "too late"
 
-    with pytest.raises(LLMError) as exc_info:
-        await execute_with_retry(fn, deadline=deadline)
-
-    assert exc_info.value.code == "TIMEOUT"
+    assert await execute_with_retry(fn, deadline=deadline) == "too late"
 
 
 async def test_complete_json_with_fallback_falls_back_on_structured_output_unsupported():

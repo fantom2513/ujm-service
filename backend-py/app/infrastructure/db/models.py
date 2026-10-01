@@ -113,3 +113,12 @@ class Turn(Base):
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
     )
+
+
+class GenerateRequest(Base):
+    __tablename__ = "generate_requests"
+
+    request_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    session_id: Mapped[str] = mapped_column(
+        Text, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False
+    )

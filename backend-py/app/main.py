@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -18,18 +19,30 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    logging.getLogger("app").setLevel(logging.INFO)
     settings = get_settings()
     engine = build_engine(settings)
     app.state.db_sessionmaker = build_sessionmaker(engine)
     app.state.redis = build_redis_client(settings.redis_url)
-    yield
+    app.state.background_tasks = set()
     try:
-        await app.state.redis.aclose()
+        yield
     finally:
-        # Must run even if closing Redis fails, or a flaky Redis on
-        # shutdown leaks the SQLAlchemy engine's connection pool on every
-        # restart/redeploy.
-        await engine.dispose()
+        tasks = tuple(app.state.background_tasks)
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            _, pending = await asyncio.wait(tasks, timeout=10)
+            if pending:
+                logger.warning("%d background tasks did not stop during shutdown", len(pending))
+        try:
+            await app.state.redis.aclose()
+        finally:
+            # Must run even if closing Redis fails, or a flaky Redis on
+            # shutdown leaks the SQLAlchemy engine's connection pool on every
+            # restart/redeploy.
+            await engine.dispose()
 
 
 app = FastAPI(title="ujm-service backend-py", lifespan=lifespan)

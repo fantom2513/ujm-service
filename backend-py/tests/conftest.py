@@ -55,8 +55,7 @@ class _MockLLMHandler(BaseHTTPRequestHandler):
         # sends an RST, which can make httpx lose an otherwise valid response
         # and report a nondeterministic ReadError.
         content_length = int(self.headers.get("Content-Length", "0"))
-        if content_length:
-            self.rfile.read(content_length)
+        request_body = self.rfile.read(content_length) if content_length else b""
 
         if self.reset_connection:
             # Close the socket without writing any response bytes — the
@@ -73,9 +72,17 @@ class _MockLLMHandler(BaseHTTPRequestHandler):
             assert self.stop_event is not None
             self.stop_event.wait(timeout=_DELAY_FOREVER_SECONDS)
             return
-        body = json.dumps(self.response_body).encode("utf-8")
+        streamed = self.status_code == 200 and json.loads(request_body or b"{}").get("stream")
+        if streamed:
+            message = (self.response_body.get("choices") or [{}])[0].get("message", {})
+            delta = {key: value for key, value in message.items() if key in {"content", "reasoning", "reasoning_content"}}
+            events = [{"choices": [{"delta": delta}]}, {"choices": [], "usage": self.response_body.get("usage")}]
+            body = b"".join(b"data: " + json.dumps(event).encode("utf-8") + b"\n\n" for event in events)
+            body += b"data: [DONE]\n\n"
+        else:
+            body = json.dumps(self.response_body).encode("utf-8")
         self.send_response(self.status_code)
-        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Type", "text/event-stream" if streamed else "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Connection", "close")
         self.end_headers()

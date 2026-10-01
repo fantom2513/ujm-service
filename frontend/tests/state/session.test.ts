@@ -29,11 +29,13 @@ test("session storage keeps sessionId together with the diagram", () => {
       chat: [],
       warnings: []
     };
+    state.pendingTurn = { kind: "chat", sessionId: "persisted-session", requestId: "pending-r" };
 
     saveState(state);
 
     assert.equal(loadState().result?.sessionId, "persisted-session");
     assert.equal(loadState().result?.mermaidCode, "flowchart LR\nA-->B");
+    assert.equal(loadState().pendingTurn?.requestId, "pending-r");
   } finally {
     globalThis.sessionStorage = originalStorage;
   }

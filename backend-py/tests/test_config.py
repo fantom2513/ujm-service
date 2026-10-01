@@ -19,7 +19,9 @@ def test_defaults_match_ts_backend():
     assert settings.llm_url == "http://localhost:8000"
     assert settings.llm_model == "google/gemma-4"
     assert settings.llm_api_key is None
-    assert settings.llm_deadline_ms == 120_000
+    assert settings.llm_deadline_ms == 900_000
+    assert settings.llm_ttft_ms == 30_000
+    assert settings.llm_stall_ms == 60_000
     assert settings.llm_connect_timeout_ms == 5_000
     assert settings.llm_pool_timeout_ms == 5_000
     assert settings.llm_temperature == 0.1

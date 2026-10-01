@@ -1,6 +1,6 @@
 import type { AppState } from "./types/index.ts";
-import type { ChatMessage, DiagramResult, FileMeta, SourceType } from "../../shared/types/index.ts";
-import { generateDiagram, getConfig, sendChatMessage, sendFeedback } from "./api/client.ts";
+import type { ChatMessage, ChatResult, DiagramResult, FileMeta, PendingTurn, SourceType } from "../../shared/types/index.ts";
+import { generateDiagram, getConfig, pollTurn, sendChatMessage, sendFeedback } from "./api/client.ts";
 import { normalizeApiError } from "./api/errors.ts";
 import { inlineIcons } from "./generated/inline-icons.ts";
 import { clearState, isCurrentChatSession, loadState, resetState, saveState } from "./state/session.ts";
@@ -22,8 +22,8 @@ let selectedFile: File | undefined;
 let sourceFile: File | undefined;
 let chatFiles: File[] = [];
 const messageFiles = new Map<string, File[]>();
-let isLoading = false;
-let isChatLoading = false;
+let isLoading = state.pendingTurn?.kind === "generate";
+let isChatLoading = state.pendingTurn?.kind === "chat";
 const GENERATING_PHRASES = ["Анализирую", "Думаю…", "Вношу правки…", "Секунду, обновляю схему…"];
 const GENERATING_PHRASE_INTERVAL_MS = 2500;
 let generatingPhraseTimer: ReturnType<typeof setInterval> | undefined;
@@ -102,7 +102,7 @@ function startPage(): string {
                 </span>
                 ${serviceButton()}
               </span>
-              <textarea id="details" rows="4" aria-label="Детали задачи" placeholder="Введите описание или дополнительный контекст">${escapeHtml(start.details)}</textarea>
+              <textarea id="details" rows="4" aria-label="Детали задачи" placeholder="Введите описание или дополнительный контекст" ${isLoading ? "disabled" : ""}>${escapeHtml(start.details)}</textarea>
             </div>
           </section>
 
@@ -163,7 +163,7 @@ function serviceButton(): string {
 function sourceOption(type: SourceType, title: string, selected: boolean, body: string): string {
   return `
     <div class="source-option ${selected ? "selected" : ""}" data-state="${selected ? "selected" : "default"}">
-      <button class="source-head" data-source="${type}" role="radio" aria-checked="${selected}" type="button">
+      <button class="source-head" data-source="${type}" role="radio" aria-checked="${selected}" type="button" ${isLoading ? "disabled" : ""}>
         <span class="source-dot"></span>
         <span>${title}</span>
       </button>
@@ -737,6 +737,9 @@ function bindResultEvents(): void {
     clearState();
     state = resetState(state);
     activeModal = null;
+    isLoading = false;
+    isChatLoading = false;
+    stopGeneratingPhraseRotation();
     // These live outside AppState (File objects aren't serializable), so
     // resetState() above never touches them -- without this, a "new diagram"
     // reset leaves selectedFile pointing at the previous session's file, and
@@ -922,6 +925,7 @@ async function buildDiagram(): Promise<void> {
     return;
   }
 
+  const activeState = state;
   isLoading = true;
   render();
   try {
@@ -930,8 +934,14 @@ async function buildDiagram(): Promise<void> {
     form.set("details", state.start.details);
     if (state.start.sourceType === "link") form.set("link", state.start.link);
     if (selectedFile) form.set("file", selectedFile);
-    const result = await generateDiagram(form);
-    result.details = state.start.details;
+    const result = await generateDiagram(form, (pending) => {
+      if (state !== activeState) return;
+      state.pendingTurn = pending;
+      persist();
+      render();
+    });
+    if (state !== activeState) return;
+    state.pendingTurn = undefined;
     sourceFile = selectedFile;
     sourceDetailsOpen = false;
     state.result = result;
@@ -942,15 +952,21 @@ async function buildDiagram(): Promise<void> {
     persist();
     void renderMermaidAndUpdate(result.mermaidCode);
   } catch (error) {
+    if (state !== activeState) return;
+    state.pendingTurn = undefined;
     state.start.error = normalizeApiError(error, "generate");
   } finally {
-    isLoading = false;
-    render();
+    if (state === activeState) {
+      isLoading = false;
+      persist();
+      render();
+    }
   }
 }
 
 async function sendChat(): Promise<void> {
   if (!state.result || isChatLoading) return;
+  const activeState = state;
   const text = state.chatDraft.trim();
   const attachments = getChatAttachments();
   if (!text && !attachments.length) return;
@@ -990,9 +1006,15 @@ async function sendChat(): Promise<void> {
     form.set("requestId", userMessage.id);
     if (attachmentFile) form.set("file", attachmentFile);
 
-    const result = await sendChatMessage(state.result.sessionId, form);
-    if (!isCurrentChatSession(state, requestedSessionId)) return;
+    const result = await sendChatMessage(state.result.sessionId, form, (pending) => {
+      if (state !== activeState) return;
+      state.pendingTurn = pending;
+      persist();
+      render();
+    });
+    if (state !== activeState || !isCurrentChatSession(state, requestedSessionId)) return;
 
+    state.pendingTurn = undefined;
     state.result.sessionId = result.sessionId;
     state.result.mermaidCode = result.mermaidCode;
     state.result.chat.push({
@@ -1007,7 +1029,8 @@ async function sendChat(): Promise<void> {
     if (shouldScroll) queueChatScroll(true);
     void renderMermaidAndUpdate(result.mermaidCode);
   } catch (error) {
-    if (isCurrentChatSession(state, requestedSessionId)) {
+    if (state === activeState && isCurrentChatSession(state, requestedSessionId)) {
+      state.pendingTurn = undefined;
       state.chatDraft = draftBeforeSend;
       const apiError = normalizeApiError(error, "chat");
       state.result.chat.push({
@@ -1019,10 +1042,49 @@ async function sendChat(): Promise<void> {
       });
     }
   } finally {
-    stopGeneratingPhraseRotation();
-    isChatLoading = false;
-    persist();
-    render();
+    if (state === activeState) {
+      stopGeneratingPhraseRotation();
+      isChatLoading = false;
+      persist();
+      render();
+    }
+  }
+}
+
+async function resumePendingTurn(pending: PendingTurn): Promise<void> {
+  const activeState = state;
+  try {
+    if (pending.kind === "generate") {
+      const result = await pollTurn<DiagramResult>(pending);
+      if (state.pendingTurn?.requestId !== pending.requestId) return;
+      state.pendingTurn = undefined;
+      state.result = result;
+      state.page = "result";
+      state.view = centeredView();
+      void renderMermaidAndUpdate(result.mermaidCode);
+    } else {
+      const result = await pollTurn<ChatResult>(pending);
+      if (state.pendingTurn?.requestId !== pending.requestId || !isCurrentChatSession(state, pending.sessionId)) return;
+      state.pendingTurn = undefined;
+      state.result.mermaidCode = result.mermaidCode;
+      state.result.chat.push({ id: createId(), role: "assistant", text: result.message, createdAt: new Date().toISOString() });
+      void renderMermaidAndUpdate(result.mermaidCode);
+    }
+  } catch (error) {
+    if (state.pendingTurn?.requestId !== pending.requestId) return;
+    state.pendingTurn = undefined;
+    const apiError = normalizeApiError(error, pending.kind);
+    if (pending.kind === "generate") state.start.error = apiError;
+    else if (isCurrentChatSession(state, pending.sessionId)) {
+      state.result.chat.push({ id: createId(), role: "assistant", text: apiError.message, createdAt: new Date().toISOString(), temporary: true });
+    }
+  } finally {
+    if (state === activeState) {
+      isLoading = false;
+      isChatLoading = false;
+      persist();
+      render();
+    }
   }
 }
 async function exportDiagram(type: "png" | "svg" | "pdf"): Promise<void> {
@@ -1273,3 +1335,4 @@ window.addEventListener("popstate", () => {
 
 render();
 restoreResultView();
+if (state.pendingTurn) void resumePendingTurn(state.pendingTurn);

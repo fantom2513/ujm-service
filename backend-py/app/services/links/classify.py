@@ -63,6 +63,11 @@ def _stub_source(link_type: str | None, value: str) -> NormalizedSource:
     )
 
 
+def link_stub_source(value: str) -> NormalizedSource:
+    """Build the initial source without waiting for an external link service."""
+    return _stub_source(classify_work_link(value), value)
+
+
 async def _normalize_jira_link(value: str) -> NormalizedSource | None:
     """Returns a real source for a Jira link, or None when the caller
     should fall back to the stub (Jira isn't configured, the link has no
@@ -104,4 +109,4 @@ async def normalize_link(value: str) -> NormalizedSource:
         jira_source = await _normalize_jira_link(value)
         if jira_source is not None:
             return jira_source
-    return _stub_source(link_type, value)
+    return link_stub_source(value)

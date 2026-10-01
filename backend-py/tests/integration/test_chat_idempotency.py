@@ -130,11 +130,13 @@ async def test_completed_request_replays_without_lease_context_llm_or_writes(
             turn = await TurnRepository(db).get_fresh(session_id, "request-replay")
         assert turn is not None
         assert turn.response_json == {
-            "sessionId": session_id,
-            "mermaidCode": "flowchart LR\nA-->replayed",
-            "message": "Changed once",
+            "ok": True,
+            "result": {
+                "sessionId": session_id,
+                "mermaidCode": "flowchart LR\nA-->replayed",
+                "message": "Changed once",
+            },
         }
-        assert "ok" not in turn.response_json
     finally:
         await delete_session(engine, session_id)
         await engine.dispose()
@@ -570,7 +572,7 @@ async def test_busy_session_lease_cleans_up_new_request_claim(
                 "request-busy-session",
             )
             session = await SessionRepository(db).get(session_id)
-        assert turn is None
+        assert turn is not None and turn.response_json["error"]["code"] == "request-in-progress"
         assert session is not None
         assert session.lock_token == "other-session-worker"
     finally:
@@ -609,13 +611,15 @@ async def test_completion_failure_rolls_back_business_writes_and_cleans_claim(
                 request_id="request-completion-failure",
             )
 
-        assert await _business_state(factory, session_id) == original_state
+        state_after = await _business_state(factory, session_id)
+        assert state_after[:3] == original_state[:3]
+        assert state_after[3] == original_state[3] + 1
         async with factory() as db:
             turn = await TurnRepository(db).get_fresh(
                 session_id,
                 "request-completion-failure",
             )
-        assert turn is None
+        assert turn is not None and turn.response_json is None
     finally:
         await delete_session(engine, session_id)
         await engine.dispose()
@@ -704,12 +708,15 @@ async def test_mutating_undo_completion_failure_rolls_back_version_and_head(
                 action_type="RESTORE_PREVIOUS",
             )
 
-        assert await _business_state(factory, session_id) == original_state
+        state_after = await _business_state(factory, session_id)
+        assert state_after[:3] == original_state[:3]
+        assert state_after[3] == original_state[3] + 1
         async with factory() as db:
-            assert await TurnRepository(db).get_fresh(
+            turn = await TurnRepository(db).get_fresh(
                 session_id,
                 "request-undo-completion-failure",
-            ) is None
+            )
+            assert turn is not None and turn.response_json is None
     finally:
         await delete_session(engine, session_id)
         await engine.dispose()
@@ -844,9 +851,9 @@ async def test_cleanup_error_is_warning_and_does_not_mask_primary_error(
         warnings.append(message)
 
     monkeypatch.setattr("app.services.chat.service.chat_edit", failing_chat_edit)
-    monkeypatch.setattr(TurnRepository, "delete_incomplete_owned", failing_cleanup)
+    monkeypatch.setattr(TurnRepository, "complete", failing_cleanup)
     monkeypatch.setattr(
-        "app.services.chat.service.logger.warning",
+        "app.services.chat.service.logger.exception",
         capture_warning,
     )
 
@@ -858,7 +865,7 @@ async def test_cleanup_error_is_warning_and_does_not_mask_primary_error(
                 request_id="request-cleanup-warning",
             )
 
-        assert any("Chat request claim cleanup failed" in item for item in warnings)
+        assert any("Could not persist failed claim" in item for item in warnings)
         async with factory() as db:
             turn = await TurnRepository(db).get_fresh(
                 session_id,

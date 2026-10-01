@@ -6,7 +6,7 @@ from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as postgresql_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.infrastructure.db.models import DiagramVersion, Message, Session, Turn
+from app.infrastructure.db.models import DiagramVersion, GenerateRequest, Message, Session, Turn
 
 CHAT_LEASE_TTL = timedelta(seconds=30)
 REQUEST_CLAIM_SAFETY_MARGIN = timedelta(seconds=30)
@@ -44,10 +44,17 @@ class SessionRepository:
             .values(head_version_id=version_id, updated_at=func.now())
         )
 
+    async def set_source_text(self, session_id: str, source_text: str) -> None:
+        await self._db.execute(
+            update(Session)
+            .where(Session.id == session_id)
+            .values(source_text=source_text, updated_at=func.clock_timestamp())
+        )
+
     async def set_head_fenced(
         self,
         session_id: str,
-        expected_head_version_id: int,
+        expected_head_version_id: int | None,
         version_id: int,
         lock_token: str,
     ) -> int:
@@ -57,7 +64,8 @@ class SessionRepository:
             update(Session)
             .where(
                 Session.id == session_id,
-                Session.head_version_id == expected_head_version_id,
+                (Session.head_version_id.is_(None) if expected_head_version_id is None
+                 else Session.head_version_id == expected_head_version_id),
                 Session.lock_token == lock_token,
                 Session.locked_until > database_now,
             )
@@ -275,6 +283,23 @@ class TurnRepository:
         )
         return result.rowcount
 
+    async def heartbeat_claim(
+        self, session_id: str, request_id: str, claim_token: str
+    ) -> int:
+        database_now = func.clock_timestamp()
+        result = await self._db.execute(
+            update(Turn)
+            .where(
+                Turn.session_id == session_id,
+                Turn.request_id == request_id,
+                Turn.claim_token == claim_token,
+                Turn.response_json.is_(None),
+                Turn.claimed_until > database_now,
+            )
+            .values(claimed_until=database_now + CHAT_LEASE_TTL)
+        )
+        return result.rowcount
+
     async def delete_incomplete_owned(
         self,
         *,
@@ -292,3 +317,23 @@ class TurnRepository:
             )
         )
         return result.rowcount
+
+
+class GenerateRequestRepository:
+    def __init__(self, db: AsyncSession) -> None:
+        self._db = db
+
+    async def insert_if_absent(self, request_id: str, session_id: str) -> bool:
+        result = await self._db.execute(
+            postgresql_insert(GenerateRequest)
+            .values(request_id=request_id, session_id=session_id)
+            .on_conflict_do_nothing(index_elements=[GenerateRequest.request_id])
+            .returning(GenerateRequest.session_id)
+        )
+        return result.scalar_one_or_none() is not None
+
+    async def get_session_id(self, request_id: str) -> str | None:
+        result = await self._db.execute(
+            select(GenerateRequest.session_id).where(GenerateRequest.request_id == request_id)
+        )
+        return result.scalar_one_or_none()

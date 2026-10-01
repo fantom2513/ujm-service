@@ -39,7 +39,7 @@ async def test_run_chat_persists_two_messages_new_version_and_head(
     class CompletedDeadlineFactory:
         @classmethod
         def from_timeout_ms(cls, timeout_ms: int):
-            assert timeout_ms == 120_000
+            assert timeout_ms == 900_000
             return completed_deadline
 
     async def fake_chat_edit(options, settings=None, *, deadline=None):
@@ -152,10 +152,11 @@ async def test_run_chat_fenced_cas_failure_rolls_back_messages_version_and_head(
             assert stored is not None
             assert stored.head_version_id == original_head_id
             assert await MessageRepository(db).list_by_session(session_id) == []
-            assert await TurnRepository(db).get_fresh(
+            turn = await TurnRepository(db).get_fresh(
                 session_id,
                 "request-cas-failure",
-            ) is None
+            )
+            assert turn is not None and turn.response_json["ok"] is False
 
             version_count = await db.scalar(
                 sa.select(sa.func.count())

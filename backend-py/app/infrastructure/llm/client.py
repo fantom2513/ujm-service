@@ -2,12 +2,31 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import re
+import time
+from collections.abc import AsyncIterator
 
 import httpx
 
 from app.infrastructure.llm.deadline import LLMDeadline
 from app.infrastructure.llm.errors import LLMError
+
+logger = logging.getLogger(__name__)
+
+
+async def _sse_events(response: httpx.Response) -> AsyncIterator[str]:
+    data_lines: list[str] = []
+    async for line in response.aiter_lines():
+        if line == "":
+            if data_lines:
+                yield "\n".join(data_lines)
+                data_lines.clear()
+            continue
+        if line.startswith("data:"):
+            data_lines.append(line[5:].lstrip(" "))
+    if data_lines:
+        yield "\n".join(data_lines)
 
 ResponseFormatMode = str  # "json_schema" | "json_object" | "none"
 
@@ -103,6 +122,8 @@ class VLLMClient:
         api_key: str | None = None,
         connect_timeout_ms: int = 5_000,
         pool_timeout_ms: int = 5_000,
+        ttft_ms: int = 30_000,
+        stall_ms: int = 60_000,
         temperature: float = 0.1,
         seed: int | None = None,
         response_format_mode: ResponseFormatMode = "json_schema",
@@ -113,6 +134,8 @@ class VLLMClient:
         self.deadline = deadline
         self.connect_timeout_ms = connect_timeout_ms
         self.pool_timeout_ms = pool_timeout_ms
+        self.ttft_ms = ttft_ms
+        self.stall_ms = stall_ms
         self.temperature = temperature
         self.seed = seed
         self.response_format_mode = response_format_mode
@@ -135,70 +158,103 @@ class VLLMClient:
             "model": self.model,
             "messages": messages,
             "temperature": self.temperature,
-            "stream": False,
+            "stream": True,
+            "stream_options": {"include_usage": True},
         }
         if self.seed is not None:
             payload["seed"] = self.seed
         if response_format:
             payload["response_format"] = response_format
 
-        # Phase limits still fail fast for connection/pool contention, while the
-        # outer monotonic timeout guarantees that all HTTP phases together cannot
-        # consume more than the logical operation's remaining budget.
+        # The deadline gates this attempt. Once the model is producing, only
+        # TTFT/stall govern the read; total duration is intentionally unbounded.
         remaining = self.deadline.require_remaining()
         timeout = httpx.Timeout(
-            timeout=remaining,
+            timeout=None,
             connect=min(self.connect_timeout_ms / 1000, remaining),
-            read=remaining,
+            read=None,
             write=remaining,
             pool=min(self.pool_timeout_ms / 1000, remaining),
         )
+        first_limit = self.ttft_ms / 1000
+        first_deadline = time.monotonic() + first_limit
+        content: list[str] = []
+        reasoning: list[str] = []
+        usage: dict | None = None
+        chunks = 0
+        logger.info("LLM stream attempt started")
         try:
-            async with asyncio.timeout(remaining):
-                async with httpx.AsyncClient(
-                    verify=self._verify, timeout=timeout
-                ) as http_client:
-                    response = await http_client.post(
-                        self.endpoint,
-                        headers=self.headers,
-                        json=payload,
+            async with httpx.AsyncClient(verify=self._verify, timeout=timeout) as http_client:
+                async with asyncio.timeout(first_limit):
+                    stream = http_client.stream(
+                        "POST", self.endpoint, headers=self.headers, json=payload
                     )
+                    response = await stream.__aenter__()
+                try:
+                    if response.status_code >= 400:
+                        body = (await asyncio.wait_for(response.aread(), timeout=self.ttft_ms / 1000)).decode(errors="replace")
+                        if response.status_code == 422 and self.response_format_mode != "none":
+                            raise LLMError("STRUCTURED_OUTPUT_UNSUPPORTED", f"Model rejected response_format: {body[:400]}")
+                        raise LLMError("HTTP_ERROR", f"LLM HTTP {response.status_code}: {body[:400]}")
+                    events = _sse_events(response).__aiter__()
+                    first = True
+                    stall_deadline = 0.0
+                    done = False
+                    while True:
+                        limit = max(0, (first_deadline if first else stall_deadline) - time.monotonic())
+                        try:
+                            raw = await asyncio.wait_for(anext(events), timeout=limit)
+                        except StopAsyncIteration:
+                            break
+                        except TimeoutError as err:
+                            phase = "TTFT" if first else "STALL"
+                            logger.warning("LLM %s timeout after %d chunks", phase, chunks)
+                            raise LLMError("TIMEOUT", f"LLM {phase} timeout") from err
+                        if raw == "[DONE]":
+                            done = True
+                            break
+                        try:
+                            data = json.loads(raw)
+                        except json.JSONDecodeError as err:
+                            raise LLMError("INVALID_JSON", "Invalid LLM SSE event") from err
+                        if data.get("error"):
+                            raise LLMError("HTTP_ERROR", "LLM stream reported an error")
+                        if data.get("usage") is not None:
+                            raw_usage = data["usage"]
+                            usage = {
+                                "prompt_tokens": raw_usage.get("prompt_tokens", 0),
+                                "completion_tokens": raw_usage.get("completion_tokens", 0),
+                                "total_tokens": raw_usage.get("total_tokens", 0),
+                            }
+                        choices = data.get("choices") or []
+                        delta = choices[0].get("delta", {}) if choices else {}
+                        piece = delta.get("content") or ""
+                        thought = delta.get("reasoning_content") or delta.get("reasoning") or ""
+                        if piece or thought:
+                            content.append(piece)
+                            reasoning.append(thought)
+                            chunks += 1
+                            if first:
+                                logger.info("LLM first token received")
+                                first = False
+                            stall_deadline = time.monotonic() + self.stall_ms / 1000
+                            if chunks % 1000 == 0:
+                                logger.info("LLM stream received %d chunks", chunks)
+                    if not done:
+                        raise LLMError("NETWORK_ERROR", "LLM stream ended before [DONE]")
+                    logger.info("LLM stream completed after %d chunks", chunks)
+                finally:
+                    await stream.__aexit__(None, None, None)
         except asyncio.CancelledError:
             raise
         except TimeoutError as err:
-            raise LLMError("TIMEOUT", "LLM deadline exhausted during HTTP request") from err
+            logger.warning("LLM TTFT timeout before response headers")
+            raise LLMError("TIMEOUT", "LLM TTFT timeout") from err
         except httpx.TimeoutException as err:
             raise LLMError("TIMEOUT", "LLM HTTP request timed out") from err
         except httpx.HTTPError as err:
             raise LLMError("NETWORK_ERROR", f"LLM network error: {err}", err) from err
-
-        self.deadline.require_remaining()
-        if response.status_code >= 400:
-            body = response.text
-            if response.status_code == 422 and self.response_format_mode != "none":
-                raise LLMError(
-                    "STRUCTURED_OUTPUT_UNSUPPORTED",
-                    f"Model rejected response_format: {body[:400]}",
-                )
-            raise LLMError("HTTP_ERROR", f"LLM HTTP {response.status_code}: {body[:400]}")
-
-        data = response.json()
-        message = data.get("choices", [{}])[0].get("message", {})
-        usage = None
-        if "usage" in data:
-            raw_usage = data["usage"]
-            usage = {
-                "prompt_tokens": raw_usage.get("prompt_tokens", 0),
-                "completion_tokens": raw_usage.get("completion_tokens", 0),
-                "total_tokens": raw_usage.get("total_tokens", 0),
-            }
-        result = {
-            "content": message.get("content") or "",
-            "reasoning_content": message.get("reasoning_content") or "",
-            "usage": usage,
-        }
-        self.deadline.require_remaining()
-        return result
+        return {"content": "".join(content), "reasoning_content": "".join(reasoning), "usage": usage}
 
     async def complete_text(self, prompt: str, system: str | None = None) -> str:
         messages = []
@@ -208,7 +264,6 @@ class VLLMClient:
         result = await self._post(messages)
         self.last_usage = result["usage"]
         mermaid = extract_mermaid(strip_think_tags(result["content"]))
-        self.deadline.require_remaining()
         return mermaid
 
     async def complete_json(
@@ -241,5 +296,4 @@ class VLLMClient:
             result["reasoning_content"] if "{" in result["reasoning_content"] else result["content"]
         )
         parsed = extract_json(strip_think_tags(raw))
-        self.deadline.require_remaining()
         return parsed

@@ -99,6 +99,25 @@ def _deadline(timeout_ms: int = 120_000) -> LLMDeadline:
     return LLMDeadline.from_timeout_ms(timeout_ms)
 
 
+class FakeSSEStream:
+    status_code = 200
+
+    def __init__(self, content: str = "flowchart LR\nA --> B"):
+        self.content = content
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, traceback):
+        return False
+
+    async def aiter_lines(self):
+        yield "data: " + json.dumps({"choices": [{"delta": {"content": self.content}}]})
+        yield ""
+        yield "data: [DONE]"
+        yield ""
+
+
 async def test_complete_text_returns_mermaid_from_response(mock_llm_server):
     url = mock_llm_server(_llm_response("flowchart LR\nA --> B"))
     client = VLLMClient(
@@ -130,6 +149,7 @@ async def test_complete_text_raises_timeout_when_server_too_slow(mock_llm_server
         url=url,
         model="test",
         deadline=_deadline(50),
+        ttft_ms=50,
         response_format_mode="none",
     )
     with pytest.raises(LLMError) as exc_info:
@@ -139,12 +159,6 @@ async def test_complete_text_raises_timeout_when_server_too_slow(mock_llm_server
 
 async def test_http_phase_timeouts_are_capped_by_remaining_deadline(monkeypatch):
     captured: dict[str, object] = {}
-
-    class FakeResponse:
-        status_code = 200
-
-        def json(self):
-            return _llm_response("flowchart LR\nA --> B")
 
     class FakeAsyncClient:
         def __init__(self, *, verify, timeout):
@@ -157,8 +171,8 @@ async def test_http_phase_timeouts_are_capped_by_remaining_deadline(monkeypatch)
         async def __aexit__(self, exc_type, exc, traceback):
             return False
 
-        async def post(self, *_args, **_kwargs):
-            return FakeResponse()
+        def stream(self, *_args, **_kwargs):
+            return FakeSSEStream()
 
     monkeypatch.setattr(
         "app.infrastructure.llm.client.httpx.AsyncClient",
@@ -180,7 +194,7 @@ async def test_http_phase_timeouts_are_capped_by_remaining_deadline(monkeypatch)
     timeout = captured["timeout"]
     assert isinstance(timeout, httpx.Timeout)
     assert timeout.connect == pytest.approx(2.0)
-    assert timeout.read == pytest.approx(2.0)
+    assert timeout.read is None
     assert timeout.write == pytest.approx(2.0)
     assert timeout.pool == pytest.approx(0.5)
 
@@ -206,15 +220,14 @@ async def test_expired_deadline_does_not_start_http(monkeypatch):
     assert exc_info.value.code == "TIMEOUT"
 
 
-async def test_deadline_expiry_during_response_parsing_stays_timeout(monkeypatch):
+async def test_deadline_expiry_after_stream_success_preserves_result(monkeypatch):
     now = [0.0]
 
-    class ExpiringResponse:
-        status_code = 200
-
-        def json(self):
+    class ExpiringResponse(FakeSSEStream):
+        async def aiter_lines(self):
             now[0] = 1.0
-            return _llm_response("flowchart LR\nA --> B")
+            async for line in super().aiter_lines():
+                yield line
 
     class FakeAsyncClient:
         def __init__(self, *, verify, timeout):
@@ -226,7 +239,7 @@ async def test_deadline_expiry_during_response_parsing_stays_timeout(monkeypatch
         async def __aexit__(self, exc_type, exc, traceback):
             return False
 
-        async def post(self, *_args, **_kwargs):
+        def stream(self, *_args, **_kwargs):
             return ExpiringResponse()
 
     monkeypatch.setattr(
@@ -241,10 +254,7 @@ async def test_deadline_expiry_during_response_parsing_stays_timeout(monkeypatch
         response_format_mode="none",
     )
 
-    with pytest.raises(LLMError) as exc_info:
-        await client.complete_text("test")
-
-    assert exc_info.value.code == "TIMEOUT"
+    assert await client.complete_text("test") == "flowchart LR\nA --> B"
 
 
 async def test_external_cancellation_is_not_converted_to_timeout(monkeypatch):
@@ -261,10 +271,13 @@ async def test_external_cancellation_is_not_converted_to_timeout(monkeypatch):
         async def __aexit__(self, exc_type, exc, traceback):
             return False
 
-        async def post(self, *_args, **_kwargs):
-            entered_post.set()
-            await hold_post.wait()
-            raise AssertionError("cancelled HTTP request must not resume")
+        def stream(self, *_args, **_kwargs):
+            class BlockingStream(FakeSSEStream):
+                async def __aenter__(self):
+                    entered_post.set()
+                    await hold_post.wait()
+                    raise AssertionError("cancelled HTTP request must not resume")
+            return BlockingStream()
 
     monkeypatch.setattr(
         "app.infrastructure.llm.client.httpx.AsyncClient",
@@ -322,6 +335,7 @@ async def test_execute_with_retry_does_not_retry_timeout_end_to_end(mock_llm_ser
         url=url,
         model="test",
         deadline=_deadline(50),
+        ttft_ms=50,
         response_format_mode="none",
     )
     attempts = 0
@@ -432,3 +446,130 @@ async def test_complete_text_usage_is_none_when_response_omits_it(mock_llm_serve
     )
     await client.complete_text("make a diagram")
     assert client.last_usage is None
+
+
+def _fake_stream_client(monkeypatch, stream):
+    class FakeAsyncClient:
+        def __init__(self, *, verify, timeout):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, traceback):
+            return False
+
+        def stream(self, *_args, **_kwargs):
+            return stream
+
+    monkeypatch.setattr("app.infrastructure.llm.client.httpx.AsyncClient", FakeAsyncClient)
+
+
+async def test_stream_ttft_timeout(monkeypatch):
+    never = asyncio.Event()
+
+    class SilentStream(FakeSSEStream):
+        async def aiter_lines(self):
+            await never.wait()
+            yield "data: [DONE]"
+
+    _fake_stream_client(monkeypatch, SilentStream())
+    client = VLLMClient(url="http://llm.invalid", model="test", deadline=_deadline(), ttft_ms=10)
+    with pytest.raises(LLMError) as exc_info:
+        await client.complete_text("test")
+    assert exc_info.value.code == "TIMEOUT"
+    assert "TTFT" in str(exc_info.value)
+
+
+async def test_stream_stall_timeout(monkeypatch):
+    never = asyncio.Event()
+
+    class StalledStream(FakeSSEStream):
+        async def aiter_lines(self):
+            yield 'data: {"choices":[{"delta":{"content":"flowchart LR\\nA-->B"}}]}'
+            yield ""
+            await never.wait()
+            yield "data: [DONE]"
+
+    _fake_stream_client(monkeypatch, StalledStream())
+    client = VLLMClient(url="http://llm.invalid", model="test", deadline=_deadline(), stall_ms=10)
+    with pytest.raises(LLMError) as exc_info:
+        await client.complete_text("test")
+    assert exc_info.value.code == "TIMEOUT"
+    assert "STALL" in str(exc_info.value)
+
+
+async def test_non_content_sse_events_do_not_extend_stall_budget(monkeypatch):
+    class KeepaliveStream(FakeSSEStream):
+        async def aiter_lines(self):
+            yield 'data: {"choices":[{"delta":{"content":"flowchart LR\\nA-->B"}}]}'
+            yield ""
+            await asyncio.sleep(0.065)
+            yield 'data: {"choices":[],"usage":{"prompt_tokens":1}}'
+            yield ""
+            await asyncio.sleep(0.065)
+            yield "data: [DONE]"
+            yield ""
+
+    _fake_stream_client(monkeypatch, KeepaliveStream())
+    client = VLLMClient(url="http://llm.invalid", model="test", deadline=_deadline(), stall_ms=100)
+    with pytest.raises(LLMError) as exc_info:
+        await client.complete_text("test")
+    assert exc_info.value.code == "TIMEOUT"
+    assert "STALL" in str(exc_info.value)
+
+
+async def test_live_stream_can_finish_after_logical_deadline(monkeypatch):
+    now = [0.0]
+
+    class LongStream(FakeSSEStream):
+        async def aiter_lines(self):
+            yield 'data: {"choices":[{"delta":{"content":"flowchart LR\\n"}}]}'
+            yield ""
+            now[0] = 400.0  # Far beyond the old 120s/300s limits.
+            yield 'data: {"choices":[{"delta":{"content":"A-->B"}}]}'
+            yield ""
+            yield "data: [DONE]"
+            yield ""
+
+    _fake_stream_client(monkeypatch, LongStream())
+    deadline = LLMDeadline.from_timeout_ms(1000, clock=lambda: now[0])
+    client = VLLMClient(url="http://llm.invalid", model="test", deadline=deadline)
+    assert await client.complete_text("test") == "flowchart LR\nA-->B"
+
+
+async def test_first_token_may_arrive_after_logical_deadline(monkeypatch):
+    now = [0.0]
+
+    class LateFirstStream(FakeSSEStream):
+        async def aiter_lines(self):
+            now[0] = 400.0
+            yield 'data: {"choices":[{"delta":{"content":"flowchart LR\\nA-->B"}}]}'
+            yield ""
+            yield "data: [DONE]"
+            yield ""
+
+    _fake_stream_client(monkeypatch, LateFirstStream())
+    deadline = LLMDeadline.from_timeout_ms(1000, clock=lambda: now[0])
+    client = VLLMClient(url="http://llm.invalid", model="test", deadline=deadline)
+    assert await client.complete_text("test") == "flowchart LR\nA-->B"
+
+
+async def test_incomplete_stream_is_not_persisted_as_success(monkeypatch):
+    class TruncatedStream(FakeSSEStream):
+        async def aiter_lines(self):
+            yield 'data: {"choices":[{"delta":{"content":"flowchart LR\\nA-->B"}}]}'
+            yield ""
+
+    _fake_stream_client(monkeypatch, TruncatedStream())
+    client = VLLMClient(url="http://llm.invalid", model="test", deadline=_deadline())
+    with pytest.raises(LLMError) as exc_info:
+        await client.complete_text("test")
+    assert exc_info.value.code == "NETWORK_ERROR"
+
+
+async def test_gateway_reasoning_field_is_accepted(mock_llm_server):
+    payload = {"mermaid": "flowchart LR\nA-->B", "message": "ok"}
+    url = mock_llm_server({"choices": [{"message": {"content": "", "reasoning": json.dumps(payload)}}]})
+    client = VLLMClient(url=url, model="test", deadline=_deadline(), response_format_mode="none")
+    assert (await client.complete_json("x", {}, "X"))["message"] == "ok"

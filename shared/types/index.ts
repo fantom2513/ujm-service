@@ -61,3 +61,9 @@ export interface ChatResult {
   mermaidCode: string;
   message: string;
 }
+
+export type PendingTurn = {
+  kind: "chat" | "generate";
+  sessionId: string;
+  requestId: string;
+};

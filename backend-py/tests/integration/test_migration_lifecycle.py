@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 BACKEND_PY_ROOT = Path(__file__).resolve().parents[2]
 EXPECTED_TABLES = {"sessions", "diagram_versions", "messages", "turns"}
-HEAD_REVISION = "0002"
+HEAD_REVISION = "0003"
 
 
 async def _table_names(database_url: str) -> set[str]:

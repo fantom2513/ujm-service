@@ -23,6 +23,8 @@ def make_client(deadline: LLMDeadline, settings: Settings | None = None) -> VLLM
         api_key=settings.llm_api_key,
         connect_timeout_ms=settings.llm_connect_timeout_ms,
         pool_timeout_ms=settings.llm_pool_timeout_ms,
+        ttft_ms=settings.llm_ttft_ms,
+        stall_ms=settings.llm_stall_ms,
         temperature=settings.llm_temperature,
         seed=settings.llm_seed,
         response_format_mode=settings.llm_response_format_mode,
@@ -37,6 +39,7 @@ async def generate_diagram(
     *,
     settings: Settings | None = None,
     client_factory: ClientFactory | None = None,
+    deadline: LLMDeadline | None = None,
 ) -> str:
     settings = settings or get_settings()
     factory = client_factory or (
@@ -45,7 +48,7 @@ async def generate_diagram(
     if client is not None:
         deadline = client.deadline
     else:
-        deadline = LLMDeadline.from_timeout_ms(settings.llm_deadline_ms)
+        deadline = deadline or LLMDeadline.from_timeout_ms(settings.llm_deadline_ms)
         client = factory(deadline)
     prompt = build_generate_prompt(source_text, details)
     mermaid_code = await execute_with_retry(
@@ -53,16 +56,15 @@ async def generate_diagram(
         deadline=deadline,
     )
     validation = validate_mermaid(mermaid_code)
-    deadline.require_remaining()
     if validation.ok:
         return mermaid_code
 
+    deadline.require_remaining()
     repair_client = factory(deadline)
     try:
         repaired = await repair_client.complete_text(
             build_repair_prompt(mermaid_code, validation.reason or "", [])
         )
-        deadline.require_remaining()
         if not validate_mermaid(repaired).ok:
             raise ValueError("Repair output failed Mermaid validation")
         return repaired

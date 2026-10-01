@@ -53,12 +53,8 @@ async def execute_with_retry(
             deadline.require_remaining()
         try:
             result = await fn()
-            if deadline is not None:
-                deadline.require_remaining()
             return result
         except error_type as err:
-            if deadline is not None:
-                deadline.require_remaining()
             if err.code in no_retry_codes:
                 raise
             last_err = err
@@ -73,8 +69,6 @@ async def execute_with_retry(
                         deadline.require_remaining(),
                     )
                 await sleep(delay_seconds)
-                if deadline is not None:
-                    deadline.require_remaining()
     assert last_err is not None
     raise last_err
 
@@ -105,9 +99,9 @@ async def complete_json_with_fallback(
                 deadline=deadline,
             )
         except LLMError as err:
-            deadline.require_remaining()
             last_err = err
             if err.code in FALLBACK_CODES and i < len(FALLBACK_CHAIN) - 1:
+                deadline.require_remaining()
                 continue
             raise
     raise last_err or LLMError("SCHEMA_MISMATCH", "All response_format modes exhausted")

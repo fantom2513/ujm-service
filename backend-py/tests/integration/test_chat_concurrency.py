@@ -105,10 +105,11 @@ async def test_llm_error_still_releases_lease(real_database_url, monkeypatch):
             await run_chat(factory, session_id)
         await assert_lease_released(factory, session_id)
         async with factory() as db:
-            assert await TurnRepository(db).get_fresh(
+            turn = await TurnRepository(db).get_fresh(
                 session_id,
                 "request-change",
-            ) is None
+            )
+            assert turn is not None and turn.response_json["ok"] is False
     finally:
         await delete_session(engine, session_id)
         await engine.dispose()
@@ -195,7 +196,7 @@ async def test_llm_timeout_uses_boundary_deadline_and_rolls_back_chat_writes(
                 )
 
         assert exc_info.value.code == "TIMEOUT"
-        assert deadline_budget_ms == 120_000
+        assert deadline_budget_ms == 900_000
         assert heartbeat_stopped.is_set()
 
         async with factory() as db:
@@ -206,10 +207,11 @@ async def test_llm_timeout_uses_boundary_deadline_and_rolls_back_chat_writes(
             assert stored.lock_token is None
             assert stored.locked_until is None
             assert await MessageRepository(db).list_by_session(session_id) == []
-            assert await TurnRepository(db).get_fresh(
+            turn = await TurnRepository(db).get_fresh(
                 session_id,
                 "request-timeout",
-            ) is None
+            )
+            assert turn is not None and turn.response_json["ok"] is False
             version_count = await db.scalar(
                 sa.select(sa.func.count())
                 .select_from(DiagramVersion)
@@ -247,10 +249,11 @@ async def test_cancellation_stops_heartbeat_and_releases_lease(
             await task
         await assert_lease_released(factory, session_id)
         async with factory() as db:
-            assert await TurnRepository(db).get_fresh(
+            turn = await TurnRepository(db).get_fresh(
                 session_id,
                 "request-change",
-            ) is None
+            )
+            assert turn is not None and turn.response_json["ok"] is False
     finally:
         hold_llm.set()
         await delete_session(engine, session_id)

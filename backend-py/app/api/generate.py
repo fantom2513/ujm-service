@@ -6,18 +6,25 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from app.api.deps import ChatServiceDep, CurrentIdentity
-from app.api.schemas import ApiError, DiagramResult, FileMeta, SourceContext
+from app.api.schemas import ApiError
+from app.domain.generate_request import compute_generate_request_hash
 from app.config import get_settings
 from app.domain.generate_guard import required_source_error
-from app.domain.mermaid import validate_mermaid
 from app.services.files.extract import get_extension, is_text_source_format, normalize_text_file
-from app.services.links.classify import classify_work_link, normalize_link
-from app.services.openai.generate import generate_diagram
+from app.services.links.classify import classify_work_link, link_stub_source
+from app.services.chat.background import register_background_task
+from app.services.chat.service import (
+    ClaimedGenerateTurn,
+    RequestIdConflict,
+    RequestInProgress,
+    run_claimed_generate,
+)
 from app.services.recordings.normalize import is_recording_format, normalize_recording
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+MAX_REQUEST_ID_LENGTH = 128
 
 _USER_MESSAGES = {
     "file-required": "Необходимо прикрепить файл",
@@ -28,6 +35,10 @@ _USER_MESSAGES = {
     "invalid-link": "Неверный формат ссылки",
     "diagram-generation": "Схема не сформирована. Перезагрузите страницу или повторите попытку позже",
     "attachment-error": "Ошибка загрузки файла",
+    "request-id-required": "Необходимо указать идентификатор запроса",
+    "invalid-request": "Некорректный запрос",
+    "request-id-conflict": "Идентификатор запроса уже использован для других данных",
+    "request-in-progress": "Запрос уже выполняется",
 }
 
 
@@ -54,6 +65,11 @@ async def generate(
     chat_service: ChatServiceDep,
 ):
     form = await request.form()
+    request_id = str(form.get("requestId", "") or "").strip()
+    if not request_id:
+        return _api_error(400, "request-id-required")
+    if len(request_id) > MAX_REQUEST_ID_LENGTH:
+        return _api_error(400, "invalid-request")
     source_type = form.get("sourceType")
     details = form.get("details", "") or ""
     link = (form.get("link", "") or "").strip()
@@ -62,6 +78,7 @@ async def generate(
     # only used as the `field` value inside error payloads below.
     upload = form.get("file")
     has_file = upload is not None and bool(getattr(upload, "filename", None))
+    content = b""
 
     missing = required_source_error(source_type, has_file, link)
     if missing:
@@ -94,64 +111,69 @@ async def generate(
     elif source_type == "link":
         if not classify_work_link(link):
             return _api_error(400, "invalid-link")
-        source = await normalize_link(link)
+        source = link_stub_source(link)
     else:
         return _api_error(400, "diagram-generation")
 
+    request_hash = compute_generate_request_hash(
+        source_type=str(source_type),
+        details=str(details),
+        link=link,
+        filename=upload.filename if has_file else "",
+        file_content=content,
+    )
     try:
-        mermaid_code = await generate_diagram(source.text, details)
-    except Exception:
-        # Parity with TS: backend/src/server/index.ts:143
-        # (`console.error("generateDiagram failed:", err)`).
-        logger.exception("generateDiagram failed")
-        return _api_error(500, "diagram-generation")
-
-    validation = validate_mermaid(mermaid_code)
-    if not validation.ok:
-        # Parity with TS: backend/src/server/index.ts:148 — logs the
-        # validation reason and the bad output's first line, not the
-        # user-facing generic message, since the raw Mermaid may contain
-        # unsafe/oversized content unsuitable for a client-visible error.
-        first_line = mermaid_code.strip().split("\n", 1)[0]
-        logger.error(
-            "generateDiagram validation failed: %s | first line: %s",
-            validation.reason,
-            first_line,
-        )
-        return _api_error(500, "diagram-generation")
-
-    try:
-        session_id = await chat_service.create_session_with_version(
-            source_text=source.text,
-            additional_details=details,
+        outcome = await chat_service.claim_generate(
+            request_id=request_id,
+            request_hash=request_hash,
             principal=identity,
-            mermaid_code=mermaid_code,
+            source=source,
+            details=str(details),
         )
+    except RequestIdConflict:
+        return _api_error(409, "request-id-conflict")
+    except RequestInProgress:
+        return _api_error(409, "request-in-progress")
     except Exception:
-        # The service owns the transaction boundary, so an exception here
-        # has already rolled back session + V1 + head as one operation.
-        logger.exception("Failed to persist generated diagram")
+        logger.exception("Could not claim generate request %s", request_id)
         return _api_error(500, "diagram-generation")
+    if isinstance(outcome, ClaimedGenerateTurn):
+        register_background_task(
+            request.app,
+            run_claimed_generate(
+                outcome,
+                chat_service._db_sessionmaker,
+                chat_service._redis,
+                chat_service._settings,
+            ),
+            f"generate:{outcome.session_id}:{request_id}",
+        )
+        return JSONResponse(
+            status_code=202,
+            content={"status": "processing", "sessionId": outcome.session_id, "requestId": request_id},
+            headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
+        )
+    if outcome["ok"]:
+        return JSONResponse(status_code=200, content=outcome["result"], headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"})
+    code = outcome["error"]["code"]
+    status = 404 if code == "session-not-found" else 409 if code in {"request-in-progress", "version-conflict"} else 500
+    return JSONResponse(status_code=status, content=outcome, headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"})
 
-    result = DiagramResult(
-        session_id=session_id,
-        title="Тестовая User Flow-схема",
-        mermaid_code=mermaid_code,
-        source_text=source.text,
-        source_context=SourceContext(
-            type=source.type,
-            title=source.title,
-            description=source.description,
-            file=FileMeta(**source.file) if source.file else None,
-            url=source.url,
-            stub=source.stub,
-        ),
-        details=details,
-        chat=[],
-        warnings=["Используется временная заглушка backend."] if source.stub else [],
-    )
-    return JSONResponse(
-        status_code=200,
-        content={"ok": True, "result": result.model_dump(by_alias=True, exclude_none=True)},
-        headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
-    )
+
+@router.get("/api/generate/{session_id}/turns/{request_id}")
+async def poll_generate_turn(
+    session_id: str,
+    request_id: str,
+    identity: CurrentIdentity,
+    chat_service: ChatServiceDep,
+) -> JSONResponse:
+    from app.services.chat.service import SessionNotFound
+
+    try:
+        outcome = await chat_service.poll_turn(session_id, request_id, identity)
+    except SessionNotFound:
+        return _api_error(404, "diagram-generation")
+    if outcome is None:
+        return _api_error(404, "diagram-generation")
+    content = outcome["result"] if outcome.get("ok") else outcome
+    return JSONResponse(status_code=200, content=content, headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"})

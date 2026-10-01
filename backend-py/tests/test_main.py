@@ -1,7 +1,10 @@
+import asyncio
+
 import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.services.chat.background import register_background_task
 
 
 @pytest.fixture
@@ -61,3 +64,41 @@ def test_unhandled_exception_returns_safe_envelope_and_logs_traceback(monkeypatc
 
     assert "boom: leaked secret path /etc/passwd" in caplog.text
     assert "Traceback" in caplog.text
+
+
+async def test_background_task_failure_is_logged_and_removed(caplog):
+    async with app.router.lifespan_context(app):
+        async def fail():
+            raise RuntimeError("background failure")
+
+        with caplog.at_level("ERROR"):
+            register_background_task(app, fail(), "failing-task")
+            task = next(iter(app.state.background_tasks))
+            with pytest.raises(RuntimeError, match="background failure"):
+                await task
+            await asyncio.sleep(0)  # Let the done callback run.
+
+        assert task not in app.state.background_tasks
+        assert "Background task failing-task failed" in caplog.text
+
+
+async def test_shutdown_cancels_and_awaits_background_tasks():
+    started = asyncio.Event()
+    cancelled = asyncio.Event()
+
+    async def wait_forever():
+        started.set()
+        try:
+            await asyncio.Event().wait()
+        finally:
+            cancelled.set()
+
+    async with app.router.lifespan_context(app):
+        register_background_task(app, wait_forever(), "shutdown-task")
+        task = next(iter(app.state.background_tasks))
+        await asyncio.wait_for(started.wait(), timeout=2)
+
+    assert task.done()
+    assert task.cancelled()
+    assert cancelled.is_set()
+    assert task not in app.state.background_tasks

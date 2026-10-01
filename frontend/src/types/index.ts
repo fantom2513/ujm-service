@@ -1,4 +1,4 @@
-import type { ChatMessage, DiagramResult, FileMeta, SourceType, UserErrorCode } from "../../../shared/types/index.ts";
+import type { ChatMessage, DiagramResult, FileMeta, PendingTurn, SourceType, UserErrorCode } from "../../../shared/types/index.ts";
 
 export type Page = "start" | "result";
 
@@ -25,6 +25,7 @@ export interface AppState {
   page: Page;
   start: StartState;
   result?: DiagramResult;
+  pendingTurn?: PendingTurn;
   view: DiagramViewState;
   chatDraft: string;
   chatAttachment?: FileMeta;

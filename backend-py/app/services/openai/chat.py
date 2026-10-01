@@ -58,6 +58,8 @@ def _make_client(
         api_key=settings.llm_api_key,
         connect_timeout_ms=settings.llm_connect_timeout_ms,
         pool_timeout_ms=settings.llm_pool_timeout_ms,
+        ttft_ms=settings.llm_ttft_ms,
+        stall_ms=settings.llm_stall_ms,
         temperature=settings.llm_temperature,
         seed=settings.llm_seed,
         response_format_mode=response_format_mode,
@@ -105,23 +107,20 @@ async def chat_edit(
         complete,
         deadline,
     )
-    deadline.require_remaining()
     mermaid_value = raw.get("mermaid")
     message_value = raw.get("message")
     mermaid_code = str(mermaid_value if mermaid_value is not None else "").strip()
     message = str(message_value if message_value is not None else "").strip()
 
     validation = validate_mermaid(mermaid_code)
-    deadline.require_remaining()
     if not validation.ok:
+        deadline.require_remaining()
         repair_client = client_factory(settings.llm_response_format_mode, deadline)
         try:
             repaired = await repair_client.complete_text(
                 build_repair_prompt(mermaid_code, validation.reason or "", [])
             )
-            deadline.require_remaining()
             revalidation = validate_mermaid(repaired)
-            deadline.require_remaining()
             if not revalidation.ok:
                 raise ValueError(f"Repair failed: {revalidation.reason}")
             mermaid_code = repaired
@@ -143,5 +142,4 @@ async def chat_edit(
             ) from err
 
     # Matches the TS path: repair-call usage is not merged into primary usage.
-    deadline.require_remaining()
     return ChatEditResult(mermaid_code=mermaid_code, message=message, usage=captured_usage)
