@@ -14,12 +14,21 @@ RUN pip install --no-cache-dir uv
 COPY backend-py/pyproject.toml ./
 RUN uv sync --no-dev --no-install-project
 
+FROM nexus.sogaz.ru/node:24-bookworm-slim AS mermaid
+WORKDIR /app
+RUN npm config set registry https://nexus.sogaz.ru/npm/ \
+    && npm config set strict-ssl false
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
 FROM nexus.sogaz.ru/python:3.12-bookworm AS runtime
 WORKDIR /app
 ENV PYTHONUNBUFFERED=1
 RUN groupadd --system --gid 1001 app && useradd --system --uid 1001 --gid app app
 
 COPY --from=deps /app/.venv ./.venv
+COPY --from=mermaid /usr/local/bin/node /usr/local/bin/node
+COPY --from=mermaid /app/node_modules /opt/mermaid/node_modules
 COPY backend-py/app ./app
 COPY backend-py/alembic.ini ./
 COPY backend-py/alembic ./alembic
@@ -30,7 +39,11 @@ COPY backend-py/alembic ./alembic
 # this exact path or the app fails to import at container startup.
 COPY backend/src/prompts /backend/src/prompts
 ENV PATH="/app/.venv/bin:$PATH"
+ENV MERMAID_MODULE_PATH=/opt/mermaid/node_modules/mermaid/dist/mermaid.esm.min.mjs
+ENV MERMAID_JSDOM_MODULE_PATH=/opt/mermaid/node_modules/jsdom/lib/api.js
 ENV APP_PORT=8001
+
+RUN printf 'flowchart LR\nA["Start"] --> B["Finish"]\n' | node /app/app/domain/mermaid_parser.mjs | grep -q '"ok":true'
 
 RUN chown -R app:app /app
 USER app

@@ -26,12 +26,12 @@ async def test_real_http_generate_then_chat_with_streaming_llm(
     generate_calls = [0]
     chat_calls = [0]
     generate_url = mock_llm_server(
-        {"choices": [{"message": {"content": "flowchart LR\nA-->B"}}]},
+        {"choices": [{"message": {"content": "flowchart LR\nA[\"Start\"] --> B[\"Finish\"]"}}]},
         call_counter=generate_calls,
     )
     chat_url = mock_llm_server(
         {"choices": [{"message": {"content": json.dumps({
-            "mermaid": "flowchart LR\nA-->C", "message": "Changed",
+            "mermaid": "flowchart LR\nA[\"Start\"] --> C[\"Changed\"]", "message": "Changed",
         })}}]},
         call_counter=chat_calls,
     )
@@ -66,7 +66,7 @@ async def test_real_http_generate_then_chat_with_streaming_llm(
                 poll_path = f"/api/generate/{session_id}/turns/http-generate"
                 result = await _poll(client, poll_path)
                 assert result.status_code == 200, result.text
-                assert result.json()["mermaidCode"] == "flowchart LR\nA-->B"
+                assert result.json().get("mermaidCode") == "flowchart LR\nA[\"Start\"] --> B[\"Finish\"]", result.text
                 assert generate_calls == [1]
                 async with app.state.db_sessionmaker() as db:
                     assert (await db.get(Session, session_id)).lock_token is None
@@ -88,7 +88,7 @@ async def test_real_http_generate_then_chat_with_streaming_llm(
                 assert changed.status_code == 202, changed.text
                 chat_result = await _poll(client, f"/api/chat/{session_id}/turns/http-chat")
                 assert chat_result.status_code == 200, chat_result.text
-                assert chat_result.json()["mermaidCode"] == "flowchart LR\nA-->C"
+                assert chat_result.json().get("mermaidCode") == "flowchart LR\nA[\"Start\"] --> C[\"Changed\"]", chat_result.text
                 assert chat_calls == [1]
                 async with app.state.db_sessionmaker() as db:
                     assert (await db.get(Session, session_id)).lock_token is None

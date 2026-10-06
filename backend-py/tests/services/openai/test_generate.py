@@ -3,6 +3,7 @@ import pytest
 from app.config import Settings
 from app.infrastructure.llm.client import VLLMClient
 from app.infrastructure.llm.deadline import LLMDeadline
+from app.infrastructure.llm.errors import LLMError
 from app.services.openai.generate import generate_diagram
 
 
@@ -86,3 +87,69 @@ async def test_generate_diagram_repairs_invalid_mermaid_before_returning_it():
     assert len(primary.prompts) == 1
     assert len(repair.prompts) == 1
     assert "<CANDIDATE_MERMAID>\nnot a flowchart\n</CANDIDATE_MERMAID>" in repair.prompts[0]
+
+
+async def test_generate_diagram_repairs_mermaid_syntax_error():
+    class FakeClient:
+        def __init__(self, result: str) -> None:
+            self.deadline = LLMDeadline.from_timeout_ms(30_000)
+            self.result = result
+            self.prompts: list[str] = []
+
+        async def complete_text(self, prompt: str) -> str:
+            self.prompts.append(prompt)
+            return self.result
+
+    primary = FakeClient("flowchart LR\nA -->")
+    repair = FakeClient("flowchart LR\nA --> B")
+    result = await generate_diagram(
+        "spec", "details", primary, client_factory=lambda _deadline: repair
+    )
+
+    assert result == "flowchart LR\nA --> B"
+    assert "Parse error" in repair.prompts[0]
+
+
+async def test_generate_diagram_rejects_still_broken_syntax_after_one_repair():
+    class FakeClient:
+        def __init__(self, result: str) -> None:
+            self.deadline = LLMDeadline.from_timeout_ms(30_000)
+            self.result = result
+            self.calls = 0
+
+        async def complete_text(self, _prompt: str) -> str:
+            self.calls += 1
+            return self.result
+
+    primary = FakeClient("flowchart LR\nA -->")
+    repair = FakeClient("flowchart LR\nB -->")
+
+    with pytest.raises(LLMError) as raised:
+        await generate_diagram(
+            "spec", "details", primary, client_factory=lambda _deadline: repair
+        )
+
+    assert raised.value.code == "SCHEMA_MISMATCH"
+    assert primary.calls == 1
+    assert repair.calls == 1
+
+@pytest.mark.parametrize("repair", [False, True])
+async def test_generate_syntax_validation_preserves_a_live_result_after_deadline(repair):
+    now = [0.0]
+    deadline = LLMDeadline.from_timeout_ms(1_000, clock=lambda: now[0])
+
+    class LiveClient:
+        def __init__(self, first):
+            self.deadline = deadline
+            self.first = first
+
+        async def complete_text(self, _prompt):
+            if repair and self.first:
+                return "not a flowchart"
+            now[0] = 400.0
+            return "flowchart LR\nA --> B"
+
+    result = await generate_diagram(
+        "spec", "", LiveClient(True), client_factory=lambda _deadline: LiveClient(False)
+    )
+    assert result == "flowchart LR\nA --> B"

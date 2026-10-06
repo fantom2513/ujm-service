@@ -1,21 +1,20 @@
 import type { ApiError } from "../types/index.ts";
 import type { ChatResult, DiagramResult, PendingTurn } from "../../../shared/types/index.ts";
 import { createId } from "../utils/id.ts";
+import { forgetPendingRequest, loadPendingRequest, savePendingRequest } from "../state/pendingRequest.ts";
 
 const POLL_INTERVAL_MS = 2000;
+const TEMPORARY_HTTP_ERRORS = new Set([502, 503, 504]);
 type Accepted = { status: "processing"; sessionId: string; requestId: string };
+type TurnPayload<T> = { ok?: boolean; error?: ApiError; result?: T } & Partial<Accepted>;
 
-// A non-JSON response body (an HTML error page from a proxy/gateway on a
-// 502/504, an empty body, etc.) makes response.json() throw a raw
-// SyntaxError like `Unexpected token '<', "<!DOCTYPE "... is not valid
-// JSON`. Left uncaught, that message goes straight to the user instead of
-// something readable -- wrap it into a proper ApiError shape.
+// Proxy failures can have HTML bodies. Surface a safe API error instead of
+// exposing a JSON parser exception to the user.
 async function parseJsonResponse(response: Response): Promise<unknown> {
   try {
     return await response.json();
   } catch {
-    const error: ApiError = { code: "network-error", message: "Сервер вернул некорректный ответ" };
-    throw error;
+    throw { code: "network-error", message: "Сервер вернул некорректный ответ" } as ApiError;
   }
 }
 
@@ -25,64 +24,110 @@ export async function getConfig(): Promise<{ productHomeUrl: string }> {
   return { productHomeUrl: payload.productHomeUrl || "http://localhost:3000/" };
 }
 
-export async function generateDiagram(form: FormData, onAccepted?: (pending: PendingTurn) => void): Promise<DiagramResult> {
+export async function generateDiagram(form: FormData, onAccepted?: (pending: PendingTurn) => void, signal?: AbortSignal): Promise<DiagramResult> {
   form.set("requestId", String(form.get("requestId") || createId()));
-  return submitAndPoll<DiagramResult>("generate", "api/generate", form, onAccepted);
+  return submitAndPoll<DiagramResult>("generate", "api/generate", form, onAccepted, signal);
 }
 
-export async function sendChatMessage(sessionId: string, form: FormData, onAccepted?: (pending: PendingTurn) => void): Promise<ChatResult> {
+export async function sendChatMessage(sessionId: string, form: FormData, onAccepted?: (pending: PendingTurn) => void, signal?: AbortSignal): Promise<ChatResult> {
   form.set("sessionId", sessionId);
-  return submitAndPoll<ChatResult>("chat", "api/chat", form, onAccepted);
+  return submitAndPoll<ChatResult>("chat", "api/chat", form, onAccepted, signal);
 }
 
-async function submitAndPoll<T>(kind: PendingTurn["kind"], url: string, body: FormData, onAccepted?: (pending: PendingTurn) => void): Promise<T> {
-  while (true) {
-    const response = await fetch(url, { method: "POST", body });
-    const payload = await parseJsonResponse(response) as { ok?: boolean; error?: ApiError; result?: T } & Partial<Accepted>;
+async function submitAndPoll<T>(kind: PendingTurn["kind"], url: string, body: FormData, onAccepted?: (pending: PendingTurn) => void, signal?: AbortSignal): Promise<T> {
+  await savePendingRequest(kind, body);
+  let polling = false;
+  try {
+    signal?.throwIfAborted();
+    const response = await fetch(url, { method: "POST", body, signal });
+    const payload = await parseJsonResponse(response) as TurnPayload<T>;
+    signal?.throwIfAborted();
     if (response.status === 202 && payload.status === "processing" && payload.sessionId && payload.requestId) {
       const pending = { kind, sessionId: payload.sessionId, requestId: payload.requestId };
       onAccepted?.(pending);
-      return pollTurn<T>(pending, async () => {
-        const retry = await fetch(url, { method: "POST", body });
-        const retryPayload = await parseJsonResponse(retry) as { ok?: boolean; error?: ApiError; result?: T } & Partial<Accepted>;
-        if (retry.status === 202) return;
-        if (retry.ok && retryPayload.ok !== false) return (retryPayload.ok ? retryPayload.result : retryPayload) as T;
-        if (retry.status === 409 && retryPayload.error?.code === "request-in-progress") return;
-        throw retryPayload.error;
-      });
+      polling = true;
+      return await pollTurn<T>(pending, () => retryTurn<T>(kind, body, signal), signal);
     }
     if (!response.ok || payload.ok === false) throw payload.error;
     return (payload.ok ? payload.result : payload) as T;
+  } finally {
+    // Once accepted, pollTurn owns cleanup and preserves input when its
+    // observer is cancelled. Before acceptance there is no pending turn to
+    // resume, so do not leave an unattached upload in storage.
+    if (!polling) await forgetPendingRequest(String(body.get("requestId")));
   }
 }
 
-export async function pollTurn<T>(pending: PendingTurn, retry?: () => Promise<T | undefined>): Promise<T> {
+async function retryTurn<T>(kind: PendingTurn["kind"], body: FormData, signal?: AbortSignal): Promise<T | undefined> {
+  let response: Response;
+  try {
+    response = await fetch(`api/${kind}`, { method: "POST", body, signal });
+  } catch {
+    signal?.throwIfAborted();
+    return undefined;
+  }
+  if (TEMPORARY_HTTP_ERRORS.has(response.status)) return undefined;
+  const payload = await parseJsonResponse(response) as TurnPayload<T>;
+  if (response.status === 202) return undefined;
+  if (response.ok && payload.ok !== false) return (payload.ok ? payload.result : payload) as T;
+  if (response.status === 409 && payload.error?.code === "request-in-progress") return undefined;
+  throw payload.error;
+}
+
+function waitForPoll(signal?: AbortSignal): Promise<void> {
+  signal?.throwIfAborted();
+  return new Promise((resolve, reject) => {
+    const aborted = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", aborted);
+      reject(signal?.reason);
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", aborted);
+      resolve();
+    }, POLL_INTERVAL_MS);
+    signal?.addEventListener("abort", aborted, { once: true });
+  });
+}
+
+export async function pollTurn<T>(pending: PendingTurn, retry?: () => Promise<T | undefined>, signal?: AbortSignal): Promise<T> {
   const path = `api/${pending.kind}/${encodeURIComponent(pending.sessionId)}/turns/${encodeURIComponent(pending.requestId)}`;
-  while (true) {
-    let response: Response;
-    try {
-      response = await fetch(path);
-    } catch {
-      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-      continue;
+  try {
+    while (true) {
+      signal?.throwIfAborted();
+      let response: Response;
+      try {
+        response = await fetch(path, { signal });
+      } catch {
+        signal?.throwIfAborted();
+        await waitForPoll(signal);
+        continue;
+      }
+      if (TEMPORARY_HTTP_ERRORS.has(response.status)) {
+        await waitForPoll(signal);
+        continue;
+      }
+      const payload = await parseJsonResponse(response) as { ok?: boolean; result?: T; error?: ApiError; status?: string; retryable?: boolean };
+      signal?.throwIfAborted();
+      if (!response.ok) throw payload.error;
+      if (payload.ok) return payload.result as T;
+      if (payload.ok === false) throw payload.error;
+      if (payload && typeof payload === "object" && "sessionId" in payload) return payload as T;
+      if (payload.status === "failed" && payload.retryable) {
+        if (!retry) {
+          const body = await loadPendingRequest(pending);
+          if (!body) throw { code: "diagram-generation", message: "Задача прервалась. Повторите запрос." } as ApiError;
+          retry = () => retryTurn<T>(pending.kind, body, signal);
+        }
+        const result = await retry();
+        if (result !== undefined) return result;
+      } else if (payload.status !== "processing") {
+        throw { code: "network-error", message: "Сервер вернул неизвестное состояние" } as ApiError;
+      }
+      await waitForPoll(signal);
     }
-    if ([502, 503, 504].includes(response.status)) {
-      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-      continue;
-    }
-    const payload = await parseJsonResponse(response) as { ok?: boolean; result?: T; error?: ApiError; status?: string; retryable?: boolean };
-    if (!response.ok) throw payload.error;
-    if (payload.ok) return payload.result as T;
-    if (payload.ok === false) throw payload.error;
-    if (payload && typeof payload === "object" && "sessionId" in payload) return payload as T;
-    if (payload.status === "failed" && payload.retryable) {
-      if (!retry) throw { code: "diagram-generation", message: "Задача прервалась. Повторите запрос." } as ApiError;
-      const result = await retry();
-      if (result !== undefined) return result;
-    } else if (payload.status !== "processing") {
-      throw { code: "network-error", message: "Сервер вернул неизвестное состояние" } as ApiError;
-    }
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+  } finally {
+    if (!signal?.aborted) await forgetPendingRequest(pending.requestId);
   }
 }
 

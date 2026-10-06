@@ -1,3 +1,5 @@
+import { RenderQueue } from "./renderQueue.ts";
+
 const SVG_WIDTH = 980;
 const SVG_HEIGHT = 520;
 
@@ -12,6 +14,8 @@ interface MermaidApi {
 }
 
 let mermaidApi: MermaidApi | null = null;
+const renderQueue = new RenderQueue();
+let mermaidRenderId = 0;
 
 async function getMermaid(): Promise<MermaidApi> {
   if (mermaidApi) return mermaidApi;
@@ -33,8 +37,8 @@ async function getMermaid(): Promise<MermaidApi> {
 export async function renderMermaid(code: string): Promise<string> {
   try {
     const mermaid = await getMermaid();
-    const id = `mermaid-${Date.now()}`;
-    const { svg } = await mermaid.render(id, code);
+    const id = `mermaid-${++mermaidRenderId}`;
+    const { svg } = await renderQueue.run(() => mermaid.render(id, code));
     return svg;
   } catch (error) {
     console.error("Mermaid render error:", error);

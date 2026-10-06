@@ -175,6 +175,39 @@ async def test_chat_edit_repairs_invalid_mermaid_and_keeps_primary_usage():
     assert "Mermaid must start with 'flowchart'" in repair.text_calls[0]
 
 
+async def test_chat_edit_repairs_mermaid_syntax_error():
+    factory = ClientFactory()
+    factory.add(
+        "json_schema",
+        FakeClient(json_result={"mermaid": "flowchart LR\nA -->", "message": "Done"}),
+    )
+    repair = factory.add(
+        "json_schema", FakeClient(text_result="flowchart LR\nA --> B")
+    )
+
+    result = await chat_edit(_options(), _settings(), factory, deadline=_deadline())
+
+    assert result.mermaid_code == "flowchart LR\nA --> B"
+    assert "Parse error" in repair.text_calls[0]
+
+
+async def test_chat_edit_rejects_still_broken_syntax_after_one_repair():
+    factory = ClientFactory()
+    factory.add(
+        "json_schema",
+        FakeClient(json_result={"mermaid": "flowchart LR\nA -->", "message": "Done"}),
+    )
+    repair = factory.add(
+        "json_schema", FakeClient(text_result="flowchart LR\nB -->")
+    )
+
+    with pytest.raises(LLMError) as raised:
+        await chat_edit(_options(), _settings(), factory, deadline=_deadline())
+
+    assert raised.value.code == "SCHEMA_MISMATCH"
+    assert len(repair.text_calls) == 1
+
+
 async def test_chat_edit_raises_schema_mismatch_when_repair_is_still_invalid():
     factory = ClientFactory()
     factory.add(
@@ -250,3 +283,26 @@ async def test_chat_edit_does_not_start_repair_after_validation_expires_deadline
 
     assert raised.value.code == "TIMEOUT"
     assert factory.modes == ["json_schema"]
+
+@pytest.mark.parametrize("repair", [False, True])
+async def test_chat_syntax_validation_preserves_a_live_result_after_deadline(repair):
+    now = [0.0]
+    deadline = LLMDeadline.from_timeout_ms(1_000, clock=lambda: now[0])
+
+    class LiveClient(FakeClient):
+        async def complete_json(self, *_args):
+            if not repair:
+                now[0] = 400.0
+            return {"mermaid": "not a flowchart" if repair else "flowchart LR\nA --> B", "message": "Done"}
+
+        async def complete_text(self, _prompt):
+            now[0] = 400.0
+            return "flowchart LR\nA --> B"
+
+    factory = ClientFactory()
+    factory.add("json_schema", LiveClient())
+    if repair:
+        factory.add("json_schema", LiveClient())
+    result = await chat_edit(_options(), _settings(), factory, deadline=deadline)
+    assert result.mermaid_code == "flowchart LR\nA --> B"
+    assert result.message == "Done"

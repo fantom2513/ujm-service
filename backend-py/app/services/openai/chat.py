@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from app.config import Settings, get_settings
 from app.domain.mermaid import validate_mermaid
+from app.domain.mermaid_syntax import MermaidParserUnavailable, validate_mermaid_syntax
 from app.infrastructure.llm.client import VLLMClient
 from app.infrastructure.llm.deadline import LLMDeadline
 from app.infrastructure.llm.errors import LLMError
@@ -113,6 +114,8 @@ async def chat_edit(
     message = str(message_value if message_value is not None else "").strip()
 
     validation = validate_mermaid(mermaid_code)
+    if validation.ok:
+        validation = await validate_mermaid_syntax(mermaid_code, deadline)
     if not validation.ok:
         deadline.require_remaining()
         repair_client = client_factory(settings.llm_response_format_mode, deadline)
@@ -121,10 +124,14 @@ async def chat_edit(
                 build_repair_prompt(mermaid_code, validation.reason or "", [])
             )
             revalidation = validate_mermaid(repaired)
+            if revalidation.ok:
+                revalidation = await validate_mermaid_syntax(repaired, deadline)
             if not revalidation.ok:
                 raise ValueError(f"Repair failed: {revalidation.reason}")
             mermaid_code = repaired
         except asyncio.CancelledError:
+            raise
+        except MermaidParserUnavailable:
             raise
         except LLMError as err:
             if err.code == "TIMEOUT":

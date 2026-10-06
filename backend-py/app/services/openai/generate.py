@@ -5,6 +5,7 @@ from collections.abc import Callable
 
 from app.config import Settings, get_settings
 from app.domain.mermaid import validate_mermaid
+from app.domain.mermaid_syntax import MermaidParserUnavailable, validate_mermaid_syntax
 from app.infrastructure.llm.client import VLLMClient
 from app.infrastructure.llm.deadline import LLMDeadline
 from app.infrastructure.llm.errors import LLMError
@@ -57,6 +58,8 @@ async def generate_diagram(
     )
     validation = validate_mermaid(mermaid_code)
     if validation.ok:
+        validation = await validate_mermaid_syntax(mermaid_code, deadline)
+    if validation.ok:
         return mermaid_code
 
     deadline.require_remaining()
@@ -65,10 +68,15 @@ async def generate_diagram(
         repaired = await repair_client.complete_text(
             build_repair_prompt(mermaid_code, validation.reason or "", [])
         )
-        if not validate_mermaid(repaired).ok:
-            raise ValueError("Repair output failed Mermaid validation")
+        revalidation = validate_mermaid(repaired)
+        if revalidation.ok:
+            revalidation = await validate_mermaid_syntax(repaired, deadline)
+        if not revalidation.ok:
+            raise ValueError(f"Repair output failed Mermaid validation: {revalidation.reason}")
         return repaired
     except asyncio.CancelledError:
+        raise
+    except MermaidParserUnavailable:
         raise
     except LLMError as err:
         if err.code == "TIMEOUT":

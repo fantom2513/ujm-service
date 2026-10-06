@@ -14,10 +14,14 @@ stages:
   - docker-compose*.yaml
   - package.json
   - pnpm-lock.yaml
+  - package-lock.json
   - .gitlab-ci.yml
 
 test-py:
   stage: test
+  needs:
+    - job: test-node
+      artifacts: true
   image: nexus.sogaz.ru/python:3.12-bookworm
   services:
     - name: nexus.sogaz.ru/library/postgres:15-alpine
@@ -35,6 +39,11 @@ test-py:
   tags:
     - ux02-copilot_docker
   script:
+    - chmod +x "$CI_PROJECT_DIR/.ci-runtime/node"
+    - export PATH="$CI_PROJECT_DIR/.ci-runtime:$PATH"
+    - export MERMAID_MODULE_PATH="$CI_PROJECT_DIR/node_modules/mermaid/dist/mermaid.esm.min.mjs"
+    - node --version
+    - printf 'flowchart LR\nA["Start"] --> B["Finish"]\n' | node backend-py/app/domain/mermaid_parser.mjs | grep -q '"ok":true'
     - pip install --no-cache-dir uv
     - cd backend-py
     - uv sync
@@ -64,9 +73,16 @@ test-node:
   tags:
     - ux02-copilot_docker
   script:
-    - npm install --no-audit --no-fund
+    - npm ci --no-audit --no-fund
     - npm test
     - npm run build
+    - mkdir -p .ci-runtime
+    - cp "$(command -v node)" .ci-runtime/node
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - .ci-runtime/
+      - node_modules/
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
       changes: *changes

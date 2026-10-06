@@ -46,7 +46,8 @@ rather than being mitigated by picking bigger numbers.
 
 ### `/api/chat` — reuses the existing `turns` machinery almost as-is
 
-Today, `ChatService.run_chat()` (`chat_service.py:102-`) already does, in
+Today, `ChatService.run_chat()` (`backend-py/app/services/chat/service.py:102-`)
+already does, in
 order: resolve/bind owner → create one `LLMDeadline` → **claim or replay
 via `turns`** (`claim_or_take_over`, already fully durable in Postgres
 before the LLM is ever called) → acquire session lease → load context →
@@ -116,8 +117,11 @@ race being fixed here.
 **What happens if the claim is lost anyway** (heartbeat itself fails
 repeatedly, or a `rowcount == 0` shows someone else took over): this
 codebase already has a policy for the analogous session-lease case
-(`DESIGN-RATIONALE.md` section 06 — "Cleanup не должен маскировать
-основной результат; последняя страховка — TTL"), and claim heartbeat
+(`.intern/DESIGN-RATIONALE.md`, section "06. Лиза, CAS и идемпотентность",
+subsection "Протухший `turns` claim": claim TTL is sized as the end-to-end
+deadline plus margin specifically so a live attempt isn't reclaimed early,
+and every terminating UPDATE/DELETE fences on `claim_token` so a
+superseded process can't clobber a new owner's result), and claim heartbeat
 follows the same one rather than inventing a stricter rule. `complete()`
 already fences on `claim_token`, so a worker that lost its claim
 *structurally cannot* write a result under a superseded token — that part
@@ -380,13 +384,17 @@ retry.py:    53 (top of attempt loop — gates next attempt, keep)
                  next attempt, keep)
 service.py: 158 (sizes the initial turns claim TTL — keep, see claim
                  heartbeat below for what covers time *after* this)
-chat.py:    108 (post-fallback-success, before deciding whether repair is
+chat.py:    109 (post-fallback-success, before deciding whether repair is
                  needed — gates a possible next attempt, keep)
-            115 (same, after validate_mermaid — gates repair, keep)
-            122 (post-repair-success, pre-revalidate — terminal, REMOVE)
-            124 (post-revalidate-success — terminal, REMOVE)
-            146 (final return — terminal, REMOVE)
+            116 (same, after validate_mermaid — gates repair, keep)
+            125 (post-repair-success, pre-revalidate — terminal, REMOVE)
+            127 (post-revalidate-success — terminal, REMOVE)
+            153 (final return — terminal, REMOVE)
 ```
+(Line numbers above are as of the current working tree, which includes an
+uncommitted, unrelated Mermaid-syntax-validation change to this file that
+shifted every downstream line by a few; re-check against HEAD before use if
+that change lands or is reverted first.)
 
 Rule of thumb for implementation: a `require_remaining()` call is correct
 only when a **new** LLM attempt (fresh `_post()`, retry iteration, fallback
@@ -446,8 +454,9 @@ timeouts anymore, since no single outer request spans the whole duration):
 - Retention/cleanup of old completed `turns` rows — already explicitly
   deferred in task 08, unaffected by this change.
 - Process-wide concurrency semaphore and circuit breaker
-  (`DESIGN-RATIONALE.md` section 07) — process-local semantics need a
-  separate decision on N-worker behavior first.
+  (`.intern/DESIGN-RATIONALE.md`, section "07. Стриминг и наблюдаемость")
+  — process-local semantics need a separate decision on N-worker behavior
+  first.
 
 ## Test plan
 

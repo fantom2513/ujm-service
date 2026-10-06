@@ -6,6 +6,7 @@ import { inlineIcons } from "./generated/inline-icons.ts";
 import { clearState, isCurrentChatSession, loadState, resetState, saveState } from "./state/session.ts";
 import { CHAT_ATTACHMENT_ACCEPT, extensionOf, validateChatFile } from "./utils/chatAttachments.ts";
 import { diagramSize, downloadPdf, downloadPng, downloadSvg, getCachedSvg, renderMermaid, setCachedSvg } from "./utils/export.ts";
+import { forgetPendingRequest } from "./state/pendingRequest.ts";
 import { createId } from "./utils/id.ts";
 import { RenderSequence } from "./utils/renderSequence.ts";
 
@@ -24,6 +25,7 @@ let chatFiles: File[] = [];
 const messageFiles = new Map<string, File[]>();
 let isLoading = state.pendingTurn?.kind === "generate";
 let isChatLoading = state.pendingTurn?.kind === "chat";
+let pendingTurnController: AbortController | undefined;
 const GENERATING_PHRASES = ["Анализирую", "Думаю…", "Вношу правки…", "Секунду, обновляю схему…"];
 const GENERATING_PHRASE_INTERVAL_MS = 2500;
 let generatingPhraseTimer: ReturnType<typeof setInterval> | undefined;
@@ -53,6 +55,17 @@ void getConfig().then((config) => {
   persist();
   render();
 });
+
+function observePendingTurn(): AbortController {
+  pendingTurnController?.abort();
+  const controller = new AbortController();
+  pendingTurnController = controller;
+  return controller;
+}
+
+function isObservedTurn(controller: AbortController, activeState: AppState): boolean {
+  return state === activeState && pendingTurnController === controller && !controller.signal.aborted;
+}
 
 function persist(): void {
   saveState(state);
@@ -734,6 +747,9 @@ function bindResultEvents(): void {
     render();
   });
   document.querySelector<HTMLButtonElement>("#modal-confirm")?.addEventListener("click", () => {
+    pendingTurnController?.abort();
+    pendingTurnController = undefined;
+    if (state.pendingTurn) void forgetPendingRequest(state.pendingTurn.requestId);
     clearState();
     state = resetState(state);
     activeModal = null;
@@ -926,6 +942,7 @@ async function buildDiagram(): Promise<void> {
   }
 
   const activeState = state;
+  const controller = observePendingTurn();
   isLoading = true;
   render();
   try {
@@ -935,12 +952,12 @@ async function buildDiagram(): Promise<void> {
     if (state.start.sourceType === "link") form.set("link", state.start.link);
     if (selectedFile) form.set("file", selectedFile);
     const result = await generateDiagram(form, (pending) => {
-      if (state !== activeState) return;
+      if (!isObservedTurn(controller, activeState)) return;
       state.pendingTurn = pending;
       persist();
       render();
-    });
-    if (state !== activeState) return;
+    }, controller.signal);
+    if (!isObservedTurn(controller, activeState)) return;
     state.pendingTurn = undefined;
     sourceFile = selectedFile;
     sourceDetailsOpen = false;
@@ -952,11 +969,11 @@ async function buildDiagram(): Promise<void> {
     persist();
     void renderMermaidAndUpdate(result.mermaidCode);
   } catch (error) {
-    if (state !== activeState) return;
+    if (!isObservedTurn(controller, activeState)) return;
     state.pendingTurn = undefined;
     state.start.error = normalizeApiError(error, "generate");
   } finally {
-    if (state === activeState) {
+    if (isObservedTurn(controller, activeState)) {
       isLoading = false;
       persist();
       render();
@@ -970,6 +987,7 @@ async function sendChat(): Promise<void> {
   const text = state.chatDraft.trim();
   const attachments = getChatAttachments();
   if (!text && !attachments.length) return;
+  const controller = observePendingTurn();
   const draftBeforeSend = state.chatDraft;
 
   const userMessage: ChatMessage = {
@@ -1007,12 +1025,12 @@ async function sendChat(): Promise<void> {
     if (attachmentFile) form.set("file", attachmentFile);
 
     const result = await sendChatMessage(state.result.sessionId, form, (pending) => {
-      if (state !== activeState) return;
+      if (!isObservedTurn(controller, activeState)) return;
       state.pendingTurn = pending;
       persist();
       render();
-    });
-    if (state !== activeState || !isCurrentChatSession(state, requestedSessionId)) return;
+    }, controller.signal);
+    if (!isObservedTurn(controller, activeState) || !isCurrentChatSession(state, requestedSessionId)) return;
 
     state.pendingTurn = undefined;
     state.result.sessionId = result.sessionId;
@@ -1029,7 +1047,7 @@ async function sendChat(): Promise<void> {
     if (shouldScroll) queueChatScroll(true);
     void renderMermaidAndUpdate(result.mermaidCode);
   } catch (error) {
-    if (state === activeState && isCurrentChatSession(state, requestedSessionId)) {
+    if (isObservedTurn(controller, activeState) && isCurrentChatSession(state, requestedSessionId)) {
       state.pendingTurn = undefined;
       state.chatDraft = draftBeforeSend;
       const apiError = normalizeApiError(error, "chat");
@@ -1042,7 +1060,7 @@ async function sendChat(): Promise<void> {
       });
     }
   } finally {
-    if (state === activeState) {
+    if (isObservedTurn(controller, activeState)) {
       stopGeneratingPhraseRotation();
       isChatLoading = false;
       persist();
@@ -1053,25 +1071,30 @@ async function sendChat(): Promise<void> {
 
 async function resumePendingTurn(pending: PendingTurn): Promise<void> {
   const activeState = state;
+  const controller = observePendingTurn();
+  isLoading = pending.kind === "generate";
+  isChatLoading = pending.kind === "chat";
+  if (isChatLoading) startGeneratingPhraseRotation();
+  render();
   try {
     if (pending.kind === "generate") {
-      const result = await pollTurn<DiagramResult>(pending);
-      if (state.pendingTurn?.requestId !== pending.requestId) return;
+      const result = await pollTurn<DiagramResult>(pending, undefined, controller.signal);
+      if (!isObservedTurn(controller, activeState) || state.pendingTurn?.requestId !== pending.requestId) return;
       state.pendingTurn = undefined;
       state.result = result;
       state.page = "result";
       state.view = centeredView();
       void renderMermaidAndUpdate(result.mermaidCode);
     } else {
-      const result = await pollTurn<ChatResult>(pending);
-      if (state.pendingTurn?.requestId !== pending.requestId || !isCurrentChatSession(state, pending.sessionId)) return;
+      const result = await pollTurn<ChatResult>(pending, undefined, controller.signal);
+      if (!isObservedTurn(controller, activeState) || state.pendingTurn?.requestId !== pending.requestId || !isCurrentChatSession(state, pending.sessionId)) return;
       state.pendingTurn = undefined;
       state.result.mermaidCode = result.mermaidCode;
       state.result.chat.push({ id: createId(), role: "assistant", text: result.message, createdAt: new Date().toISOString() });
       void renderMermaidAndUpdate(result.mermaidCode);
     }
   } catch (error) {
-    if (state.pendingTurn?.requestId !== pending.requestId) return;
+    if (!isObservedTurn(controller, activeState) || state.pendingTurn?.requestId !== pending.requestId) return;
     state.pendingTurn = undefined;
     const apiError = normalizeApiError(error, pending.kind);
     if (pending.kind === "generate") state.start.error = apiError;
@@ -1079,7 +1102,8 @@ async function resumePendingTurn(pending: PendingTurn): Promise<void> {
       state.result.chat.push({ id: createId(), role: "assistant", text: apiError.message, createdAt: new Date().toISOString(), temporary: true });
     }
   } finally {
-    if (state === activeState) {
+    if (isObservedTurn(controller, activeState)) {
+      stopGeneratingPhraseRotation();
       isLoading = false;
       isChatLoading = false;
       persist();
@@ -1328,9 +1352,15 @@ function escapeHtml(value: string): string {
 }
 
 window.addEventListener("popstate", () => {
+  pendingTurnController?.abort();
+  pendingTurnController = undefined;
+  stopGeneratingPhraseRotation();
   state = loadState();
+  isLoading = state.pendingTurn?.kind === "generate";
+  isChatLoading = state.pendingTurn?.kind === "chat";
   render();
   restoreResultView();
+  if (state.pendingTurn) void resumePendingTurn(state.pendingTurn);
 });
 
 render();

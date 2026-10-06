@@ -8,3 +8,5 @@ frontend/dist
 *.log
 npm-debug.log*
 docs/superpowers
+
+.ci-runtime
