@@ -49,12 +49,14 @@ test-py:
     - uv sync
     - |
       for i in $(seq 1 30); do
-        if uv run alembic current >/dev/null 2>&1; then
+        if uv run alembic current >postgres-readiness.log 2>&1; then
           echo "PostgreSQL ready"
           break
         fi
         if [ "$i" = "30" ]; then
-          echo "PostgreSQL did not become ready" && exit 1
+          echo "PostgreSQL readiness check failed after 30 attempts; last Alembic error:"
+          cat postgres-readiness.log
+          exit 1
         fi
         sleep 1
       done
