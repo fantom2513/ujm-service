@@ -1,7 +1,7 @@
 networks:
   cx_net:
     external: true
-    name: cx_copilot_cx_net
+    name: cx-app_cx_net
 
 volumes:
   ux-architecture-postgres-test-data:
