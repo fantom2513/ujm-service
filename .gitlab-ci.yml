@@ -49,12 +49,14 @@ test-py:
     - uv sync
     - |
       for i in $(seq 1 30); do
-        if uv run alembic current >/dev/null 2>&1; then
+        if uv run alembic current >postgres-readiness.log 2>&1; then
           echo "PostgreSQL ready"
           break
         fi
         if [ "$i" = "30" ]; then
-          echo "PostgreSQL did not become ready" && exit 1
+          echo "PostgreSQL readiness check failed after 30 attempts; last Alembic error:"
+          cat postgres-readiness.log
+          exit 1
         fi
         sleep 1
       done
@@ -88,6 +90,27 @@ test-node:
       changes: *changes
     - if: $CI_COMMIT_BRANCH == "test" || $CI_COMMIT_BRANCH == "master"
 
+.disk-preflight:
+  script:
+    - |
+      MIN_FREE_GB="${MIN_FREE_GB:-15}"
+      case "$MIN_FREE_GB" in
+        ''|*[!0-9]*|0*) echo "disk-preflight: MIN_FREE_GB must be a positive integer, got '$MIN_FREE_GB'"; exit 1 ;;
+      esac
+      root="$(docker info --format '{{.DockerRootDir}}')"
+      if [ -z "$root" ]; then echo "disk-preflight: cannot read DockerRootDir"; exit 1; fi
+      if ! out="$(docker run --rm --entrypoint df -v "$root:/docker-data:ro" "${CI_JOB_IMAGE:-alpine}" -Pk /docker-data)"; then
+        echo "disk-preflight: disk space measurement failed"; exit 1
+      fi
+      avail_kb="$(echo "$out" | awk 'NR==2 {print $4}')"
+      case "$avail_kb" in
+        ''|*[!0-9]*) echo "disk-preflight: unexpected df output: $out"; exit 1 ;;
+      esac
+      if ! awk -v a="$avail_kb" -v t="$((MIN_FREE_GB * 1024 * 1024))" 'BEGIN { exit !(a >= t) }'; then
+        echo "disk-preflight: only $((avail_kb / 1024 / 1024)) GiB free under $root, need $MIN_FREE_GB GiB"; exit 1
+      fi
+      echo "disk-preflight: ok, $((avail_kb / 1024 / 1024)) GiB free under $root"
+
 build-test:
   stage: build
   image: nexus.sogaz.ru/docker:25.0
@@ -102,6 +125,8 @@ build-test:
     - echo "$ENV_TEST" > .env
     - echo "ENV loaded"
     - docker compose -f docker-compose.test.yaml build
+  after_script:
+    - rm -f .env
   rules:
     - if: $CI_COMMIT_BRANCH == "test"
       changes: *changes
@@ -122,6 +147,8 @@ build-prod:
     - echo "$ENV_PROD" > .env
     - echo "ENV loaded"
     - docker compose -f docker-compose.prod.yaml build
+  after_script:
+    - rm -f .env
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
       changes: *changes
@@ -130,6 +157,7 @@ build-prod:
 
 deploy-test:
   stage: deploy
+  resource_group: deploy-test
   image: nexus.sogaz.ru/docker:25.0-dind
   variables:
     DOCKER_HOST: unix:///var/run/docker.sock
@@ -137,9 +165,23 @@ deploy-test:
   tags:
     - ux02-copilot_docker
   script:
+    - !reference [.disk-preflight, script]
     - echo "$ENV_TEST" > .env
     - echo "ENV loaded"
-    - docker compose -f docker-compose.test.yaml up -d --build --force-recreate
+    - |
+      if [ "${SKIP_DB_BACKUP:-0}" = "1" ]; then
+        echo "Skipping database backup: SKIP_DB_BACKUP=1 (first deployment only)"
+      else
+        mkdir -p /data/db_backup/ux-architecture-test
+        file="/data/db_backup/ux-architecture-test/backup_ux-architecture-$(date +%Y%m%d_%H%M%S).sql"
+        if ! docker exec ux-architecture-postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB"' > "$file" || ! test -s "$file"; then
+          rm -f "$file"
+          echo "Database backup failed or empty: $file"
+          exit 1
+        fi
+        echo "Database backup saved: $file ($(wc -c < "$file") bytes)"
+      fi
+    - docker compose -f docker-compose.test.yaml up -d --build --remove-orphans
     - echo "Waiting for ux-architecture-backend to be healthy..."
     - |
       for i in $(seq 1 30); do
@@ -148,6 +190,8 @@ deploy-test:
         if [ "$i" = "30" ]; then echo "backend did not become healthy in time" && exit 1; fi
         sleep 3
       done
+  after_script:
+    - rm -f .env
   rules:
     - if: $CI_COMMIT_BRANCH == "test"
       changes: *changes
@@ -157,6 +201,7 @@ deploy-test:
 
 deploy-prod:
   stage: deploy
+  resource_group: deploy-prod
   image: nexus.sogaz.ru/docker:25.0-dind
   variables:
     DOCKER_HOST: unix:///var/run/docker.sock
@@ -164,9 +209,23 @@ deploy-prod:
   tags:
     - ux01-copilot_docker
   script:
+    - !reference [.disk-preflight, script]
     - echo "$ENV_PROD" > .env
     - echo "ENV loaded"
-    - docker compose -f docker-compose.prod.yaml up -d --build --force-recreate
+    - |
+      if [ "${SKIP_DB_BACKUP:-0}" = "1" ]; then
+        echo "Skipping database backup: SKIP_DB_BACKUP=1 (first deployment only)"
+      else
+        mkdir -p /data/db_backup/ux-architecture-prod
+        file="/data/db_backup/ux-architecture-prod/backup_ux-architecture-$(date +%Y%m%d_%H%M%S).sql"
+        if ! docker exec ux-architecture-postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB"' > "$file" || ! test -s "$file"; then
+          rm -f "$file"
+          echo "Database backup failed or empty: $file"
+          exit 1
+        fi
+        echo "Database backup saved: $file ($(wc -c < "$file") bytes)"
+      fi
+    - docker compose -f docker-compose.prod.yaml up -d --build --remove-orphans
     - echo "Waiting for ux-architecture-backend to be healthy..."
     - |
       for i in $(seq 1 30); do
@@ -175,6 +234,8 @@ deploy-prod:
         if [ "$i" = "30" ]; then echo "backend did not become healthy in time" && exit 1; fi
         sleep 3
       done
+  after_script:
+    - rm -f .env
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
       changes: *changes

@@ -1,7 +1,7 @@
 networks:
   cx_net:
     external: true
-    name: cx_copilot_cx_net
+    name: cx-app_cx_net
 
 volumes:
   ux-architecture-postgres-test-data:
@@ -38,7 +38,7 @@ services:
       APP_HOST: 0.0.0.0
       APP_PORT: 8001
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set}
-      IDENTITY_MODE: anonymous
+      IDENTITY_MODE: ${IDENTITY_MODE:-anonymous}
     command:
       - /bin/sh
       - -c
