@@ -39,3 +39,9 @@ def test_backup_precedes_deploy(env):
 def test_external_network(env, network):
     compose = (ROOT / f"docker-compose.{env}.yaml").read_text(encoding="utf-8")
     assert f"    external: true\n    name: {network}\n" in compose
+
+
+@pytest.mark.parametrize("env", ["test", "prod"])
+def test_identity_mode_can_be_configured_for_gateway_cutover(env):
+    compose = (ROOT / f"docker-compose.{env}.yaml").read_text(encoding="utf-8")
+    assert "IDENTITY_MODE: ${IDENTITY_MODE:-anonymous}" in compose
